@@ -32,18 +32,22 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
 import java.util.Optional;
 import java.util.UUID;
+import net.minecraft.core.registries.Registries;
 
 public class TeletorEntity extends Monster {
 
@@ -65,10 +69,10 @@ public class TeletorEntity extends Monster {
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(WEAPON_UUID, Optional.empty());
-        this.entityData.define(WEAPON_ID, -1);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(WEAPON_UUID, Optional.empty());
+        builder.define(WEAPON_ID, -1);
     }
 
     protected void registerGoals() {
@@ -139,7 +143,7 @@ public class TeletorEntity extends Monster {
     }
 
     protected float getStandingEyeHeight(Pose pose, EntityDimensions dimensions) {
-        return 0.55F * dimensions.height;
+        return 0.55F * dimensions.height();
     }
 
     public boolean areLegsCrossed(float limbSwing) {
@@ -219,25 +223,25 @@ public class TeletorEntity extends Monster {
     }
 
     @javax.annotation.Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn, @javax.annotation.Nullable CompoundTag dataTag) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn) {
         MagneticWeaponEntity magneticWeapon = ACEntityRegistry.MAGNETIC_WEAPON.get().create(this.level());
         ItemStack stack = createItemStack(level().getRandom());
         float f = difficultyIn.getSpecialMultiplier();
-        if (level().getRandom().nextFloat() < 0.25F * (f + 0.5F)) {
-            stack = EnchantmentHelper.enchantItem(level().getRandom(), stack, (int) (5.0F + f * (float) level().getRandom().nextInt(18)), false);
+        if (level().getRandom().nextFloat() < 0.25F * (f + 0.5F) && this.level() instanceof ServerLevel serverLevel) {
+            stack = EnchantmentHelper.enchantItem(level().getRandom(), stack, (int) (5.0F + f * (float) level().getRandom().nextInt(18)), serverLevel.registryAccess(), Optional.empty());
         }
         magneticWeapon.setItemStack(stack);
         magneticWeapon.setPos(this.getWeaponPosition());
         magneticWeapon.setControllerUUID(this.getUUID());
         this.setWeaponUUID(magneticWeapon.getUUID());
         level().addFreshEntity(magneticWeapon);
-        return super.finalizeSpawn(level, difficultyIn, reason, spawnDataIn, dataTag);
+        return super.finalizeSpawn(level, difficultyIn, reason, spawnDataIn);
     }
 
 
     public ItemStack createItemStack(RandomSource random) {
         if (HELD_ITEM_POSSIBILITIES == null || HELD_ITEM_POSSIBILITIES.isEmpty()) {
-            HELD_ITEM_POSSIBILITIES = ForgeRegistries.ITEMS.getValues().stream().filter(item -> item.builtInRegistryHolder().is(ACTagRegistry.TELETOR_SPAWNS_WITH)).collect(ImmutableList.toImmutableList());
+            HELD_ITEM_POSSIBILITIES = BuiltInRegistries.ITEM.stream().filter(item -> item.builtInRegistryHolder().is(ACTagRegistry.TELETOR_SPAWNS_WITH)).collect(ImmutableList.toImmutableList());
         }
         if (HELD_ITEM_POSSIBILITIES.size() <= 0 || random.nextFloat() < 0.3F) {
             return new ItemStack(Items.IRON_SWORD);
@@ -263,7 +267,7 @@ public class TeletorEntity extends Monster {
         if (weapon instanceof MagneticWeaponEntity magneticWeapon) {
             ItemStack itemstack = magneticWeapon.getItemStack();
             float f = this.getEquipmentDropChance(EquipmentSlot.MAINHAND);
-            if (!itemstack.isEmpty() && !EnchantmentHelper.hasVanishingCurse(itemstack) && this.random.nextFloat() < f) {
+            if (!itemstack.isEmpty() && !EnchantmentHelper.has(itemstack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP) && this.random.nextFloat() < f) {
                 if (itemstack.isDamageableItem()) {
                     itemstack.setDamageValue(itemstack.getMaxDamage() - this.random.nextInt(1 + this.random.nextInt(Math.max(itemstack.getMaxDamage() - 3, 1))));
                 }
@@ -274,7 +278,7 @@ public class TeletorEntity extends Monster {
     }
 
     public boolean canBeAffected(MobEffectInstance effectInstance) {
-        return super.canBeAffected(effectInstance) && effectInstance.getEffect() != ACEffectRegistry.MAGNETIZING.get();
+        return super.canBeAffected(effectInstance) && effectInstance.getEffect() != ACEffectRegistry.MAGNETIZING;
     }
 
     protected SoundEvent getAmbientSound() {

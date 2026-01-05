@@ -19,7 +19,7 @@ public class LimestoneSpearItem extends SpearItem {
 
     public void releaseUsing(ItemStack itemStack, Level level, LivingEntity livingEntity, int i1) {
         if (livingEntity instanceof Player player) {
-            int i = this.getUseDuration(itemStack) - i1;
+            int i = this.getUseDuration(itemStack, livingEntity) - i1;
             float f = getPowerForTime(i);
             if (f > 0.1D) {
                 LimestoneSpearEntity spearEntity = new LimestoneSpearEntity(level, player, itemStack);

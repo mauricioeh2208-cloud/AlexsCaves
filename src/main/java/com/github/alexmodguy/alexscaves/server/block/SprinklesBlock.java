@@ -59,7 +59,7 @@ public class SprinklesBlock extends Block {
         return state.getFluidState().isEmpty();
     }
 
-    public boolean isPathfindable(BlockState blockState, BlockGetter getter, BlockPos blockPos, PathComputationType computationType) {
-        return computationType == PathComputationType.AIR && !this.hasCollision ? true : super.isPathfindable(blockState, getter, blockPos, computationType);
+    public boolean isPathfindable(BlockState blockState, PathComputationType computationType) {
+        return computationType == PathComputationType.AIR && !this.hasCollision ? true : super.isPathfindable(blockState, computationType);
     }
 }

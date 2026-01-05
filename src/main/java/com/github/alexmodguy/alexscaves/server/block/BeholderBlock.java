@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.ACBlockEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.BeholderBlockEntity;
 import com.github.alexmodguy.alexscaves.server.misc.ACMath;
@@ -35,6 +36,11 @@ public class BeholderBlock extends BaseEntityBlock implements SimpleWaterloggedB
     protected BeholderBlock() {
         super(Properties.of().mapColor(MapColor.COLOR_RED).noCollission().strength(1F, 12.0F).sound(ACSoundTypes.BEHOLDER));
         this.registerDefaultState(this.defaultBlockState().setValue(WATERLOGGED, Boolean.valueOf(false)));
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return MapCodec.unit(this);
     }
 
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {

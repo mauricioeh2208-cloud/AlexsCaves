@@ -30,7 +30,7 @@ public class CrushedBlockRenderer extends EntityRenderer<CrushedBlockEntity> {
         stack.pushPose();
         for (MovingBlockData data : entity.getData()) {
             BlockState blockstate = data.getState();
-            if (blockstate.getRenderShape() != RenderShape.INVISIBLE) {
+            if (blockstate.getRenderShape() != net.minecraft.world.level.block.RenderShape.INVISIBLE) {
                 stack.pushPose();
                 stack.translate(-0.5D, -0.5D, -0.5D);
                 stack.translate(data.getOffset().getX(), data.getOffset().getY(), data.getOffset().getZ());

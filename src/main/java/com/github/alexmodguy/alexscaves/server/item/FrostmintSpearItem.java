@@ -24,7 +24,7 @@ public class FrostmintSpearItem extends SpearItem {
 
     public void releaseUsing(ItemStack itemStack, Level level, LivingEntity livingEntity, int i1) {
         if (livingEntity instanceof Player player) {
-            int i = this.getUseDuration(itemStack) - i1;
+            int i = this.getUseDuration(itemStack, livingEntity) - i1;
             float f = getPowerForTime(i);
             if (f > 0.1D) {
                 FrostmintSpearEntity spearEntity = new FrostmintSpearEntity(level, player, itemStack);

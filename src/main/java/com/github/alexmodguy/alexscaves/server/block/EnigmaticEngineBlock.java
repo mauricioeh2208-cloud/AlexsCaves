@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.ACBlockEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.EnigmaticEngineBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -22,6 +23,11 @@ import org.jetbrains.annotations.Nullable;
 public class EnigmaticEngineBlock extends BaseEntityBlock {
     public EnigmaticEngineBlock() {
         super(Properties.of().mapColor(MapColor.COLOR_ORANGE).requiresCorrectToolForDrops().strength(6F, 12.0F).sound(SoundType.COPPER));
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return MapCodec.unit(this);
     }
 
     public RenderShape getRenderShape(BlockState state) {

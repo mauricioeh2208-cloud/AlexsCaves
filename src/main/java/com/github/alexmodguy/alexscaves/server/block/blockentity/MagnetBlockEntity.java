@@ -13,6 +13,7 @@ import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -27,8 +28,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,7 +86,7 @@ public class MagnetBlockEntity extends BlockEntity {
                                 BlockState moveState = level.getBlockState(pos);
                                 BlockEntity te = level.getBlockEntity(pos);
                                 BlockPos offset = pos.subtract(checkMetalAt);
-                                MovingBlockData data = new MovingBlockData(moveState, moveState.getShape(level, pos), offset, te == null ? null : te.saveWithoutMetadata());
+                                MovingBlockData data = new MovingBlockData(moveState, moveState.getShape(level, pos), offset, te == null ? null : te.saveWithoutMetadata(level.registryAccess()));
                                 level.removeBlockEntity(pos);
                                 allData.add(data);
                             }
@@ -274,14 +275,16 @@ public class MagnetBlockEntity extends BlockEntity {
         }
     }
 
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         this.extenderIngots = tag.getInt("ExtenderIngots");
         this.retracterIngots = tag.getInt("RetractorIngots");
     }
 
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
         tag.putInt("ExtenderIngots", this.extenderIngots);
         tag.putInt("RetractorIngots", this.retracterIngots);
     }

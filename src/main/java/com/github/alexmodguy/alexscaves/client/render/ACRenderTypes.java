@@ -11,7 +11,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.client.ForgeRenderTypes;
 
 
 public class ACRenderTypes extends RenderType {
@@ -143,7 +142,7 @@ public class ACRenderTypes extends RenderType {
     }
 
     public static RenderType getRadiationGlow(ResourceLocation locationIn) {
-        return create("radiation_glow", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
+        return create("radiation_glow", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
                 .setShaderState(RENDERTYPE_IRRADIATED_SHADER)
                 .setCullState(NO_CULL)
                 .setTextureState(new RenderStateShard.TextureStateShard(locationIn, false, false))
@@ -154,7 +153,7 @@ public class ACRenderTypes extends RenderType {
     }
 
     public static RenderType getBlueRadiationGlow(ResourceLocation locationIn) {
-        return create("blue_radiation_glow", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
+        return create("blue_radiation_glow", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
                 .setShaderState(RENDERTYPE_BLUE_IRRADIATED_SHADER)
                 .setCullState(NO_CULL)
                 .setTextureState(new RenderStateShard.TextureStateShard(locationIn, false, false))
@@ -198,7 +197,7 @@ public class ACRenderTypes extends RenderType {
     }
 
     public static RenderType getHologram(ResourceLocation locationIn) {
-        return create("hologram", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
+        return create("hologram", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
                 .setShaderState(RENDERTYPE_BEACON_BEAM_SHADER)
                 .setCullState(NO_CULL)
                 .setTextureState(new RenderStateShard.TextureStateShard(locationIn, false, false))
@@ -243,7 +242,7 @@ public class ACRenderTypes extends RenderType {
                     .setOverlayState(OVERLAY)
                     .createCompositeState(true));
         }else{
-            return ForgeRenderTypes.getUnlitTranslucent(locationIn);
+            return RenderType.entityTranslucent(locationIn);
         }
 
     }
@@ -281,7 +280,7 @@ public class ACRenderTypes extends RenderType {
     }
 
     public static RenderType getPurpleWitch(ResourceLocation locationIn) {
-        return create("purple_witch", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
+        return create("purple_witch", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
                 .setShaderState(RENDERTYPE_PURPLE_WITCH_SHADER)
                 .setCullState(NO_CULL)
                 .setTextureState(new RenderStateShard.TextureStateShard(locationIn, false, false))

@@ -51,10 +51,10 @@ public class CaveMapRenderHelper {
         poseStack.scale(0.0078125F, 0.0078125F, 0.0078125F);
         VertexConsumer vertexconsumer = multiBufferSource.getBuffer(ACRenderTypes.getCaveMapBackground(CaveMapRenderer.MAP_BACKGROUND, showBackground));
         Matrix4f matrix4f = poseStack.last().pose();
-        vertexconsumer.vertex(matrix4f, -7.0F, 135.0F, 0.0F).color(255, 255, 255, 255).uv(0.0F, 1.0F).uv2(light).endVertex();
-        vertexconsumer.vertex(matrix4f, 135.0F, 135.0F, 0.0F).color(255, 255, 255, 255).uv(1.0F, 1.0F).uv2(light).endVertex();
-        vertexconsumer.vertex(matrix4f, 135.0F, -7.0F, 0.0F).color(255, 255, 255, 255).uv(1.0F, 0.0F).uv2(light).endVertex();
-        vertexconsumer.vertex(matrix4f, -7.0F, -7.0F, 0.0F).color(255, 255, 255, 255).uv(0.0F, 0.0F).uv2(light).endVertex();
+        vertexconsumer.addVertex(matrix4f, -7.0F, 135.0F, 0.0F).setColor(255, 255, 255, 255).setUv(0.0F, 1.0F).setLight(light);
+        vertexconsumer.addVertex(matrix4f, 135.0F, 135.0F, 0.0F).setColor(255, 255, 255, 255).setUv(1.0F, 1.0F).setLight(light);
+        vertexconsumer.addVertex(matrix4f, 135.0F, -7.0F, 0.0F).setColor(255, 255, 255, 255).setUv(1.0F, 0.0F).setLight(light);
+        vertexconsumer.addVertex(matrix4f, -7.0F, -7.0F, 0.0F).setColor(255, 255, 255, 255).setUv(0.0F, 0.0F).setLight(light);
         CaveMapRenderer.getMapFor(caveMapItem, true).render(poseStack, multiBufferSource, caveMapItem, false, light);
 
     }
@@ -83,7 +83,7 @@ public class CaveMapRenderHelper {
     }
 
     private static void renderMapHand(PoseStack poseStack, MultiBufferSource bufferSource, int i, HumanoidArm humanoidArm) {
-        RenderSystem.setShaderTexture(0, Minecraft.getInstance().player.getSkinTextureLocation());
+        RenderSystem.setShaderTexture(0, Minecraft.getInstance().player.getSkin().texture());
         PlayerRenderer playerrenderer = (PlayerRenderer)Minecraft.getInstance().getEntityRenderDispatcher().<AbstractClientPlayer>getRenderer(Minecraft.getInstance().player);
         poseStack.pushPose();
         float f = humanoidArm == HumanoidArm.RIGHT ? 1.0F : -1.0F;
@@ -114,7 +114,7 @@ public class CaveMapRenderHelper {
         poseStack.mulPose(Axis.YP.rotationDegrees(f * f6 * 70.0F));
         poseStack.mulPose(Axis.ZP.rotationDegrees(f * f5 * -20.0F));
         AbstractClientPlayer abstractclientplayer = Minecraft.getInstance().player;
-        RenderSystem.setShaderTexture(0, abstractclientplayer.getSkinTextureLocation());
+        RenderSystem.setShaderTexture(0, abstractclientplayer.getSkin().texture());
         poseStack.translate(f * -1.0F, 3.6F, 3.5F);
         poseStack.mulPose(Axis.ZP.rotationDegrees(f * 120.0F));
         poseStack.mulPose(Axis.XP.rotationDegrees(200.0F));

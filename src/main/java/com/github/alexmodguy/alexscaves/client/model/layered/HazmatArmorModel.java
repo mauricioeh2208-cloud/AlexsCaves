@@ -59,7 +59,7 @@ public class HazmatArmorModel extends HumanoidModel {
     }
 
     public HazmatArmorModel withAnimations(LivingEntity entity) {
-        float partialTick = Minecraft.getInstance().getFrameTime();
+        float partialTick = Minecraft.getInstance().getTimer().getRealtimeDeltaTicks();
         float f = entity.tickCount + partialTick;
         float fromRads = (float) Mth.wrapDegrees(Math.toDegrees(this.head.yRot - this.body.yRot));
 

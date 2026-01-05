@@ -6,7 +6,7 @@ import com.github.alexmodguy.alexscaves.server.level.structure.piece.Gingerbread
 import com.github.alexmodguy.alexscaves.server.level.structure.piece.GingerbreadRoadPiece;
 import com.github.alexmodguy.alexscaves.server.level.structure.piece.LicowitchTowerStructurePiece;
 import com.github.alexmodguy.alexscaves.server.misc.ACMath;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -33,7 +33,7 @@ import java.util.function.Consumer;
 
 public class GingerbreadTownStructure extends Structure {
 
-    public static final Codec<GingerbreadTownStructure> CODEC = simpleCodec((settings) -> new GingerbreadTownStructure(settings));
+    public static final MapCodec<GingerbreadTownStructure> CODEC = simpleCodec((settings) -> new GingerbreadTownStructure(settings));
 
     private static final int Y = 0;
 

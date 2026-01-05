@@ -25,7 +25,7 @@ public class MuckBlock extends FallingBlockWithColor {
     }
 
     public void entityInside(BlockState state, Level level, BlockPos blockPos, Entity entity) {
-        if (!(entity instanceof LivingEntity) || entity.getFeetBlockState().is(this)) {
+        if (!(entity instanceof LivingEntity) || level.getBlockState(entity.blockPosition()).is(this)) {
             if (isOceanEntity(entity)) {
                 entity.setPos(entity.getX(), blockPos.getY() + 1.0F, entity.getZ());
                 entity.setDeltaMovement(entity.getDeltaMovement().add(0.0D, 0.1D, 0.0D));

@@ -17,7 +17,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.ForgeHooksClient;
+import net.neoforged.neoforge.client.ClientHooks;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -56,7 +56,7 @@ public abstract class HumanoidArmorLayerMixin extends RenderLayer {
                 if (armorItem.getEquipmentSlot() == equipmentSlot) {
                     boolean legs = equipmentSlot == EquipmentSlot.LEGS;
                     HumanoidModel model = this.getParentModel() instanceof HumanoidModel humanoidModel1 ? humanoidModel1 : humanoidModel;
-                    Model armorModel = ForgeHooksClient.getArmorModel(livingEntity, itemstack, equipmentSlot, model);
+                    Model armorModel = ClientHooks.getArmorModel(livingEntity, itemstack, equipmentSlot, model);
                     setPartVisibility((HumanoidModel) armorModel, equipmentSlot);
                     ResourceLocation texture = getACArmorResource(livingEntity, itemstack, equipmentSlot, null);
                     ACArmorRenderProperties.renderCustomArmor(poseStack, multiBufferSource, light, lastArmorItemStackRendered, armorItem, armorModel, legs, texture);
@@ -66,19 +66,19 @@ public abstract class HumanoidArmorLayerMixin extends RenderLayer {
     }
 
 
-    /* copy of forge method */
+    /* copy of forge method - updated for 1.21 where ArmorMaterial is a Holder */
     private ResourceLocation getACArmorResource(LivingEntity entity, ItemStack stack, EquipmentSlot slot, @Nullable String type) {
         ArmorItem item = (ArmorItem) stack.getItem();
-        String texture = item.getMaterial().getName();
-        String domain = "minecraft";
-        int idx = texture.indexOf(':');
-        if (idx != -1) {
-            domain = texture.substring(0, idx);
-            texture = texture.substring(idx + 1);
-        }
+        // In 1.21, getMaterial() returns Holder<ArmorMaterial>, use unwrapKey to get the ResourceLocation
+        ResourceLocation materialName = item.getMaterial().unwrapKey().get().location();
+        String domain = materialName.getNamespace();
+        String texture = materialName.getPath();
         String s1 = String.format(java.util.Locale.ROOT, "%s:textures/models/armor/%s_layer_%d%s.png", domain, texture, (slot == EquipmentSlot.LEGS ? 2 : 1), type == null ? "" : String.format(java.util.Locale.ROOT, "_%s", type));
 
-        s1 = net.minecraftforge.client.ForgeHooksClient.getArmorTexture(entity, stack, s1, slot, type);
+        // TODO: In 1.21, ClientHooks.getArmorTexture signature changed significantly with the armor layer refactor
+        // The old call was: ClientHooks.getArmorTexture(entity, stack, s1, slot, type)
+        // For now, we skip the hook and use the calculated texture directly
+        // s1 = net.neoforged.neoforge.client.ClientHooks.getArmorTexture(entity, stack, slot, type, s1);
         ResourceLocation resourcelocation = AC_ARMOR_LOCATION_CACHE.get(s1);
 
         if (resourcelocation == null) {

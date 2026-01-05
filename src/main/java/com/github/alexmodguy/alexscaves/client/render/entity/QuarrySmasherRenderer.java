@@ -4,6 +4,7 @@ import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.client.model.BoundroidModel;
 import com.github.alexmodguy.alexscaves.client.model.QuarrySmasherModel;
 import com.github.alexmodguy.alexscaves.client.render.ACRenderTypes;
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexmodguy.alexscaves.server.entity.item.QuarrySmasherEntity;
 import com.github.alexthe666.citadel.client.render.LightningBoltData;
 import com.github.alexthe666.citadel.client.render.LightningRender;
@@ -20,7 +21,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.entity.PartEntity;
+import net.neoforged.neoforge.entity.PartEntity;
 import org.joml.Vector4f;
 
 import java.util.HashMap;
@@ -66,9 +67,9 @@ public class QuarrySmasherRenderer extends EntityRenderer<QuarrySmasherEntity> {
         poseStack.mulPose(Axis.XP.rotationDegrees(180));
         QUARRY_SMASHER_MODEL.setupAnim(entity, 0.0F, 0.0F, ageInTicks, 0.0F, 0.0F);
         VertexConsumer textureVertexConsumer = bufferIn.getBuffer(RenderType.entityCutoutNoCull(TEXTURE));
-        QUARRY_SMASHER_MODEL.renderToBuffer(poseStack, textureVertexConsumer, packedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+        QUARRY_SMASHER_MODEL.renderToBuffer(poseStack, textureVertexConsumer, packedLightIn, OverlayTexture.NO_OVERLAY, -1);
         VertexConsumer activeVertexConsumer = bufferIn.getBuffer(ACRenderTypes.getEyesAlphaEnabled(TEXTURE_GLOW));
-        QUARRY_SMASHER_MODEL.renderToBuffer(poseStack, activeVertexConsumer, 240, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1F - inactive);
+        QUARRY_SMASHER_MODEL.renderToBuffer(poseStack, activeVertexConsumer, 240, OverlayTexture.NO_OVERLAY, ColorUtil.packColor(1.0F, 1.0F, 1.0F, 1F - inactive));
         poseStack.popPose();
 
         if (!entity.isInactive() && entity.lastMiningArea != null) {
@@ -124,7 +125,7 @@ public class QuarrySmasherRenderer extends EntityRenderer<QuarrySmasherEntity> {
             poseStack.mulPose(Axis.XP.rotationDegrees(180));
             BOUNDROID_MODEL.animateForQuarry(ageInTicks, Math.max(headStill, inactive));
             VertexConsumer boundroidVertexConsumer = bufferIn.getBuffer(RenderType.entityCutoutNoCull(TEXTURE_BOUNDROID));
-            BOUNDROID_MODEL.renderToBuffer(poseStack, boundroidVertexConsumer, packedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+            BOUNDROID_MODEL.renderToBuffer(poseStack, boundroidVertexConsumer, packedLightIn, OverlayTexture.NO_OVERLAY, -1);
             poseStack.popPose();
 
             Vec3 chainOffset = new Vec3(0, -0.75F, 0);

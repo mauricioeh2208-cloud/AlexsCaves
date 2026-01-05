@@ -5,7 +5,7 @@ import com.github.alexmodguy.alexscaves.server.level.biome.ACBiomeRegistry;
 import com.github.alexmodguy.alexscaves.server.level.structure.piece.LicowitchTowerStructurePiece;
 import com.github.alexmodguy.alexscaves.server.level.structure.piece.SodaBottleStructurePiece;
 import com.github.alexmodguy.alexscaves.server.misc.ACMath;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -29,7 +29,7 @@ import java.util.function.Consumer;
 
 public class LicowitchTowerStructure extends Structure {
 
-    public static final Codec<LicowitchTowerStructure> CODEC = simpleCodec((settings) -> new LicowitchTowerStructure(settings));
+    public static final MapCodec<LicowitchTowerStructure> CODEC = simpleCodec((settings) -> new LicowitchTowerStructure(settings));
 
     private static final ResourceLocation TOWER_NBT = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "licowitch_tower");
     private static final int Y = 0;

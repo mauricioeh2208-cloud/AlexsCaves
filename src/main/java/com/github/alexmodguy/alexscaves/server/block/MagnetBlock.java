@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.ACBlockEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.MagnetBlockEntity;
 import com.github.alexmodguy.alexscaves.server.misc.ACMath;
@@ -31,9 +32,15 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class MagnetBlock extends BaseEntityBlock {
+    public static final MapCodec<MagnetBlock> CODEC = MapCodec.unit(() -> new MagnetBlock(false));
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
     private final boolean azure;
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
+    }
 
     private static final VoxelShape SHAPE_UP = ACMath.buildShape(
             Block.box(0, 6, 5, 6, 16, 11),

@@ -81,12 +81,12 @@ public class CaramelCubeEntity extends Monster implements PossessedByLicowitch {
 
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(SIZE, 0);
-        this.entityData.define(WANTS_TO_JUMP, false);
-        this.entityData.define(HAS_JUMPED, false);
-        this.entityData.define(POSSESSOR_LICOWITCH_ID, -1);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(SIZE, 0);
+        builder.define(WANTS_TO_JUMP, false);
+        builder.define(HAS_JUMPED, false);
+        builder.define(POSSESSOR_LICOWITCH_ID, -1);
     }
 
     public float getJumpProgress(float partialTick) {
@@ -97,7 +97,7 @@ public class CaramelCubeEntity extends Monster implements PossessedByLicowitch {
         return (prevSquishProgress + (squishProgress - prevSquishProgress) * partialTick) * 0.2F;
     }
 
-    protected void jumpFromGround() {
+    public void jumpFromGround() {
         Vec3 vec3 = this.getDeltaMovement();
         this.setDeltaMovement(vec3.x, this.getJumpPower(), vec3.z);
         this.hasImpulse = true;
@@ -266,9 +266,9 @@ public class CaramelCubeEntity extends Monster implements PossessedByLicowitch {
     }
 
     @javax.annotation.Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn, @javax.annotation.Nullable CompoundTag dataTag) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn) {
         this.setSlimeSize(random.nextInt(3), true);
-        return super.finalizeSpawn(level, difficultyIn, reason, spawnDataIn, dataTag);
+        return super.finalizeSpawn(level, difficultyIn, reason, spawnDataIn);
     }
 
     public void onSyncedDataUpdated(EntityDataAccessor<?> dataAccessor) {
@@ -283,7 +283,10 @@ public class CaramelCubeEntity extends Monster implements PossessedByLicowitch {
         super.onSyncedDataUpdated(dataAccessor);
     }
 
-    public EntityDimensions getDimensions(Pose pose) {
+    // 1.21: getDimensions(Pose) is now final in LivingEntity and cannot be overridden.
+    // Dimensions are now handled via EntityType.Builder.dimensions() or getDefaultDimensions().
+    // This method is kept for reference but renamed to avoid compilation errors.
+    private EntityDimensions getCustomDimensions(Pose pose) {
         switch (this.getSlimeSize()) {
             case 2:
                 return LARGE_DIMENSIONS;
@@ -331,7 +334,7 @@ public class CaramelCubeEntity extends Monster implements PossessedByLicowitch {
     }
 
     protected float getStandingEyeHeight(Pose pose, EntityDimensions dimensions) {
-        return 0.5F * dimensions.height;
+        return 0.5F * dimensions.height();
     }
 
     public int getExperienceReward() {

@@ -2,6 +2,7 @@ package com.github.alexmodguy.alexscaves.client.render.blockentity;
 
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.client.model.NuclearFurnaceModel;
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexmodguy.alexscaves.client.render.ACRenderTypes;
 import com.github.alexmodguy.alexscaves.server.block.NuclearFurnaceBlock;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.NuclearFurnaceBlockEntity;
@@ -41,8 +42,8 @@ public class NuclearFurnaceBlockRenderer<T extends NuclearFurnaceBlockEntity> im
         poseStack.mulPose(Axis.ZN.rotationDegrees(180));
         poseStack.translate(0.0F, -1.5F, 0.0F);
         MODEL.setupAnim(null, dir.toYRot() - 180, furnace.getCriticality(), furnace.age + partialTicks, furnace.getWasteScale(), 0);
-        MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(getRenderTypeFor(furnace, false)), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1);
-        MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(getRenderTypeFor(furnace, true)), 240, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1);
+        MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(getRenderTypeFor(furnace, false)), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(1.0F, 1.0F, 1.0F, 1.0F));
+        MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(getRenderTypeFor(furnace, true)), 240, combinedOverlayIn, ColorUtil.packColor(1.0F, 1.0F, 1.0F, 1.0F));
         poseStack.popPose();
     }
 

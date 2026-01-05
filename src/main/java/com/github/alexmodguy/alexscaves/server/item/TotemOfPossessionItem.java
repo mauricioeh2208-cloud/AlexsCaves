@@ -1,26 +1,29 @@
 package com.github.alexmodguy.alexscaves.server.item;
 
 import com.github.alexmodguy.alexscaves.AlexsCaves;
+import com.github.alexmodguy.alexscaves.server.enchantment.ACEnchantmentHelper;
 import com.github.alexmodguy.alexscaves.server.enchantment.ACEnchantmentRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.util.TotemExplosion;
 import com.github.alexmodguy.alexscaves.server.message.UpdateItemTagMessage;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.animal.FlyingAnimal;
 import net.minecraft.world.entity.player.Player;
@@ -31,22 +34,32 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public class TotemOfPossessionItem extends Item implements Vanishable, UpdatesStackTags {
-    private final Multimap<Attribute, AttributeModifier> defaultModifiers;
+public class TotemOfPossessionItem extends Item implements UpdatesStackTags {
 
     public TotemOfPossessionItem() {
-        super(new Item.Properties().durability(1000).rarity(Rarity.UNCOMMON));
-        ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
-        builder.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Tool modifier", 2.0D, AttributeModifier.Operation.ADDITION));
-        builder.put(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_UUID, "Tool modifier", (double) -2.4F, AttributeModifier.Operation.ADDITION));
-        this.defaultModifiers = builder.build();
+        super(new Item.Properties().durability(1000).rarity(Rarity.UNCOMMON).attributes(createAttributes()));
+    }
+
+    public static ItemAttributeModifiers createAttributes() {
+        return ItemAttributeModifiers.builder()
+            .add(Attributes.ATTACK_DAMAGE, new AttributeModifier(
+                ResourceLocation.fromNamespaceAndPath("alexscaves", "totem_attack_damage"),
+                2.0D, AttributeModifier.Operation.ADD_VALUE),
+                EquipmentSlotGroup.MAINHAND)
+            .add(Attributes.ATTACK_SPEED, new AttributeModifier(
+                ResourceLocation.fromNamespaceAndPath("alexscaves", "totem_attack_speed"),
+                -2.4D, AttributeModifier.Operation.ADD_VALUE),
+                EquipmentSlotGroup.MAINHAND)
+            .build();
     }
 
     @Override
@@ -69,7 +82,7 @@ public class TotemOfPossessionItem extends Item implements Vanishable, UpdatesSt
             setPossessed(controlledEntity, false);
             resetBound(itemstack);
         }
-        if (isBound(itemstack) && controlledEntity != null && (isEntityLookingAt(player, controlledEntity, 5F) || itemstack.getEnchantmentLevel(ACEnchantmentRegistry.SIGHTLESS.get()) > 0)) {
+        if (isBound(itemstack) && controlledEntity != null && (isEntityLookingAt(player, controlledEntity, 5F) || ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.SIGHTLESS, itemstack) > 0)) {
             player.playSound(ACSoundRegistry.TOTEM_OF_POSSESSION_USE.get());
             player.startUsingItem(interactionHand);
             return InteractionResultHolder.consume(itemstack);
@@ -96,7 +109,7 @@ public class TotemOfPossessionItem extends Item implements Vanishable, UpdatesSt
         Entity controlledEntity = getControlledEntity(level, stack);
 
         if (isBound(stack) && (controlledEntity == null || !controlledEntity.isAlive()) || stack.getDamageValue() >= stack.getMaxDamage()) {
-            if (controlledEntity != null && stack.getEnchantmentLevel(ACEnchantmentRegistry.DETONATING_DEATH.get()) > 0) {
+            if (controlledEntity != null && ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.DETONATING_DEATH, stack) > 0) {
                 TotemExplosion explosion = new TotemExplosion(level, user, controlledEntity.getX(), controlledEntity.getY(), controlledEntity.getZ(), 2F + (float) Math.floor(controlledEntity.getBbWidth()), Explosion.BlockInteraction.KEEP);
                 explosion.explode();
                 explosion.finalizeExplosion(true);
@@ -109,7 +122,7 @@ public class TotemOfPossessionItem extends Item implements Vanishable, UpdatesSt
             }
             return;
         }
-        if (!isBound(stack) || controlledEntity == null || !isEntityLookingAt(user, controlledEntity, 5F) && stack.getEnchantmentLevel(ACEnchantmentRegistry.SIGHTLESS.get()) == 0 || controlledEntity instanceof Player && !AlexsCaves.COMMON_CONFIG.totemOfPossessionPlayers.get()) {
+        if (!isBound(stack) || controlledEntity == null || !isEntityLookingAt(user, controlledEntity, 5F) && ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.SIGHTLESS, stack) == 0 || controlledEntity instanceof Player && !AlexsCaves.COMMON_CONFIG.totemOfPossessionPlayers.get()) {
 
             user.stopUsingItem();
             if (level.isClientSide) {
@@ -122,17 +135,17 @@ public class TotemOfPossessionItem extends Item implements Vanishable, UpdatesSt
             stack.setDamageValue(stack.getDamageValue() + 1);
         }
 
-        int i = getUseDuration(stack) - timeUsing;
+        int i = getUseDuration(stack, user) - timeUsing;
         int realStart = 15;
         float time = i < realStart ? i / (float) realStart : 1F;
         float maxDist = 32.0F * time;
-        float speed = 1.25F + 0.35F * stack.getEnchantmentLevel(ACEnchantmentRegistry.RAPID_POSSESSION.get());
+        float speed = 1.25F + 0.35F * ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.RAPID_POSSESSION, stack);
         HitResult hitResult = ProjectileUtil.getHitResultOnViewVector(user, entity -> entity.canBeHitByProjectile() && !entity.equals(controlledEntity), maxDist);
         Vec3 vec3 = hitResult.getLocation();
         if (controlledEntity instanceof Mob mob) {
             PathNavigation pathNavigation = mob.getNavigation();
             pathNavigation.moveTo(vec3.x, vec3.y, vec3.z, time * speed);
-            if (stack.getEnchantmentLevel(ACEnchantmentRegistry.SIGHTLESS.get()) > 0) {
+            if (ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.SIGHTLESS, stack) > 0) {
                 controlledEntity.setGlowingTag(true);
             }
         } else {
@@ -171,13 +184,14 @@ public class TotemOfPossessionItem extends Item implements Vanishable, UpdatesSt
                             if (controlledEntity instanceof Mob mob) {
                                 mob.setTarget(target);
                                 mob.setLastHurtByMob(target);
-                                if (i % 4 == 0 && target.getHealth() > mob.getHealth() && !target.getType().is(ACTagRegistry.RESISTS_TOTEM_OF_POSSESSION) && stack.getEnchantmentLevel(ACEnchantmentRegistry.ASTRAL_TRANSFERRING.get()) > 0) {
+                                if (i % 4 == 0 && target.getHealth() > mob.getHealth() && !target.getType().is(ACTagRegistry.RESISTS_TOTEM_OF_POSSESSION) && ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.ASTRAL_TRANSFERRING, stack) > 0) {
                                     setPossessed(target, true);
-                                    CompoundTag tag = stack.getOrCreateTag();
+                                    CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
                                     tag.putUUID("BoundEntityUUID", target.getUUID());
-                                    CompoundTag entityTag = target.serializeNBT();
-                                    entityTag.putString("id", ForgeRegistries.ENTITY_TYPES.getKey(target.getType()).toString());
+                                    CompoundTag entityTag = target.serializeNBT(level.registryAccess());
+                                    entityTag.putString("id", BuiltInRegistries.ENTITY_TYPE.getKey(target.getType()).toString());
                                     tag.put("BoundEntityTag", entityTag);
+                                    stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
                                     user.playSound(ACSoundRegistry.TOTEM_OF_POSSESSION_USE.get());
                                     if (level instanceof ServerLevel serverLevel && user instanceof Player player) {
                                         updateEntityIdFromServer(serverLevel, player, stack);
@@ -198,26 +212,25 @@ public class TotemOfPossessionItem extends Item implements Vanishable, UpdatesSt
         return UseAnim.BLOCK;
     }
 
-    public int getUseDuration(ItemStack stack) {
+    @Override
+    public int getUseDuration(ItemStack stack, LivingEntity entity) {
         return 72000;
     }
 
-
-    public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot equipmentSlot) {
-        return equipmentSlot == EquipmentSlot.MAINHAND ? this.defaultModifiers : super.getDefaultAttributeModifiers(equipmentSlot);
-    }
-
     private static void resetBound(ItemStack itemStack) {
-        CompoundTag tag = itemStack.getOrCreateTag();
+        CompoundTag tag = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         tag.remove("BoundEntityTag");
         tag.remove("BoundEntityUUID");
         tag.remove("ControllingEntityID");
+        itemStack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
 
-    public void appendHoverText(ItemStack stack, @Nullable Level worldIn, List<Component> tooltip, TooltipFlag flagIn) {
-        if (stack.getTag() != null) {
-            Tag entity = stack.getTag().get("BoundEntityTag");
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        if (!tag.isEmpty()) {
+            Tag entity = tag.get("BoundEntityTag");
             if (entity instanceof CompoundTag) {
                 Optional<EntityType<?>> optional = EntityType.by((CompoundTag) entity);
                 if (optional.isPresent()) {
@@ -226,21 +239,17 @@ public class TotemOfPossessionItem extends Item implements Vanishable, UpdatesSt
                 }
             }
         }
-        super.appendHoverText(stack, worldIn, tooltip, flagIn);
+        super.appendHoverText(stack, context, tooltip, flagIn);
     }
 
     public static UUID getBoundEntityUUID(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag != null) {
-            return tag.contains("BoundEntityUUID") ? tag.getUUID("BoundEntityUUID") : null;
-        } else {
-            return null;
-        }
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return tag.contains("BoundEntityUUID") ? tag.getUUID("BoundEntityUUID") : null;
     }
 
     private static void updateEntityIdFromServer(ServerLevel level, Player player, ItemStack itemStack) {
         UUID uuid = getBoundEntityUUID(itemStack);
-        CompoundTag tag = itemStack.getOrCreateTag();
+        CompoundTag tag = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         int prev = !tag.contains("ControllingEntityID") ? -1 : tag.getInt("ControllingEntityID");
         int set = -1;
         if (uuid != null) {
@@ -248,6 +257,7 @@ public class TotemOfPossessionItem extends Item implements Vanishable, UpdatesSt
             set = entity == null ? -1 : entity.getId();
         }
         tag.putInt("ControllingEntityID", set);
+        itemStack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         if (prev != set) {
             AlexsCaves.sendMSGToAll(new UpdateItemTagMessage(player.getId(), itemStack));
         }
@@ -255,7 +265,7 @@ public class TotemOfPossessionItem extends Item implements Vanishable, UpdatesSt
 
     private Entity getControlledEntity(Level level, ItemStack itemStack) {
         if (level.isClientSide) {
-            CompoundTag tag = itemStack.getOrCreateTag();
+            CompoundTag tag = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
             int id = tag.contains("ControllingEntityID") ? tag.getInt("ControllingEntityID") : -1;
             return id == -1 ? null : level.getEntity(id);
         } else if (level instanceof ServerLevel serverLevel) {
@@ -287,11 +297,12 @@ public class TotemOfPossessionItem extends Item implements Vanishable, UpdatesSt
             }
         } else {
             setPossessed(hurtMob, true);
-            CompoundTag tag = stack.getOrCreateTag();
+            CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
             tag.putUUID("BoundEntityUUID", hurtMob.getUUID());
-            CompoundTag entityTag = hurtMob.serializeNBT();
-            entityTag.putString("id", ForgeRegistries.ENTITY_TYPES.getKey(hurtMob.getType()).toString());
+            CompoundTag entityTag = hurtMob.serializeNBT(hurtMob.level().registryAccess());
+            entityTag.putString("id", BuiltInRegistries.ENTITY_TYPE.getKey(hurtMob.getType()).toString());
             tag.put("BoundEntityTag", entityTag);
+            stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
             livingEntity1.playSound(ACSoundRegistry.TOTEM_OF_POSSESSION_USE.get());
         }
 

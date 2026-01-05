@@ -19,7 +19,8 @@ public class IrradiatedEffect extends MobEffect {
         super(MobEffectCategory.HARMFUL, 0X77D60E);
     }
 
-    public void applyEffectTick(LivingEntity entity, int tick) {
+    @Override
+    public boolean applyEffectTick(LivingEntity entity, int tick) {
         int hazmat = HazmatArmorItem.getWornAmount(entity);
         float damageScale = 1F - hazmat * 0.25F;
         if (entity instanceof Player player && hazmat == 0) {
@@ -28,9 +29,11 @@ public class IrradiatedEffect extends MobEffect {
         if (!(entity instanceof RaycatEntity) && entity.level().random.nextFloat() < damageScale + 0.1F) {
             entity.hurt(ACDamageTypes.causeRadiationDamage(entity.level().registryAccess()), damageScale);
         }
+        return true;
     }
 
-    public boolean isDurationEffectTick(int tick1, int level) {
+    @Override
+    public boolean shouldApplyEffectTickThisTick(int tick1, int level) {
         if (level <= 0) {
             return false;
         }

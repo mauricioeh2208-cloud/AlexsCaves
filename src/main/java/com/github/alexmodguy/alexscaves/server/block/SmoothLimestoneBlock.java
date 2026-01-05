@@ -9,7 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -18,13 +18,14 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.util.List;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 public class SmoothLimestoneBlock extends Block {
 
-    private static final List<RegistryObject<Block>> RANDOM_CAVE_PAINTINGS = Util.make(Lists.newArrayList(), (list) -> {
+    private static final List<DeferredHolder<Block, Block>> RANDOM_CAVE_PAINTINGS = Util.make(Lists.newArrayList(), (list) -> {
         list.add(ACBlockRegistry.CAVE_PAINTING_AMBERSOL);
         list.add(ACBlockRegistry.CAVE_PAINTING_DARK);
         list.add(ACBlockRegistry.CAVE_PAINTING_FOOTPRINT);
@@ -51,8 +52,7 @@ public class SmoothLimestoneBlock extends Block {
         super(properties);
     }
 
-    public InteractionResult use(BlockState state, Level level, BlockPos blockPos, Player player, InteractionHand interactionHand, BlockHitResult blockHitResult) {
-        ItemStack itemstack = player.getItemInHand(interactionHand);
+    public ItemInteractionResult useItemOn(ItemStack itemstack, BlockState state, Level level, BlockPos blockPos, Player player, InteractionHand interactionHand, BlockHitResult blockHitResult) {
         if (itemstack.is(Items.CHARCOAL) && level.getBlockState(blockPos).is(ACTagRegistry.TURNS_INTO_CAVE_PAINTINGS)) {
             if (!player.isCreative()) {
                 itemstack.shrink(1);
@@ -68,19 +68,19 @@ public class SmoothLimestoneBlock extends Block {
                 }
                 if(player instanceof ServerPlayer serverPlayer){
                     if(isMystery){
-                        ACAdvancementTriggerRegistry.MYSTERY_CAVE_PAINTING.triggerForEntity(serverPlayer);
+                        ACAdvancementTriggerRegistry.MYSTERY_CAVE_PAINTING.get().triggerForEntity(serverPlayer);
                     }else{
-                        ACAdvancementTriggerRegistry.CAVE_PAINTING.triggerForEntity(serverPlayer);
+                        ACAdvancementTriggerRegistry.CAVE_PAINTING.get().triggerForEntity(serverPlayer);
                     }
                     CriteriaTriggers.ITEM_USED_ON_BLOCK.trigger(serverPlayer, blockPos, itemstack);
                 }
                 level.gameEvent(player, GameEvent.BLOCK_CHANGE, blockPos);
             }
-            return InteractionResult.SUCCESS;
+            return ItemInteractionResult.SUCCESS;
 
         }
 
-        return super.use(state, level, blockPos, player, interactionHand, blockHitResult);
+        return super.useItemOn(itemstack, state, level, blockPos, player, interactionHand, blockHitResult);
     }
 
     private boolean attemptPlaceMysteryCavePainting(Level level, BlockPos pos, Direction facing, boolean checkOnly){

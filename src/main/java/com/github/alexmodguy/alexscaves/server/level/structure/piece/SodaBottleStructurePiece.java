@@ -30,7 +30,7 @@ public class SodaBottleStructurePiece extends UndergroundTemplateStructurePiece 
     }
 
     private static StructurePlaceSettings makeSettings(Rotation rotation) {
-        return (new StructurePlaceSettings()).setRotation(rotation).setIgnoreEntities(true).setKeepLiquids(false).addProcessor(SodaBottleProcessor.INSTANCE);
+        return (new StructurePlaceSettings()).setRotation(rotation).setIgnoreEntities(true).addProcessor(SodaBottleProcessor.INSTANCE);
     }
 
     protected void addAdditionalSaveData(StructurePieceSerializationContext context, CompoundTag tag) {

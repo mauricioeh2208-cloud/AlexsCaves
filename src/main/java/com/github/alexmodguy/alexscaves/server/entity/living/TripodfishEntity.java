@@ -4,6 +4,8 @@ import com.github.alexmodguy.alexscaves.server.entity.ai.VerticalSwimmingMoveCon
 import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -38,7 +40,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -68,14 +70,14 @@ public class TripodfishEntity extends WaterAnimal implements Bucketable {
     public TripodfishEntity(EntityType type, Level level) {
         super(type, level);
         this.moveControl = new MoveControl();
-        this.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
+        this.setPathfindingMalus(PathType.WATER, 0.0F);
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(STANDING, Boolean.valueOf(false));
-        this.entityData.define(FROM_BUCKET, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(STANDING, Boolean.valueOf(false));
+        builder.define(FROM_BUCKET, false);
     }
 
     protected void registerGoals() {
@@ -139,11 +141,6 @@ public class TripodfishEntity extends WaterAnimal implements Bucketable {
 
     public boolean isMaxGroupSizeReached(int sizeIn) {
         return false;
-    }
-
-
-    public EntityDimensions getDimensions(Pose poseIn) {
-        return isStanding() ? STANDING_SIZE.scale(this.getScale()) : super.getDimensions(poseIn);
     }
 
     @Override
@@ -248,11 +245,11 @@ public class TripodfishEntity extends WaterAnimal implements Bucketable {
     }
 
     @javax.annotation.Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor worldIn, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn, @javax.annotation.Nullable CompoundTag dataTag) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor worldIn, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn) {
         if (reason == MobSpawnType.NATURAL) {
             doInitialPosing(worldIn);
         }
-        return super.finalizeSpawn(worldIn, difficultyIn, reason, spawnDataIn, dataTag);
+        return super.finalizeSpawn(worldIn, difficultyIn, reason, spawnDataIn);
     }
 
     public void addAdditionalSaveData(CompoundTag compound) {
@@ -268,12 +265,11 @@ public class TripodfishEntity extends WaterAnimal implements Bucketable {
     @Override
     public void saveToBucketTag(@Nonnull ItemStack bucket) {
         if (this.hasCustomName()) {
-            bucket.setHoverName(this.getCustomName());
+            bucket.set(DataComponents.CUSTOM_NAME, this.getCustomName());
         }
         CompoundTag platTag = new CompoundTag();
         this.addAdditionalSaveData(platTag);
-        CompoundTag compound = bucket.getOrCreateTag();
-        compound.put("FishBucketTag", platTag);
+        bucket.set(DataComponents.BUCKET_ENTITY_DATA, CustomData.of(platTag));
     }
 
 
@@ -301,9 +297,7 @@ public class TripodfishEntity extends WaterAnimal implements Bucketable {
 
     @Override
     public void loadFromBucketTag(@Nonnull CompoundTag compound) {
-        if (compound.contains("FishBucketTag")) {
-            this.readAdditionalSaveData(compound.getCompound("FishBucketTag"));
-        }
+        this.readAdditionalSaveData(compound);
         this.setAirSupply(2000);
     }
 

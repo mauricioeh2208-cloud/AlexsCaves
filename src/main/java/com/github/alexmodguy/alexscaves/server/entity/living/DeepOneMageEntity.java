@@ -10,8 +10,11 @@ import com.github.alexmodguy.alexscaves.server.potion.ACEffectRegistry;
 import com.github.alexthe666.citadel.animation.Animation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -43,12 +46,12 @@ public class DeepOneMageEntity extends DeepOneBaseEntity {
     public static final Animation ANIMATION_ATTACK = Animation.create(25);
     public static final Animation ANIMATION_SPIN = Animation.create(70);
     public static final Animation ANIMATION_TRADE = Animation.create(75);
-    private static final EntityDimensions SWIMMING_SIZE = new EntityDimensions(1.2F, 1.5F, false);
+    private static final EntityDimensions SWIMMING_SIZE = EntityDimensions.scalable(1.2F, 1.5F);
 
     private int spinCooldown = 0;
     private int rangedCooldown = 0;
     private Vec3 strafeTarget = null;
-    public static final ResourceLocation BARTER_LOOT = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "gameplay/deep_one_mage_barter");
+    public static final ResourceKey<LootTable> BARTER_LOOT = ResourceKey.create(Registries.LOOT_TABLE, ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "gameplay/deep_one_mage_barter"));
     private boolean isMageInWater = true;
 
     public DeepOneMageEntity(EntityType entityType, Level level) {
@@ -110,11 +113,11 @@ public class DeepOneMageEntity extends DeepOneBaseEntity {
     @Override
     public void tick() {
         super.tick();
-        if (!this.isInWaterOrBubble() && !this.hasEffect(ACEffectRegistry.BUBBLED.get())) {
-            this.addEffect(new MobEffectInstance(ACEffectRegistry.BUBBLED.get(), 200));
+        if (!this.isInWaterOrBubble() && !this.hasEffect(ACEffectRegistry.BUBBLED)) {
+            this.addEffect(new MobEffectInstance(ACEffectRegistry.BUBBLED, 200));
         }
-        if (this.isInWaterOrBubble() && this.hasEffect(ACEffectRegistry.BUBBLED.get())) {
-            this.removeEffect(ACEffectRegistry.BUBBLED.get());
+        if (this.isInWaterOrBubble() && this.hasEffect(ACEffectRegistry.BUBBLED)) {
+            this.removeEffect(ACEffectRegistry.BUBBLED);
         }
         isMageInWater = this.isInWaterOrBubble();
         if (this.getAnimation() == ANIMATION_SPIN) {
@@ -154,7 +157,7 @@ public class DeepOneMageEntity extends DeepOneBaseEntity {
     }
 
     @Override
-    protected ResourceLocation getBarterLootTable() {
+    protected ResourceKey<LootTable> getBarterLootTable() {
         return BARTER_LOOT;
     }
 

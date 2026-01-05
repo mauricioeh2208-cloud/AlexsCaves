@@ -4,6 +4,7 @@ import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.client.gui.book.widget.ItemWidget;
 import com.github.alexmodguy.alexscaves.client.model.*;
 import com.github.alexmodguy.alexscaves.client.render.ACRenderTypes;
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexmodguy.alexscaves.client.render.misc.CaveMapRenderHelper;
 import com.github.alexmodguy.alexscaves.server.block.ACBlockRegistry;
 import com.github.alexmodguy.alexscaves.server.enchantment.ACEnchantmentRegistry;
@@ -19,6 +20,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
@@ -26,7 +28,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.ForgeRenderTypes;
 
 public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
     private static final ResourceLocation GALENA_GAUNTLET_TEXTURE = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "textures/entity/galena_gauntlet.png");
@@ -87,14 +88,14 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
     @Override
     public void renderByItem(ItemStack itemStackIn, ItemDisplayContext transformType, PoseStack poseStack, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn) {
         ClientLevel level = Minecraft.getInstance().level;
-        float partialTick = Minecraft.getInstance().getPartialTick();
+        float partialTick = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(false);
         boolean heldIn3d = transformType == ItemDisplayContext.THIRD_PERSON_LEFT_HAND || transformType == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND || transformType == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND || transformType == ItemDisplayContext.FIRST_PERSON_LEFT_HAND;
         boolean left = transformType == ItemDisplayContext.THIRD_PERSON_LEFT_HAND || transformType == ItemDisplayContext.FIRST_PERSON_LEFT_HAND;
 
         if (itemStackIn.is(ACItemRegistry.CAVE_MAP.get())) {
             poseStack.translate(0.5F, 0.5F, 0.5F);
             ItemStack spriteItem = new ItemStack(ACItemRegistry.CAVE_MAP_SPRITE.get());
-            spriteItem.setTag(itemStackIn.getTag());
+            spriteItem.applyComponents(itemStackIn.getComponents());
             boolean done = CaveMapItem.isFilled(itemStackIn) && !CaveMapItem.isLoading(itemStackIn);
             if(done){
                 spriteItem = new ItemStack(ACItemRegistry.CAVE_MAP_FILLED_SPRITE.get());
@@ -134,14 +135,14 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
             float ageInTicks = Minecraft.getInstance().player == null ? 0F : Minecraft.getInstance().player.tickCount + partialTick;
             if (left || transformType == ItemDisplayContext.GUI) {
                 GALENA_GAUNTLET_LEFT_MODEL.setupAnim(null, openAmount, 0, ageInTicks, 0, 0);
-                GALENA_GAUNTLET_LEFT_MODEL.renderToBuffer(poseStack, getVertexConsumerFoil(bufferIn, RenderType.entityCutoutNoCull(GALENA_GAUNTLET_TEXTURE), GALENA_GAUNTLET_TEXTURE, itemStackIn.hasFoil()), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
-                GALENA_GAUNTLET_LEFT_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(GALENA_GAUNTLET_BLUE_TEXTURE), GALENA_GAUNTLET_BLUE_TEXTURE), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, openAmount);
-                GALENA_GAUNTLET_LEFT_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(GALENA_GAUNTLET_RED_TEXTURE), GALENA_GAUNTLET_RED_TEXTURE), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, closeAmount);
+                GALENA_GAUNTLET_LEFT_MODEL.renderToBuffer(poseStack, getVertexConsumerFoil(bufferIn, RenderType.entityCutoutNoCull(GALENA_GAUNTLET_TEXTURE), GALENA_GAUNTLET_TEXTURE, itemStackIn.hasFoil()), combinedLightIn, combinedOverlayIn, -1);
+                GALENA_GAUNTLET_LEFT_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(GALENA_GAUNTLET_BLUE_TEXTURE), GALENA_GAUNTLET_BLUE_TEXTURE), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(openAmount, 1.0F, 1.0F, 1.0F));
+                GALENA_GAUNTLET_LEFT_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(GALENA_GAUNTLET_RED_TEXTURE), GALENA_GAUNTLET_RED_TEXTURE), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(closeAmount, 1.0F, 1.0F, 1.0F));
             } else {
                 GALENA_GAUNTLET_RIGHT_MODEL.setupAnim(null, openAmount, 0, ageInTicks, 0, 0);
-                GALENA_GAUNTLET_RIGHT_MODEL.renderToBuffer(poseStack, getVertexConsumerFoil(bufferIn, RenderType.entityCutoutNoCull(GALENA_GAUNTLET_TEXTURE), GALENA_GAUNTLET_TEXTURE, itemStackIn.hasFoil()), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
-                GALENA_GAUNTLET_RIGHT_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(GALENA_GAUNTLET_BLUE_TEXTURE), GALENA_GAUNTLET_BLUE_TEXTURE), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, openAmount);
-                GALENA_GAUNTLET_RIGHT_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(GALENA_GAUNTLET_RED_TEXTURE), GALENA_GAUNTLET_RED_TEXTURE), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, closeAmount);
+                GALENA_GAUNTLET_RIGHT_MODEL.renderToBuffer(poseStack, getVertexConsumerFoil(bufferIn, RenderType.entityCutoutNoCull(GALENA_GAUNTLET_TEXTURE), GALENA_GAUNTLET_TEXTURE, itemStackIn.hasFoil()), combinedLightIn, combinedOverlayIn, -1);
+                GALENA_GAUNTLET_RIGHT_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(GALENA_GAUNTLET_BLUE_TEXTURE), GALENA_GAUNTLET_BLUE_TEXTURE), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(openAmount, 1.0F, 1.0F, 1.0F));
+                GALENA_GAUNTLET_RIGHT_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(GALENA_GAUNTLET_RED_TEXTURE), GALENA_GAUNTLET_RED_TEXTURE), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(closeAmount, 1.0F, 1.0F, 1.0F));
             }
             poseStack.popPose();
         }
@@ -165,16 +166,16 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
             }
             poseStack.mulPose(Axis.XP.rotationDegrees(-180));
             RESISTOR_SHIELD_MODEL.setupAnim(null, useProgress, switchProgress, 0, 0, 0);
-            RESISTOR_SHIELD_MODEL.renderToBuffer(poseStack, getVertexConsumerFoil(bufferIn, RenderType.entityCutoutNoCull(RESISTOR_SHIELD_TEXTURE), RESISTOR_SHIELD_TEXTURE, itemStackIn.hasFoil()), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
-            RESISTOR_SHIELD_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(RESISTOR_SHIELD_RED_TEXTURE), RESISTOR_SHIELD_RED_TEXTURE), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, switchProgress);
-            RESISTOR_SHIELD_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(RESISTOR_SHIELD_BLUE_TEXTURE), RESISTOR_SHIELD_BLUE_TEXTURE), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F - switchProgress);
+            RESISTOR_SHIELD_MODEL.renderToBuffer(poseStack, getVertexConsumerFoil(bufferIn, RenderType.entityCutoutNoCull(RESISTOR_SHIELD_TEXTURE), RESISTOR_SHIELD_TEXTURE, itemStackIn.hasFoil()), combinedLightIn, combinedOverlayIn, -1);
+            RESISTOR_SHIELD_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(RESISTOR_SHIELD_RED_TEXTURE), RESISTOR_SHIELD_RED_TEXTURE), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(switchProgress, 1.0F, 1.0F, 1.0F));
+            RESISTOR_SHIELD_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(RESISTOR_SHIELD_BLUE_TEXTURE), RESISTOR_SHIELD_BLUE_TEXTURE), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(1.0F - switchProgress, 1.0F, 1.0F, 1.0F));
             poseStack.popPose();
         }
 
         if (itemStackIn.is(ACItemRegistry.PRIMITIVE_CLUB.get())) {
             poseStack.translate(0.5F, 0.5F, 0.5F);
             ItemStack spriteItem = new ItemStack(ACItemRegistry.PRIMITIVE_CLUB_SPRITE.get());
-            spriteItem.setTag(itemStackIn.getTag());
+            spriteItem.applyComponents(itemStackIn.getComponents());
             if (heldIn3d) {
                 poseStack.pushPose();
                 poseStack.mulPose(Axis.XP.rotationDegrees(-180));
@@ -183,8 +184,8 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
                     poseStack.translate(0, 0.1F, 0);
                     poseStack.scale(0.8F, 0.8F, 0.8F);
                 }
-                VertexConsumer vertexconsumer = ItemRenderer.getArmorFoilBuffer(bufferIn, RenderType.armorCutoutNoCull(PRIMITIVE_CLUB_TEXTURE), false, itemStackIn.hasFoil());
-                PRIMITIVE_CLUB_MODEL.renderToBuffer(poseStack, vertexconsumer, combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
+                VertexConsumer vertexconsumer = ItemRenderer.getArmorFoilBuffer(bufferIn, RenderType.armorCutoutNoCull(PRIMITIVE_CLUB_TEXTURE), itemStackIn.hasFoil());
+                PRIMITIVE_CLUB_MODEL.renderToBuffer(poseStack, vertexconsumer, combinedLightIn, combinedOverlayIn, -1);
                 poseStack.popPose();
             } else {
                 renderStaticItemSprite(spriteItem, transformType, combinedLightIn, combinedOverlayIn, poseStack, bufferIn, level);
@@ -194,7 +195,7 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
         if (itemStackIn.is(ACItemRegistry.LIMESTONE_SPEAR.get())) {
             poseStack.translate(0.5F, 0.5F, 0.5F);
             ItemStack spriteItem = new ItemStack(ACItemRegistry.LIMESTONE_SPEAR_SPRITE.get());
-            spriteItem.setTag(itemStackIn.getTag());
+            spriteItem.applyComponents(itemStackIn.getComponents());
             if (heldIn3d) {
                 poseStack.pushPose();
                 poseStack.mulPose(Axis.XP.rotationDegrees(-180));
@@ -203,8 +204,8 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
                     poseStack.translate(0, 0.5F, 0F);
                     poseStack.scale(0.75F, 0.75F, 0.75F);
                 }
-                VertexConsumer vertexconsumer = ItemRenderer.getArmorFoilBuffer(bufferIn, RenderType.armorCutoutNoCull(LIMESTONE_SPEAR_TEXTURE), false, itemStackIn.hasFoil());
-                LIMESTONE_SPEAR_MODEL.renderToBuffer(poseStack, vertexconsumer, combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
+                VertexConsumer vertexconsumer = ItemRenderer.getArmorFoilBuffer(bufferIn, RenderType.armorCutoutNoCull(LIMESTONE_SPEAR_TEXTURE), itemStackIn.hasFoil());
+                LIMESTONE_SPEAR_MODEL.renderToBuffer(poseStack, vertexconsumer, combinedLightIn, combinedOverlayIn, -1);
                 poseStack.popPose();
             } else {
                 renderStaticItemSprite(spriteItem, transformType, combinedLightIn, combinedOverlayIn, poseStack, bufferIn, level);
@@ -214,7 +215,7 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
         if (itemStackIn.is(ACItemRegistry.EXTINCTION_SPEAR.get())) {
             poseStack.translate(0.5F, 0.5F, 0.5F);
             ItemStack spriteItem = new ItemStack(ACItemRegistry.EXTINCTION_SPEAR_SPRITE.get());
-            spriteItem.setTag(itemStackIn.getTag());
+            spriteItem.applyComponents(itemStackIn.getComponents());
             if (heldIn3d) {
                 poseStack.pushPose();
                 poseStack.mulPose(Axis.XP.rotationDegrees(-180));
@@ -224,10 +225,10 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
                     poseStack.scale(0.75F, 0.75F, 0.75F);
                 }
                 EXTINCTION_SPEAR_MODEL.resetToDefaultPose();
-                VertexConsumer vertexconsumer1 = ItemRenderer.getArmorFoilBuffer(bufferIn, RenderType.entityCutoutNoCull(EXTINCTION_SPEAR_TEXTURE), false, itemStackIn.hasFoil());
-                EXTINCTION_SPEAR_MODEL.renderToBuffer(poseStack, vertexconsumer1, 240, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
-                VertexConsumer vertexconsumer2 = ItemRenderer.getArmorFoilBuffer(bufferIn, ForgeRenderTypes.getUnlitTranslucent(EXTINCTION_SPEAR_TEXTURE), false, itemStackIn.hasFoil());
-                EXTINCTION_SPEAR_MODEL.renderToBuffer(poseStack, vertexconsumer2, 240, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
+                VertexConsumer vertexconsumer1 = ItemRenderer.getArmorFoilBuffer(bufferIn, RenderType.entityCutoutNoCull(EXTINCTION_SPEAR_TEXTURE), itemStackIn.hasFoil());
+                EXTINCTION_SPEAR_MODEL.renderToBuffer(poseStack, vertexconsumer1, 240, combinedOverlayIn, -1);
+                VertexConsumer vertexconsumer2 = ItemRenderer.getArmorFoilBuffer(bufferIn, RenderType.entityTranslucent(EXTINCTION_SPEAR_TEXTURE), itemStackIn.hasFoil());
+                EXTINCTION_SPEAR_MODEL.renderToBuffer(poseStack, vertexconsumer2, 240, combinedOverlayIn, -1);
                 poseStack.popPose();
             } else {
                 renderStaticItemSprite(spriteItem, transformType, combinedLightIn, combinedOverlayIn, poseStack, bufferIn, level);
@@ -239,8 +240,8 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
             poseStack.translate(0.5F, 1.5F, 0.5F);
             poseStack.mulPose(Axis.XP.rotationDegrees(-180));
             SIREN_LIGHT_MODEL.resetToDefaultPose();
-            SIREN_LIGHT_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, RenderType.entityCutoutNoCull(SIREN_LIGHT_TEXTURE), SIREN_LIGHT_TEXTURE), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
-            SIREN_LIGHT_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, RenderType.entityTranslucent(SIREN_LIGHT_COLOR_TEXTURE), SIREN_LIGHT_COLOR_TEXTURE), combinedLightIn, combinedOverlayIn, 0.0F, 1.0F, 0.0F, 1.0F);
+            SIREN_LIGHT_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, RenderType.entityCutoutNoCull(SIREN_LIGHT_TEXTURE), SIREN_LIGHT_TEXTURE), combinedLightIn, combinedOverlayIn, -1);
+            SIREN_LIGHT_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, RenderType.entityTranslucent(SIREN_LIGHT_COLOR_TEXTURE), SIREN_LIGHT_COLOR_TEXTURE), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(1.0F, 0.0F, 1.0F, 0.0F));
             poseStack.popPose();
         }
 
@@ -255,11 +256,11 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
             poseStack.pushPose();
             poseStack.scale(0.9F, 0.9F, 0.9F);
             RAYGUN_MODEL.setupAnim(null, useAmount, ageInTicks,  0, 0, 0);
-            boolean gamma = itemStackIn.getEnchantmentLevel(ACEnchantmentRegistry.GAMMA_RAY.get())  > 0;
+            boolean gamma = level != null && itemStackIn.getEnchantmentLevel(level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(ACEnchantmentRegistry.GAMMA_RAY)) > 0;
             ResourceLocation texture = gamma ? RAYGUN_BLUE_TEXTURE : RAYGUN_TEXTURE;
             ResourceLocation textureActive = gamma ? RAYGUN_BLUE_ACTIVE_TEXTURE : RAYGUN_ACTIVE_TEXTURE;
-            RAYGUN_MODEL.renderToBuffer(poseStack, getVertexConsumerFoil(bufferIn, RenderType.entityCutoutNoCull(texture), texture, itemStackIn.hasFoil()), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
-            RAYGUN_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(textureActive), textureActive), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, pulseAlpha);
+            RAYGUN_MODEL.renderToBuffer(poseStack, getVertexConsumerFoil(bufferIn, RenderType.entityCutoutNoCull(texture), texture, itemStackIn.hasFoil()), combinedLightIn, combinedOverlayIn, -1);
+            RAYGUN_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(textureActive), textureActive), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(pulseAlpha, 1.0F, 1.0F, 1.0F));
             poseStack.popPose();
             poseStack.popPose();
         }
@@ -267,7 +268,7 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
         if (itemStackIn.is(ACItemRegistry.SEA_STAFF.get())) {
             poseStack.translate(0.5F, 0.5F, 0.5F);
             ItemStack spriteItem = new ItemStack(ACItemRegistry.SEA_STAFF_SPRITE.get());
-            spriteItem.setTag(itemStackIn.getTag());
+            spriteItem.applyComponents(itemStackIn.getComponents());
             if (heldIn3d) {
                 poseStack.pushPose();
                 poseStack.mulPose(Axis.XP.rotationDegrees(-180));
@@ -275,8 +276,8 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
                 if (transformType.firstPerson()) {
                     poseStack.scale(0.6F, 0.6F, 0.6F);
                 }
-                VertexConsumer vertexconsumer = ItemRenderer.getArmorFoilBuffer(bufferIn, RenderType.armorCutoutNoCull(SEA_STAFF_TEXTURE), false, itemStackIn.hasFoil());
-                SEA_STAFF_MODEL.renderToBuffer(poseStack, vertexconsumer, combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
+                VertexConsumer vertexconsumer = ItemRenderer.getArmorFoilBuffer(bufferIn, RenderType.armorCutoutNoCull(SEA_STAFF_TEXTURE), itemStackIn.hasFoil());
+                SEA_STAFF_MODEL.renderToBuffer(poseStack, vertexconsumer, combinedLightIn, combinedOverlayIn, -1);
                 poseStack.popPose();
             } else {
                 renderStaticItemSprite(spriteItem, transformType, combinedLightIn, combinedOverlayIn, poseStack, bufferIn, level);
@@ -286,7 +287,7 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
         if (itemStackIn.is(ACItemRegistry.ORTHOLANCE.get())) {
             poseStack.translate(0.5F, 0.5F, 0.5F);
             ItemStack spriteItem = new ItemStack(ACItemRegistry.ORTHOLANCE_SPRITE.get());
-            spriteItem.setTag(itemStackIn.getTag());
+            spriteItem.applyComponents(itemStackIn.getComponents());
             if (heldIn3d) {
                 poseStack.pushPose();
                 poseStack.mulPose(Axis.XP.rotationDegrees(-180));
@@ -295,7 +296,7 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
                     poseStack.scale(0.6F, 1F, 0.6F);
                 }
                 VertexConsumer vertexconsumer = getVertexConsumerFoil(bufferIn, RenderType.entityCutoutNoCull(ORTHOLANCE_TEXTURE), ORTHOLANCE_TEXTURE, itemStackIn.hasFoil());
-                ORTHOLANCE_MODEL.renderToBuffer(poseStack, vertexconsumer, combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
+                ORTHOLANCE_MODEL.renderToBuffer(poseStack, vertexconsumer, combinedLightIn, combinedOverlayIn, -1);
                 poseStack.popPose();
             } else {
                 renderStaticItemSprite(spriteItem, transformType, combinedLightIn, combinedOverlayIn, poseStack, bufferIn, level);
@@ -307,7 +308,7 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
             poseStack.translate(0.5F, 1.5F, 0.5F);
             poseStack.mulPose(Axis.XP.rotationDegrees(-180));
             COPPER_VALVE_MODEL.resetToDefaultPose();
-            COPPER_VALVE_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, RenderType.entityCutoutNoCull(COPPER_VALVE_TEXTURE), COPPER_VALVE_TEXTURE), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
+            COPPER_VALVE_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, RenderType.entityCutoutNoCull(COPPER_VALVE_TEXTURE), COPPER_VALVE_TEXTURE), combinedLightIn, combinedOverlayIn, -1);
             poseStack.popPose();
         }
 
@@ -317,17 +318,17 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
             poseStack.translate(0.5F, 1.5F, 0.5F);
             poseStack.mulPose(Axis.XP.rotationDegrees(-180));
             BEHOLDER_MODEL.setupAnim(null, 0.0F, 45F, ageInTicks, 0, 0);
-            BEHOLDER_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, RenderType.entityCutoutNoCull(BEHOLDER_TEXTURE),BEHOLDER_TEXTURE), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
-            BEHOLDER_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, RenderType.eyes(BEHOLDER_TEXTURE_EYE), BEHOLDER_TEXTURE_EYE), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
+            BEHOLDER_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, RenderType.entityCutoutNoCull(BEHOLDER_TEXTURE),BEHOLDER_TEXTURE), combinedLightIn, combinedOverlayIn, -1);
+            BEHOLDER_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, RenderType.eyes(BEHOLDER_TEXTURE_EYE), BEHOLDER_TEXTURE_EYE), combinedLightIn, combinedOverlayIn, -1);
             poseStack.popPose();
         }
 
         if (itemStackIn.is(ACItemRegistry.DREADBOW.get())) {
             float ageInTicks = Minecraft.getInstance().player == null ? 0F : Minecraft.getInstance().player.tickCount + partialTick;
-            float pullAmount = DreadbowItem.getPullingAmount(itemStackIn, partialTick);
+            float pullAmount = DreadbowItem.getPullingAmount(Minecraft.getInstance().level, itemStackIn, partialTick);
             poseStack.translate(0.5F, 0.5F, 0.5F);
             ItemStack spriteItem = new ItemStack(pullAmount >= 0.8F ? ACItemRegistry.DREADBOW_PULLING_2_SPRITE.get() : pullAmount >= 0.5F ? ACItemRegistry.DREADBOW_PULLING_1_SPRITE.get() : pullAmount > 0.0F ? ACItemRegistry.DREADBOW_PULLING_0_SPRITE.get() : ACItemRegistry.DREADBOW_SPRITE.get());
-            spriteItem.setTag(itemStackIn.getTag());
+            spriteItem.applyComponents(itemStackIn.getComponents());
             if (heldIn3d) {
                 poseStack.pushPose();
                 if (transformType.firstPerson()) {
@@ -354,9 +355,9 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
                     poseStack.popPose();
                 }
                 VertexConsumer vertexconsumer = getVertexConsumerFoil(bufferIn, RenderType.entityCutoutNoCull(DREADBOW_TEXTURE), DREADBOW_TEXTURE, itemStackIn.hasFoil());
-                DREADBOW_MODEL.renderToBuffer(poseStack, vertexconsumer, combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
+                DREADBOW_MODEL.renderToBuffer(poseStack, vertexconsumer, combinedLightIn, combinedOverlayIn, -1);
                 ResourceLocation eyeTexture = DreadbowItem.getPerfectShotTicks(itemStackIn) > 0 ? DREADBOW_TEXTURE_EYE_PERFECT : DREADBOW_TEXTURE_EYE;
-                DREADBOW_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, RenderType.eyes(eyeTexture), eyeTexture), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
+                DREADBOW_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, RenderType.eyes(eyeTexture), eyeTexture), combinedLightIn, combinedOverlayIn, -1);
                 poseStack.popPose();
             } else {
                 renderStaticItemSprite(spriteItem, transformType, combinedLightIn, combinedOverlayIn, poseStack, bufferIn, level);
@@ -368,8 +369,8 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
             poseStack.translate(0.5F, 1.5F, 0.5F);
             poseStack.mulPose(Axis.XP.rotationDegrees(-180));
             GOBTHUMPER_MODEL.setupAnim(null, 0.0F, 0.0F, 0.0F, 0, 0);
-            GOBTHUMPER_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, RenderType.entityCutoutNoCull(GOBTHUMPER_TEXTURE),GOBTHUMPER_TEXTURE), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
-            GOBTHUMPER_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, RenderType.entityTranslucent(GOBTHUMPER_JELLY_TEXTURE), GOBTHUMPER_JELLY_TEXTURE), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
+            GOBTHUMPER_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, RenderType.entityCutoutNoCull(GOBTHUMPER_TEXTURE),GOBTHUMPER_TEXTURE), combinedLightIn, combinedOverlayIn, -1);
+            GOBTHUMPER_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, RenderType.entityTranslucent(GOBTHUMPER_JELLY_TEXTURE), GOBTHUMPER_JELLY_TEXTURE), combinedLightIn, combinedOverlayIn, -1);
             poseStack.popPose();
         }
 
@@ -383,8 +384,8 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
             poseStack.scale(0.8F, 0.8F, 0.8F);
 
             SHOT_GUM_MODEL.setupAnim(null, shootProgress, ShotGumItem.getGumballsLeft(itemStackIn),  ShotGumItem.getLerpedCrankAngle(itemStackIn, partialTick), 0, 0);
-            SHOT_GUM_MODEL.renderToBuffer(poseStack, getVertexConsumerFoil(bufferIn, RenderType.entityCutoutNoCull(SHOT_GUM_TEXTURE), SHOT_GUM_TEXTURE, itemStackIn.hasFoil()), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
-            SHOT_GUM_MODEL.renderToBuffer(poseStack, getVertexConsumerFoil(bufferIn, RenderType.entityTranslucent(SHOT_GUM_GLASS_TEXTURE), SHOT_GUM_GLASS_TEXTURE, itemStackIn.hasFoil()), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
+            SHOT_GUM_MODEL.renderToBuffer(poseStack, getVertexConsumerFoil(bufferIn, RenderType.entityCutoutNoCull(SHOT_GUM_TEXTURE), SHOT_GUM_TEXTURE, itemStackIn.hasFoil()), combinedLightIn, combinedOverlayIn, -1);
+            SHOT_GUM_MODEL.renderToBuffer(poseStack, getVertexConsumerFoil(bufferIn, RenderType.entityTranslucent(SHOT_GUM_GLASS_TEXTURE), SHOT_GUM_GLASS_TEXTURE, itemStackIn.hasFoil()), combinedLightIn, combinedOverlayIn, -1);
             poseStack.popPose();
             poseStack.popPose();
         }
@@ -393,7 +394,7 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
             float ageInTicks = Minecraft.getInstance().player == null ? 0F : Minecraft.getInstance().player.tickCount + partialTick;
             poseStack.translate(0.5F, 0.5F, 0.5F);
             ItemStack spriteItem = new ItemStack(ACItemRegistry.SUGAR_STAFF_SPRITE.get());
-            spriteItem.setTag(itemStackIn.getTag());
+            spriteItem.applyComponents(itemStackIn.getComponents());
             if (heldIn3d) {
                 poseStack.pushPose();
                 poseStack.mulPose(Axis.XP.rotationDegrees(-180));
@@ -402,9 +403,9 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
                     poseStack.translate(0, 0.4F, 0);
                     poseStack.scale(0.6F, 0.6F, 0.6F);
                 }
-                VertexConsumer vertexconsumer = ItemRenderer.getArmorFoilBuffer(bufferIn, RenderType.armorCutoutNoCull(SUGAR_STAFF_TEXTURE), false, itemStackIn.hasFoil());
+                VertexConsumer vertexconsumer = ItemRenderer.getArmorFoilBuffer(bufferIn, RenderType.armorCutoutNoCull(SUGAR_STAFF_TEXTURE), itemStackIn.hasFoil());
                 SUGAR_STAFF_MODEL.setupAnim(null, 0.0F, 0.0F,  ageInTicks, 0, 0);
-                SUGAR_STAFF_MODEL.renderToBuffer(poseStack, vertexconsumer, combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
+                SUGAR_STAFF_MODEL.renderToBuffer(poseStack, vertexconsumer, combinedLightIn, combinedOverlayIn, -1);
                 poseStack.popPose();
             } else {
                 renderStaticItemSprite(spriteItem, transformType, combinedLightIn, combinedOverlayIn, poseStack, bufferIn, level);
@@ -414,7 +415,7 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
         if (itemStackIn.is(ACItemRegistry.FROSTMINT_SPEAR.get())) {
             poseStack.translate(0.5F, 0.5F, 0.5F);
             ItemStack spriteItem = new ItemStack(ACItemRegistry.FROSTMINT_SPEAR_SPRITE.get());
-            spriteItem.setTag(itemStackIn.getTag());
+            spriteItem.applyComponents(itemStackIn.getComponents());
             if (heldIn3d) {
                 poseStack.pushPose();
                 poseStack.mulPose(Axis.XP.rotationDegrees(-180));
@@ -424,8 +425,8 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
                     poseStack.scale(0.75F, 0.75F, 0.75F);
                 }
                 FROSTMINT_SPEAR_MODEL.resetToDefaultPose();
-                VertexConsumer vertexconsumer1 = ItemRenderer.getArmorFoilBuffer(bufferIn, RenderType.entityCutoutNoCull(FROSTMINT_SPEAR_TEXTURE), false, itemStackIn.hasFoil());
-                FROSTMINT_SPEAR_MODEL.renderToBuffer(poseStack, vertexconsumer1, combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
+                VertexConsumer vertexconsumer1 = ItemRenderer.getArmorFoilBuffer(bufferIn, RenderType.entityCutoutNoCull(FROSTMINT_SPEAR_TEXTURE), itemStackIn.hasFoil());
+                FROSTMINT_SPEAR_MODEL.renderToBuffer(poseStack, vertexconsumer1, combinedLightIn, combinedOverlayIn, -1);
                 poseStack.popPose();
             } else {
                 renderStaticItemSprite(spriteItem, transformType, combinedLightIn, combinedOverlayIn, poseStack, bufferIn, level);

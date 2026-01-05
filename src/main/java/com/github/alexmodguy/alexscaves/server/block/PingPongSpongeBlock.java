@@ -1,9 +1,11 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
@@ -24,8 +26,14 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import javax.annotation.Nullable;
 
 public class PingPongSpongeBlock extends BushBlock implements LiquidBlockContainer {
+    public static final MapCodec<PingPongSpongeBlock> CODEC = simpleCodec((properties) -> new PingPongSpongeBlock());
     public static final BooleanProperty TOP = BooleanProperty.create("top");
     public static final VoxelShape SHAPE = Block.box(6, 0, 6, 10, 16, 10);
+
+    @Override
+    public MapCodec<? extends BushBlock> codec() {
+        return CODEC;
+    }
     public static final VoxelShape SHAPE_TOP = Block.box(3, 0, 3, 13, 16, 13);
 
     public PingPongSpongeBlock() {
@@ -102,7 +110,8 @@ public class PingPongSpongeBlock extends BushBlock implements LiquidBlockContain
     }
 
 
-    public boolean canPlaceLiquid(BlockGetter p_154505_, BlockPos p_154506_, BlockState p_154507_, Fluid p_154508_) {
+    @Override
+    public boolean canPlaceLiquid(Player player, BlockGetter level, BlockPos pos, BlockState state, Fluid fluid) {
         return false;
     }
 

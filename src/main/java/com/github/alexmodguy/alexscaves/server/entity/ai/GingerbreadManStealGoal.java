@@ -2,19 +2,16 @@ package com.github.alexmodguy.alexscaves.server.entity.ai;
 
 import com.github.alexmodguy.alexscaves.server.entity.living.GingerbreadManEntity;
 import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
-import com.github.alexthe666.citadel.animation.Animation;
 import com.github.alexthe666.citadel.animation.IAnimatedEntity;
 import net.minecraft.Util;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
-import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.items.IItemHandler;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -111,9 +108,8 @@ public class GingerbreadManStealGoal extends Goal {
         if(!canStealFromEntityType(entity)){
             return false;
         }
-        LazyOptional<IItemHandler> lazyOptional = entity.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.DOWN);
-        if (lazyOptional.isPresent()) {
-            IItemHandler handler = lazyOptional.orElse(null);
+        IItemHandler handler = entity.getCapability(Capabilities.ItemHandler.ENTITY);
+        if (handler != null) {
             for (int i = 0; i < handler.getSlots(); i++) {
                 if (handler.getStackInSlot(i).is(ACTagRegistry.GINGERBREAD_MAN_STEALS)) {
                     return true;
@@ -131,9 +127,8 @@ public class GingerbreadManStealGoal extends Goal {
     }
 
     public ItemStack stealOneFrom(Entity entity) {
-        LazyOptional<IItemHandler> lazyOptional = entity.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.DOWN);
-        if (lazyOptional.isPresent()) {
-            IItemHandler handler = lazyOptional.orElse(null);
+        IItemHandler handler = entity.getCapability(Capabilities.ItemHandler.ENTITY);
+        if (handler != null) {
             List<Integer> validSlots = new ArrayList<>();
             for (int i = 0; i < handler.getSlots(); i++) {
                 if (handler.getStackInSlot(i).is(ACTagRegistry.GINGERBREAD_MAN_STEALS)) {

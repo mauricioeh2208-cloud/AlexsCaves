@@ -3,6 +3,7 @@ package com.github.alexmodguy.alexscaves.server.entity.util;
 import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACVanillaMapUtil;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -11,10 +12,12 @@ import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.MapItem;
+import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 public class VillagerUndergroundCabinMapTrade implements VillagerTrades.ItemListing {
     private final int emeraldCost;
@@ -37,9 +40,9 @@ public class VillagerUndergroundCabinMapTrade implements VillagerTrades.ItemList
             if (blockpos != null) {
                 ItemStack itemstack = MapItem.create(serverlevel, blockpos.getX(), blockpos.getZ(), (byte)2, true, true);
                 MapItem.renderBiomePreviewMap(serverlevel, itemstack);
-                MapItemSavedData.addTargetDecoration(itemstack, blockpos, "+", ACVanillaMapUtil.UNDERGROUND_CABIN_MAP_DECORATION);
-                itemstack.setHoverName(Component.translatable("item.alexscaves.underground_cabin_explorer_map"));
-                return new MerchantOffer(new ItemStack(Items.EMERALD, this.emeraldCost), new ItemStack(Items.COMPASS), itemstack, this.maxUses, this.villagerXp, 0.2F);
+                MapItemSavedData.addTargetDecoration(itemstack, blockpos, "+", ACVanillaMapUtil.getUndergroundCabinDecoration());
+                itemstack.set(DataComponents.CUSTOM_NAME, Component.translatable("item.alexscaves.underground_cabin_explorer_map"));
+                return new MerchantOffer(new ItemCost(Items.EMERALD, this.emeraldCost), Optional.of(new ItemCost(Items.COMPASS)), itemstack, this.maxUses, this.villagerXp, 0.2F);
             } else {
                 return null;
             }

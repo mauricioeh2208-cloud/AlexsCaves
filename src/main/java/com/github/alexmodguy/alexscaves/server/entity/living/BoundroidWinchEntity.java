@@ -285,11 +285,11 @@ public class BoundroidWinchEntity extends Monster {
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(HEAD_UUID, Optional.empty());
-        this.entityData.define(HEAD_ID, -1);
-        this.entityData.define(LATCHED, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(HEAD_UUID, Optional.empty());
+        builder.define(HEAD_ID, -1);
+        builder.define(LATCHED, false);
     }
 
     @Nullable
@@ -346,7 +346,7 @@ public class BoundroidWinchEntity extends Monster {
     }
 
     public boolean canBeAffected(MobEffectInstance effectInstance) {
-        return super.canBeAffected(effectInstance) && effectInstance.getEffect() != ACEffectRegistry.MAGNETIZING.get();
+        return super.canBeAffected(effectInstance) && effectInstance.getEffect() != ACEffectRegistry.MAGNETIZING;
     }
 
     class WanderUpsideDownGoal extends RandomStrollGoal {

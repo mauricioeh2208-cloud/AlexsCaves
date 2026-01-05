@@ -33,15 +33,21 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 public class SpelunkeryTableScreen extends AbstractContainerScreen<SpelunkeryTableMenu> {
 
-    protected static final Style GLYPH_FONT = Style.EMPTY.withFont(ResourceLocation.fromNamespaceAndPath("minecraft", "alt"));
+    protected static final Style GLYPH_FONT = Style.EMPTY
+            .withFont(ResourceLocation.fromNamespaceAndPath("minecraft", "alt"));
 
-    public static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "textures/gui/spelunkery_table.png");
-    public static final ResourceLocation TABLET_TEXTURE = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "textures/gui/spelunkery_table_tablet.png");
-    public static final ResourceLocation WIDGETS_TEXTURE = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "textures/gui/spelunkery_table_widgets.png");
-    public static final ResourceLocation DEFAULT_WORDS = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "minigame/en_us/magnetic_caves.txt");
+    public static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID,
+            "textures/gui/spelunkery_table.png");
+    public static final ResourceLocation TABLET_TEXTURE = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID,
+            "textures/gui/spelunkery_table_tablet.png");
+    public static final ResourceLocation WIDGETS_TEXTURE = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID,
+            "textures/gui/spelunkery_table_widgets.png");
+    public static final ResourceLocation DEFAULT_WORDS = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID,
+            "minigame/en_us/magnetic_caves.txt");
     private int tickCount = 0;
 
     private int attemptsLeft = 0;
@@ -95,7 +101,7 @@ public class SpelunkeryTableScreen extends AbstractContainerScreen<SpelunkeryTab
     }
 
     public void render(GuiGraphics guiGraphics, int x, int y, float partialTick) {
-        this.renderBackground(guiGraphics);
+        this.renderBackground(guiGraphics, x, y, partialTick);
         this.renderBg(guiGraphics, partialTick, x, y);
         super.render(guiGraphics, x, y, partialTick);
         this.renderMagnify(guiGraphics, partialTick);
@@ -109,21 +115,16 @@ public class SpelunkeryTableScreen extends AbstractContainerScreen<SpelunkeryTab
         int j = this.topPos;
         if (invalidTablet) {
             Component badTablet = Component.translatable("alexscaves.container.spelunkery_table.bad_tablet");
-            guiGraphics.drawString(font, badTablet, leftPos + 105 - (font.width(badTablet) / 2), j + 60, 0X000000, false);
-            CompoundTag badTag = menu.getSlot(0).getItem().getTag();
-            if (badTag != null && !badTag.isEmpty()) {
-                int nbtLine = 0;
-                for (String key : badTag.getAllKeys()) {
-                    Component badData = Component.literal(key + ": " + badTag.get(key).getAsString());
-                    guiGraphics.drawString(font, badData, leftPos + 105 - (font.width(badData) / 2), j + 75 + nbtLine, 0X000000, false);
-                    nbtLine = nbtLine + 9;
-                }
-            }
+            guiGraphics.drawString(font, badTablet, leftPos + 105 - (font.width(badTablet) / 2), j + 60, 0X000000,
+                    false);
+            // TODO: NBT/DataComponents display for invalid tablet - simplified for 1.21
+
         } else if (targetWordButton != null && hasTablet() && hasPaper()) {
             Component find = Component.translatable("alexscaves.container.spelunkery_table.find");
             Component attempts = Component.translatable("alexscaves.container.spelunkery_table.attempts");
             guiGraphics.drawString(font, find, i + 20 - (font.width(find) / 2), j + 20, 0X99876C, false);
-            guiGraphics.drawString(font, targetWordButton.getNormalText(), i + 20 - (font.width(targetWordButton.getNormalText()) / 2), j + 35, highlightColor, false);
+            guiGraphics.drawString(font, targetWordButton.getNormalText(),
+                    i + 20 - (font.width(targetWordButton.getNormalText()) / 2), j + 35, highlightColor, false);
             guiGraphics.drawString(font, attempts, i + 20 - (font.width(attempts) / 2), j + 60, 0X99876C, false);
             int tallySpace = 0;
             for (int tally = 1; tally <= attemptsLeft; tally++) {
@@ -140,14 +141,15 @@ public class SpelunkeryTableScreen extends AbstractContainerScreen<SpelunkeryTab
     }
 
     private void renderTabletText(GuiGraphics guiGraphics) {
-        float partialTick = Minecraft.getInstance().getPartialTick();
+        float partialTick = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(false);
         float x = getMagnifyPosX(partialTick);
         float y = getMagnifyPosY(partialTick);
         if (hasTablet()) {
             guiGraphics.pose().pushPose();
             for (Renderable renderable : renderables) {
                 if (renderable instanceof SpelunkeryTableWordButton tableWordButton) {
-                    tableWordButton.renderTranslationText(tickCount, highlightColor, guiGraphics, font, x + 5, x + 32, y + 6, y + 32);
+                    tableWordButton.renderTranslationText(tickCount, highlightColor, guiGraphics, font, x + 5, x + 32,
+                            y + 6, y + 32);
                 }
             }
             guiGraphics.pose().popPose();
@@ -164,47 +166,71 @@ public class SpelunkeryTableScreen extends AbstractContainerScreen<SpelunkeryTab
             if (tutorialStep == 0) {
                 exclaimX = 54;
                 exclaimY = 143;
-                if (mouseX > i + exclaimX - 5 && mouseY > j + exclaimY - 5 && mouseX < i + exclaimX + 15 && mouseY < j + exclaimY + 15) {
-                    Component tabletName = Component.translatable(ACItemRegistry.CAVE_TABLET.get().getDescriptionId()).withStyle(ChatFormatting.BOLD).withStyle(ChatFormatting.YELLOW);
-                    List<Component> step1Tooltip = List.of(Component.translatable("alexscaves.container.spelunkery_table.slot_info_tablet_0", tabletName).withStyle(ChatFormatting.GRAY), Component.translatable("alexscaves.container.spelunkery_table.slot_info_tablet_1").withStyle(ChatFormatting.GRAY));
+                if (mouseX > i + exclaimX - 5 && mouseY > j + exclaimY - 5 && mouseX < i + exclaimX + 15
+                        && mouseY < j + exclaimY + 15) {
+                    Component tabletName = Component.translatable(ACItemRegistry.CAVE_TABLET.get().getDescriptionId())
+                            .withStyle(ChatFormatting.BOLD).withStyle(ChatFormatting.YELLOW);
+                    List<Component> step1Tooltip = List.of(
+                            Component.translatable("alexscaves.container.spelunkery_table.slot_info_tablet_0",
+                                    tabletName).withStyle(ChatFormatting.GRAY),
+                            Component.translatable("alexscaves.container.spelunkery_table.slot_info_tablet_1")
+                                    .withStyle(ChatFormatting.GRAY));
                     guiGraphics.renderTooltip(font, step1Tooltip, Optional.empty(), mouseX, mouseY);
                 }
             } else if (tutorialStep == 1) {
                 exclaimX = 74;
                 exclaimY = 143;
-                if (mouseX > i + exclaimX - 5 && mouseY > j + exclaimY - 5 && mouseX < i + exclaimX + 15 && mouseY < j + exclaimY + 15) {
-                    Component paperName = Component.translatable(Items.PAPER.getDescriptionId()).withStyle(ChatFormatting.BOLD).withStyle(ChatFormatting.WHITE);
-                    List<Component> step1Tooltip = List.of(Component.translatable("alexscaves.container.spelunkery_table.slot_info_paper", paperName).withStyle(ChatFormatting.GRAY));
+                if (mouseX > i + exclaimX - 5 && mouseY > j + exclaimY - 5 && mouseX < i + exclaimX + 15
+                        && mouseY < j + exclaimY + 15) {
+                    Component paperName = Component.translatable(Items.PAPER.getDescriptionId())
+                            .withStyle(ChatFormatting.BOLD).withStyle(ChatFormatting.WHITE);
+                    List<Component> step1Tooltip = List.of(
+                            Component.translatable("alexscaves.container.spelunkery_table.slot_info_paper", paperName)
+                                    .withStyle(ChatFormatting.GRAY));
                     guiGraphics.renderTooltip(font, step1Tooltip, Optional.empty(), mouseX, mouseY);
                 }
             } else if (tutorialStep == 2) {
                 exclaimX = 170;
                 exclaimY = 23;
-                if (mouseX > i + exclaimX - 5 && mouseY > j + exclaimY - 5 && mouseX < i + exclaimX + 15 && mouseY < j + exclaimY + 15) {
-                    List<Component> step1Tooltip = List.of(Component.translatable("alexscaves.container.spelunkery_table.translate").withStyle(ChatFormatting.GRAY));
+                if (mouseX > i + exclaimX - 5 && mouseY > j + exclaimY - 5 && mouseX < i + exclaimX + 15
+                        && mouseY < j + exclaimY + 15) {
+                    List<Component> step1Tooltip = List
+                            .of(Component.translatable("alexscaves.container.spelunkery_table.translate")
+                                    .withStyle(ChatFormatting.GRAY));
                     guiGraphics.renderTooltip(font, step1Tooltip, Optional.empty(), mouseX, mouseY);
                 }
             } else if (tutorialStep == 3) {
                 exclaimX = 185;
                 exclaimY = 140;
-                if (mouseX > i + exclaimX - 5 && mouseY > j + exclaimY - 5 && mouseX < i + exclaimX + 15 && mouseY < j + exclaimY + 15) {
-                    List<Component> step1Tooltip = List.of(Component.translatable("alexscaves.container.spelunkery_table.glass").withStyle(ChatFormatting.GRAY));
+                if (mouseX > i + exclaimX - 5 && mouseY > j + exclaimY - 5 && mouseX < i + exclaimX + 15
+                        && mouseY < j + exclaimY + 15) {
+                    List<Component> step1Tooltip = List
+                            .of(Component.translatable("alexscaves.container.spelunkery_table.glass")
+                                    .withStyle(ChatFormatting.GRAY));
                     guiGraphics.renderTooltip(font, step1Tooltip, Optional.empty(), mouseX, mouseY);
                 }
             } else if (tutorialStep == 4) {
                 exclaimX = -15;
                 exclaimY = 15;
-                if (mouseX > i + exclaimX - 5 && mouseY > j + exclaimY - 5 && mouseX < i + exclaimX + 15 && mouseY < j + exclaimY + 15) {
-                    List<Component> step1Tooltip = List.of(Component.translatable("alexscaves.container.spelunkery_table.guess_name").withStyle(ChatFormatting.GRAY));
+                if (mouseX > i + exclaimX - 5 && mouseY > j + exclaimY - 5 && mouseX < i + exclaimX + 15
+                        && mouseY < j + exclaimY + 15) {
+                    List<Component> step1Tooltip = List
+                            .of(Component.translatable("alexscaves.container.spelunkery_table.guess_name")
+                                    .withStyle(ChatFormatting.GRAY));
                     guiGraphics.renderTooltip(font, step1Tooltip, Optional.empty(), mouseX, mouseY);
                 }
             } else if (tutorialStep == 5) {
                 exclaimX = 35;
                 exclaimY = 142;
-                if (mouseX > i + exclaimX - 5 && mouseY > j + exclaimY - 5 && mouseX < i + exclaimX + 15 && mouseY < j + exclaimY + 15) {
-                    Component scrollName = Component.translatable(ACItemRegistry.CAVE_CODEX.get().getDescriptionId()).withStyle(ChatFormatting.BOLD).withStyle(ChatFormatting.YELLOW);
+                if (mouseX > i + exclaimX - 5 && mouseY > j + exclaimY - 5 && mouseX < i + exclaimX + 15
+                        && mouseY < j + exclaimY + 15) {
+                    Component scrollName = Component.translatable(ACItemRegistry.CAVE_CODEX.get().getDescriptionId())
+                            .withStyle(ChatFormatting.BOLD).withStyle(ChatFormatting.YELLOW);
                     int toDoLevels = Math.max(0, 3 - level);
-                    List<Component> step1Tooltip = List.of(Component.translatable(toDoLevels == 1 ? "alexscaves.container.spelunkery_table.level" : "alexscaves.container.spelunkery_table.levels", toDoLevels, scrollName).withStyle(ChatFormatting.GRAY));
+                    List<Component> step1Tooltip = List.of(Component
+                            .translatable(toDoLevels == 1 ? "alexscaves.container.spelunkery_table.level"
+                                    : "alexscaves.container.spelunkery_table.levels", toDoLevels, scrollName)
+                            .withStyle(ChatFormatting.GRAY));
                     guiGraphics.renderTooltip(font, step1Tooltip, Optional.empty(), mouseX, mouseY);
                 }
             }
@@ -225,10 +251,10 @@ public class SpelunkeryTableScreen extends AbstractContainerScreen<SpelunkeryTab
     private void renderMagnify(GuiGraphics guiGraphics, float partialTick) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, WIDGETS_TEXTURE);
-        BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
-        bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        BufferBuilder bufferbuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS,
+                DefaultVertexFormat.POSITION_TEX);
         Matrix4f matrix4f = guiGraphics.pose().last().pose();
-        float actualPartialTick = Minecraft.getInstance().getFrameTime();
+        float actualPartialTick = Minecraft.getInstance().getTimer().getRealtimeDeltaTicks();
         float lerpX = getMagnifyPosX(actualPartialTick);
         float lerpY = getMagnifyPosY(actualPartialTick);
         float size = 38 / 256F;
@@ -243,11 +269,11 @@ public class SpelunkeryTableScreen extends AbstractContainerScreen<SpelunkeryTab
         float v0 = v;
         float v1 = v + size;
         float zOffset = draggingMagnify ? 500 : 200;
-        bufferbuilder.vertex(matrix4f, (float) x0, (float) y0, (float) zOffset).uv(u0, v0).endVertex();
-        bufferbuilder.vertex(matrix4f, (float) x0, (float) y1, (float) zOffset).uv(u0, v1).endVertex();
-        bufferbuilder.vertex(matrix4f, (float) x1, (float) y1, (float) zOffset).uv(u1, v1).endVertex();
-        bufferbuilder.vertex(matrix4f, (float) x1, (float) y0, (float) zOffset).uv(u1, v0).endVertex();
-        BufferUploader.drawWithShader(bufferbuilder.end());
+        bufferbuilder.addVertex(matrix4f, x0, y0, zOffset).setUv(u0, v0);
+        bufferbuilder.addVertex(matrix4f, x0, y1, zOffset).setUv(u0, v1);
+        bufferbuilder.addVertex(matrix4f, x1, y1, zOffset).setUv(u1, v1);
+        bufferbuilder.addVertex(matrix4f, x1, y0, zOffset).setUv(u1, v0);
+        BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
     }
 
     protected void renderBg(GuiGraphics guiGraphics, float f, int x, int y) {
@@ -335,12 +361,12 @@ public class SpelunkeryTableScreen extends AbstractContainerScreen<SpelunkeryTab
         if (resetTabletFromWin && level >= 3) {
             doneWithTutorial = true;
             menu.setTutorialComplete(Minecraft.getInstance().player, true);
-            AlexsCaves.NETWORK_WRAPPER.sendToServer(new SpelunkeryTableChangeMessage(true));
+            PacketDistributor.sendToServer(new SpelunkeryTableChangeMessage(true));
             level = 0;
             fullResetWords();
         } else if (finishedLevel && passLevelProgress >= 10.0F && attemptsLeft <= 0) {
             level = 0;
-            AlexsCaves.NETWORK_WRAPPER.sendToServer(new SpelunkeryTableChangeMessage(false));
+            PacketDistributor.sendToServer(new SpelunkeryTableChangeMessage(false));
             fullResetWords();
             Minecraft.getInstance().setScreen(null);
         }
@@ -385,7 +411,8 @@ public class SpelunkeryTableScreen extends AbstractContainerScreen<SpelunkeryTab
         if (prev) {
             lastMouseX = (int) width;
             lastMouseY = (int) height;
-            if (!draggingMagnify && lastMouseX >= this.magnifyPosX && lastMouseX <= this.magnifyPosX + 38 && lastMouseY >= this.magnifyPosY && lastMouseY <= this.magnifyPosY + 38) {
+            if (!draggingMagnify && lastMouseX >= this.magnifyPosX && lastMouseX <= this.magnifyPosX + 38
+                    && lastMouseY >= this.magnifyPosY && lastMouseY <= this.magnifyPosY + 38) {
                 draggingMagnify = true;
                 if (tutorialStep > 2) {
                     hasClickedLens = true;
@@ -401,7 +428,8 @@ public class SpelunkeryTableScreen extends AbstractContainerScreen<SpelunkeryTab
     }
 
     protected void renderLabels(GuiGraphics guiGraphics, int x, int y) {
-        guiGraphics.drawString(font, this.title, this.titleLabelX - (font.width(title) / 2), this.titleLabelY, 4210752, false);
+        guiGraphics.drawString(font, this.title, this.titleLabelX - (font.width(title) / 2), this.titleLabelY, 4210752,
+                false);
     }
 
     private ResourceLocation getWordsForItem(ItemStack stack) {
@@ -410,7 +438,8 @@ public class SpelunkeryTableScreen extends AbstractContainerScreen<SpelunkeryTab
         }
         String s1 = getMinigameStr(stack) + ".txt";
         String lang = Minecraft.getInstance().getLanguageManager().getSelected().toLowerCase();
-        ResourceLocation resourceLocation = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "minigame/" + lang + "/" + s1);
+        ResourceLocation resourceLocation = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID,
+                "minigame/" + lang + "/" + s1);
         try {
             InputStream is = Minecraft.getInstance().getResourceManager().open(resourceLocation);
             is.close();
@@ -425,7 +454,6 @@ public class SpelunkeryTableScreen extends AbstractContainerScreen<SpelunkeryTab
         ResourceKey<Biome> biomeResourceKey = CaveInfoItem.getCaveBiome(stack);
         return biomeResourceKey == null ? "magnetic_caves" : biomeResourceKey.location().getPath();
     }
-
 
     private void clearWordWidgets() {
         for (SpelunkeryTableWordButton button : wordButtons) {
@@ -462,7 +490,8 @@ public class SpelunkeryTableScreen extends AbstractContainerScreen<SpelunkeryTab
             while (wordLineWidth + maxWordWidth + 30 < maxWidth && !allWords.isEmpty()) {
                 component = Component.literal(allWords.remove(0).toUpperCase());
                 maxWordWidth = component.getString().length() * letterWidth;
-                SpelunkeryTableWordButton tableWordButton = new SpelunkeryTableWordButton(this, this.font, 25 + wordLineWidth, 25 + 12 * wordLines, maxWordWidth, 12, component.withStyle(Style.EMPTY));
+                SpelunkeryTableWordButton tableWordButton = new SpelunkeryTableWordButton(this, this.font,
+                        25 + wordLineWidth, 25 + 12 * wordLines, maxWordWidth, 12, component.withStyle(Style.EMPTY));
                 this.addWordWidget(tableWordButton);
                 wordLineWidth += maxWordWidth;
             }
@@ -470,8 +499,9 @@ public class SpelunkeryTableScreen extends AbstractContainerScreen<SpelunkeryTab
             wordLines++;
         }
         if (!wordButtons.isEmpty()) {
-            if(Minecraft.getInstance().level != null){
-                targetWordButton = wordButtons.size() <= 1 ? wordButtons.get(0) : wordButtons.get(random.nextInt(wordButtons.size()));
+            if (Minecraft.getInstance().level != null) {
+                targetWordButton = wordButtons.size() <= 1 ? wordButtons.get(0)
+                        : wordButtons.get(random.nextInt(wordButtons.size()));
             }
             attemptsLeft = 5;
         } else {
@@ -489,16 +519,20 @@ public class SpelunkeryTableScreen extends AbstractContainerScreen<SpelunkeryTab
         }
         if (tableWordButton == targetWordButton) {
             level++;
-            Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(level >= 3 ? ACSoundRegistry.SPELUNKERY_TABLE_SUCCESS_COMPLETE.get() : ACSoundRegistry.SPELUNKERY_TABLE_SUCCESS.get(), 1.0F));
+            Minecraft.getInstance().getSoundManager()
+                    .play(SimpleSoundInstance.forUI(level >= 3 ? ACSoundRegistry.SPELUNKERY_TABLE_SUCCESS_COMPLETE.get()
+                            : ACSoundRegistry.SPELUNKERY_TABLE_SUCCESS.get(), 1.0F));
             finishedLevel = true;
         } else {
             if (attemptsLeft > 0) {
                 attemptsLeft--;
             }
             if (attemptsLeft <= 1) {
-                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(ACSoundRegistry.SPELUNKERY_TABLE_CRACK.get(), 1.0F));
+                Minecraft.getInstance().getSoundManager()
+                        .play(SimpleSoundInstance.forUI(ACSoundRegistry.SPELUNKERY_TABLE_CRACK.get(), 1.0F));
             } else {
-                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(ACSoundRegistry.SPELUNKERY_TABLE_ATTEMPT_FAIL.get(), 1.0F));
+                Minecraft.getInstance().getSoundManager()
+                        .play(SimpleSoundInstance.forUI(ACSoundRegistry.SPELUNKERY_TABLE_ATTEMPT_FAIL.get(), 1.0F));
             }
             if (attemptsLeft <= 0) {
                 finishedLevel = true;
@@ -508,7 +542,8 @@ public class SpelunkeryTableScreen extends AbstractContainerScreen<SpelunkeryTab
 
     public float getRevealWordsAmount(float partialTick) {
         if (finishedLevel) {
-            return Math.min((prevPassLevelProgress + (passLevelProgress - prevPassLevelProgress) * partialTick) * 0.33F, 1F);
+            return Math.min((prevPassLevelProgress + (passLevelProgress - prevPassLevelProgress) * partialTick) * 0.33F,
+                    1F);
         } else {
             return 0.0F;
         }
@@ -530,7 +565,7 @@ public class SpelunkeryTableScreen extends AbstractContainerScreen<SpelunkeryTab
 
     public void onClose() {
         if (hasPaper() && hasTablet() && hasClickedAnyWord() && level < 3) {
-            AlexsCaves.NETWORK_WRAPPER.sendToServer(new SpelunkeryTableChangeMessage(false));
+            PacketDistributor.sendToServer(new SpelunkeryTableChangeMessage(false));
         }
         super.onClose();
     }

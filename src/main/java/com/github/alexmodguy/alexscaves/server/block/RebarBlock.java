@@ -114,7 +114,8 @@ public class RebarBlock extends Block implements BucketPickup, LiquidBlockContai
         return liquidType == 1 ? Fluids.WATER.getSource(false) : liquidType == 2 ? ACFluidRegistry.ACID_FLUID_SOURCE.get().getSource(false) : super.getFluidState(state);
     }
 
-    public boolean canPlaceLiquid(BlockGetter getter, BlockPos blockPos, BlockState blockState, Fluid fluid) {
+    @Override
+    public boolean canPlaceLiquid(Player player, BlockGetter getter, BlockPos blockPos, BlockState blockState, Fluid fluid) {
         return fluid == Fluids.WATER || fluid.getFluidType() == ACFluidRegistry.ACID_FLUID_TYPE.get();
     }
 
@@ -141,7 +142,7 @@ public class RebarBlock extends Block implements BucketPickup, LiquidBlockContai
         }
     }
 
-    public ItemStack pickupBlock(LevelAccessor levelAccessor, BlockPos blockPos, BlockState state) {
+    public ItemStack pickupBlock(@javax.annotation.Nullable Player player, LevelAccessor levelAccessor, BlockPos blockPos, BlockState state) {
         int liquidType = state.getValue(LIQUID_LOGGED);
         levelAccessor.setBlock(blockPos, state.setValue(LIQUID_LOGGED, 0), 3);
         if (liquidType > 0) {

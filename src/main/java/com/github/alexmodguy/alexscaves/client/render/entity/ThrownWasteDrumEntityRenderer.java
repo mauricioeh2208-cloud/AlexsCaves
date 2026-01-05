@@ -15,7 +15,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.model.data.ModelData;
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 public class ThrownWasteDrumEntityRenderer extends EntityRenderer<ThrownWasteDrumEntity> {
 
@@ -50,7 +50,7 @@ public class ThrownWasteDrumEntityRenderer extends EntityRenderer<ThrownWasteDru
         float f1 = 1.0F + progress;
         float f2 = 1.0F - progress;
         for (net.minecraft.client.renderer.RenderType rt : bakedmodel.getRenderTypes(state, RandomSource.create(42), ModelData.EMPTY)) {
-            NuclearBombRenderer.renderModel(poseStack.last(), source.getBuffer(net.minecraftforge.client.RenderTypeHelper.getEntityRenderType(rt, false)), state, bakedmodel, f, f1, f2, lightIn, OverlayTexture.NO_OVERLAY, ModelData.EMPTY, rt);
+            NuclearBombRenderer.renderModel(poseStack.last(), source.getBuffer(net.neoforged.neoforge.client.RenderTypeHelper.getEntityRenderType(rt, false)), state, bakedmodel, f, f1, f2, lightIn, OverlayTexture.NO_OVERLAY, ModelData.EMPTY, rt);
         }
         poseStack.popPose();
         poseStack.popPose();

@@ -3,10 +3,9 @@ package com.github.alexmodguy.alexscaves.server.level.storage;
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.server.entity.living.LuxtructosaurusEntity;
 import com.github.alexmodguy.alexscaves.server.level.map.CaveBiomeMapWorldWorker;
-import com.mojang.datafixers.util.Pair;
-import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectArraySet;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.server.level.ServerLevel;
@@ -16,8 +15,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.DimensionDataStorage;
-import net.minecraftforge.common.WorldWorkerManager;
-import net.minecraftforge.common.world.ForgeChunkManager;
+import net.neoforged.neoforge.common.WorldWorkerManager;
+import net.neoforged.neoforge.common.world.chunk.TicketHelper;
+import net.neoforged.neoforge.common.world.chunk.TicketSet;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 public class ACWorldData extends SavedData {
 
     private static final String IDENTIFIER = "alexscaves_world_data";
+    public static final Factory<ACWorldData> FACTORY = new Factory<>(ACWorldData::new, ACWorldData::load);
     private Map<UUID, Integer> deepOneReputations = new HashMap<>();
     private boolean primordialBossDefeatedOnce = false;
     private long firstPrimordialBossDefeatTimestamp = -1;
@@ -41,7 +42,7 @@ public class ACWorldData extends SavedData {
         if (world instanceof ServerLevel) {
             ServerLevel overworld = world.getServer().getLevel(Level.OVERWORLD);
             DimensionDataStorage storage = overworld.getDataStorage();
-            ACWorldData data = storage.computeIfAbsent(ACWorldData::load, ACWorldData::new, IDENTIFIER);
+            ACWorldData data = storage.computeIfAbsent(FACTORY, IDENTIFIER);
             if (data != null) {
                 data.setDirty();
             }
@@ -50,7 +51,7 @@ public class ACWorldData extends SavedData {
         return null;
     }
 
-    public static ACWorldData load(CompoundTag nbt) {
+    public static ACWorldData load(CompoundTag nbt, HolderLookup.Provider provider) {
         ACWorldData data = new ACWorldData();
         if (nbt.contains("DeepOneReputations")) {
             ListTag listtag = nbt.getList("DeepOneReputations", 10);
@@ -66,7 +67,7 @@ public class ACWorldData extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag compound) {
+    public CompoundTag save(CompoundTag compound, HolderLookup.Provider provider) {
         if (!this.deepOneReputations.isEmpty()) {
             ListTag listTag = new ListTag();
             for (Map.Entry<UUID, Integer> reputations : deepOneReputations.entrySet()) {
@@ -137,14 +138,14 @@ public class ACWorldData extends SavedData {
         return lastMapWorker != null && lastMapWorker.hasWork();
     }
 
-    public static void clearLoadedChunksCallback(ServerLevel serverLevel, ForgeChunkManager.TicketHelper ticketHelper) {
+    public static void clearLoadedChunksCallback(ServerLevel serverLevel, TicketHelper ticketHelper) {
         //remove all forced chunks on server relog
         int i = 0;
-        for(Map.Entry<UUID, Pair<LongSet, LongSet>> entry : ticketHelper.getEntityTickets().entrySet()){
+        for(Map.Entry<UUID, TicketSet> entry : ticketHelper.getEntityTickets().entrySet()){
             ticketHelper.removeAllTickets(entry.getKey());
             i++;
         }
-        for(Map.Entry<BlockPos, Pair<LongSet, LongSet>> entry : ticketHelper.getBlockTickets().entrySet()){
+        for(Map.Entry<BlockPos, TicketSet> entry : ticketHelper.getBlockTickets().entrySet()){
             ticketHelper.removeAllTickets(entry.getKey());
             i++;
         }

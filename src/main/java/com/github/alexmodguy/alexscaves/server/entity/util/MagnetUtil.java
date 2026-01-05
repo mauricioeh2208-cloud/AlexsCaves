@@ -71,9 +71,10 @@ public class MagnetUtil {
             Direction standingOnDirection = getStandingOnMagnetSurface(entity);
             float overrideByWalking = 1.0F;
             if (entity instanceof LivingEntity living) {
-                if (living.jumping && standingOnDirection == dir) {
+                boolean isJumping = isEntityJumping(living);
+                if (isJumping && standingOnDirection == dir) {
                     if (living.level().isClientSide) {
-                        AlexsCaves.sendMSGToServer(new PlayerJumpFromMagnetMessage(living.getId(), living.jumping));
+                        AlexsCaves.sendMSGToServer(new PlayerJumpFromMagnetMessage(living.getId(), isJumping));
                     }
                     magneticAccessor.postMagnetJump();
                 }
@@ -130,7 +131,7 @@ public class MagnetUtil {
 
     private static Vec3 processMovementControls(float dist, LivingEntity living, Direction dir) {
         double dSpeed = living.getAttributeValue(Attributes.MOVEMENT_SPEED);
-        float jump = living.jumping && getStandingOnMagnetSurface(living) != null ? 0.75F : -0.1F;
+        float jump = isEntityJumping(living) && getStandingOnMagnetSurface(living) != null ? 0.75F : -0.1F;
 
         if (dir == Direction.UP) {
             return new Vec3(living.getDeltaMovement().x * 0.98, -living.getDeltaMovement().y - jump, living.getDeltaMovement().z * 0.98);
@@ -236,7 +237,7 @@ public class MagnetUtil {
     }
 
     private static boolean isDynamicallyMagnetic(LivingEntity entity, boolean legsOnly) {
-        if (entity.hasEffect(ACEffectRegistry.MAGNETIZING.get())) {
+        if (entity.hasEffect(ACEffectRegistry.MAGNETIZING)) {
             return true;
         } else if (legsOnly) {
             return entity.getItemBySlot(EquipmentSlot.FEET).is(ACTagRegistry.MAGNETIC_ITEMS);
@@ -252,6 +253,16 @@ public class MagnetUtil {
 
     private static boolean isSpectatorPlayer(Entity entity){
         return entity instanceof Player player && player.isSpectator();
+    }
+
+    /**
+     * Helper method to check if a living entity is jumping.
+     * Since LivingEntity.jumping is protected, we use a workaround:
+     * Check if the entity has upward vertical momentum while on ground.
+     */
+    private static boolean isEntityJumping(LivingEntity living) {
+        // Check for upward movement when on ground - indicates a jump was initiated
+        return living.getDeltaMovement().y > 0 && living.onGround();
     }
 
     public static boolean isPulledByMagnets(Entity entity) {
@@ -339,16 +350,16 @@ public class MagnetUtil {
     }
 
     public static AABB rotateBoundingBox(EntityDimensions dimensions, Direction dir, Vec3 position) {
-        float usualWidth = dimensions.width * 0.5F;
+        float usualWidth = dimensions.width() * 0.5F;
         switch (dir) {
             case NORTH:
-                return new AABB(dimensions.width * -0.5F, dimensions.width * -0.5F, -usualWidth, dimensions.width * 0.5F, dimensions.width * 0.5F, dimensions.height - usualWidth).move(position);
+                return new AABB(dimensions.width() * -0.5F, dimensions.width() * -0.5F, -usualWidth, dimensions.width() * 0.5F, dimensions.width() * 0.5F, dimensions.height() - usualWidth).move(position);
             case SOUTH:
-                return new AABB(dimensions.width * -0.5F, dimensions.width * -0.5F, -dimensions.height + usualWidth, dimensions.width * 0.5F, dimensions.width * 0.5F, usualWidth).move(position);
+                return new AABB(dimensions.width() * -0.5F, dimensions.width() * -0.5F, -dimensions.height() + usualWidth, dimensions.width() * 0.5F, dimensions.width() * 0.5F, usualWidth).move(position);
             case EAST:
-                return new AABB(-dimensions.height + usualWidth, dimensions.width * -0.5F, dimensions.width * -0.5F, usualWidth, dimensions.width * 0.5F, dimensions.width * 0.5F).move(position);
+                return new AABB(-dimensions.height() + usualWidth, dimensions.width() * -0.5F, dimensions.width() * -0.5F, usualWidth, dimensions.width() * 0.5F, dimensions.width() * 0.5F).move(position);
             case WEST:
-                return new AABB(-usualWidth, dimensions.width * -0.5F, dimensions.width * -0.5F, dimensions.height - usualWidth, dimensions.width * 0.5F, dimensions.width * 0.5F).move(position);
+                return new AABB(-usualWidth, dimensions.width() * -0.5F, dimensions.width() * -0.5F, dimensions.height() - usualWidth, dimensions.width() * 0.5F, dimensions.width() * 0.5F).move(position);
         }
         return dimensions.makeBoundingBox(position);
     }

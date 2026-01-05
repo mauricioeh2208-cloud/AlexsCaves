@@ -34,10 +34,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.entity.PartEntity;
+import net.neoforged.neoforge.entity.PartEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -103,9 +103,9 @@ public abstract class SauropodBaseEntity extends DinosaurEntity implements Shake
 
     public SauropodBaseEntity(EntityType entityType, Level level) {
         super(entityType, level);
-        this.setPathfindingMalus(BlockPathTypes.LAVA, 0.0F);
-        this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, 0.0F);
-        this.setPathfindingMalus(BlockPathTypes.DAMAGE_FIRE, 0.0F);
+        this.setPathfindingMalus(PathType.LAVA, 0.0F);
+        this.setPathfindingMalus(PathType.DANGER_FIRE, 0.0F);
+        this.setPathfindingMalus(PathType.DAMAGE_FIRE, 0.0F);
         this.moveControl = new SauropodMoveHelper();
         this.neckPart1 = new SauropodPartEntity(this, this, 3F, 3F);
         this.neckPart2 = new SauropodPartEntity(this, neckPart1, 2F, 2F);
@@ -118,9 +118,9 @@ public abstract class SauropodBaseEntity extends DinosaurEntity implements Shake
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(WALKING, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(WALKING, false);
     }
 
     protected PathNavigation createNavigation(Level level) {
@@ -320,7 +320,7 @@ public abstract class SauropodBaseEntity extends DinosaurEntity implements Shake
         }
         int feetY = this.blockPosition().getY() - (int)lowestFoot;
         BlockPos center = new BlockPos(ringStartX, feetY, ringStartZ);
-        if(net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.level(), this) || this.isVehicle() && this.getControllingPassenger() instanceof Player){
+        if(net.neoforged.neoforge.event.EventHooks.canEntityGrief(this.level(), this) || this.isVehicle() && this.getControllingPassenger() instanceof Player){
             for (int y = 0; y <= STOMP_CRUSH_HEIGHT; y++) {
                 List<MovingBlockData> dataPerYLevel = new ArrayList<>();
                 int currentBlocksInChunk = 0;
@@ -335,7 +335,7 @@ public abstract class SauropodBaseEntity extends DinosaurEntity implements Shake
                             } else {
                                 BlockEntity te = level().getBlockEntity(mutableBlockPos);
                                 BlockPos offset = mutableBlockPos.immutable().subtract(center);
-                                MovingBlockData data = new MovingBlockData(state, state.getShape(level(), mutableBlockPos), offset, te == null ? null : te.saveWithoutMetadata());
+                                MovingBlockData data = new MovingBlockData(state, state.getShape(level(), mutableBlockPos), offset, te == null ? null : te.saveWithoutMetadata(this.level().registryAccess()));
                                 dataPerYLevel.add(data);
 
                                 if (currentBlocksInChunk < 16) {
@@ -412,7 +412,6 @@ public abstract class SauropodBaseEntity extends DinosaurEntity implements Shake
         return allParts;
     }
 
-    @Override
     public void lerpTo(double x, double y, double z, float yr, float xr, int steps, boolean b) {
         this.lx = x;
         this.ly = y;
@@ -548,12 +547,12 @@ public abstract class SauropodBaseEntity extends DinosaurEntity implements Shake
         for(LivingEntity living : level().getEntitiesOfClass(LivingEntity.class, aabb, EntitySelector.NO_CREATIVE_OR_SPECTATOR)){
             if(!living.is(this) && !living.isAlliedTo(this) && living.getType() != this.getType() && living.distanceToSqr(center.x, center.y, center.z) <= radius * radius){
                 if(living.isDamageSourceBlocked(damageSource) && disablesShields && living instanceof Player player){
-                    player.disableShield(true);
+                    player.disableShield();
                 }
                 if(living.hurt(damageSource, damageAmount)){
                     flag = true;
                     if(setsOnFire){
-                        living.setSecondsOnFire(10);
+                        living.igniteForSeconds(10);
                     }
                     living.knockback(knockbackAmount, center.x - living.getX(), center.z - living.getZ());
                 }

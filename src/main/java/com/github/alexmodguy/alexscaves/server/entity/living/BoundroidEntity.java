@@ -6,6 +6,7 @@ import com.github.alexmodguy.alexscaves.server.misc.ACMath;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import com.github.alexmodguy.alexscaves.server.potion.ACEffectRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -53,7 +54,8 @@ public class BoundroidEntity extends Monster {
     public int stopSlammingFor = 0;
     private int stayOnGroundFor = 0;
 
-    private static final AttributeModifier REMOVED_GRAVITY_MODIFIER = new AttributeModifier(UUID.fromString("B5B6CF2A-2F7C-31EF-9022-7C3E7D5E6BBA"), "remove gravity reduction", -0.08, AttributeModifier.Operation.ADDITION);
+    private static final ResourceLocation REMOVED_GRAVITY_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath("alexscaves", "remove_gravity_reduction");
+    private static final AttributeModifier REMOVED_GRAVITY_MODIFIER = new AttributeModifier(REMOVED_GRAVITY_MODIFIER_ID, -0.08, AttributeModifier.Operation.ADD_VALUE);
 
     public BoundroidEntity(EntityType<? extends Monster> entityType, Level level) {
         super(entityType, level);
@@ -73,12 +75,12 @@ public class BoundroidEntity extends Monster {
 
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(WINCH_UUID, Optional.empty());
-        this.entityData.define(WINCH_ID, -1);
-        this.entityData.define(SCARED, false);
-        this.entityData.define(SLAMMING, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(WINCH_UUID, Optional.empty());
+        builder.define(WINCH_ID, -1);
+        builder.define(SCARED, false);
+        builder.define(SLAMMING, false);
     }
 
     @Nullable
@@ -229,7 +231,7 @@ public class BoundroidEntity extends Monster {
     }
 
     public boolean canBeAffected(MobEffectInstance effectInstance) {
-        return super.canBeAffected(effectInstance) && effectInstance.getEffect() != ACEffectRegistry.MAGNETIZING.get();
+        return super.canBeAffected(effectInstance) && effectInstance.getEffect() != ACEffectRegistry.MAGNETIZING;
     }
 
     public void readAdditionalSaveData(CompoundTag compound) {

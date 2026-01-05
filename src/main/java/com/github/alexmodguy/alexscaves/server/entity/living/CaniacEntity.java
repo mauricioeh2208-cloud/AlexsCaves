@@ -61,11 +61,11 @@ public class CaniacEntity extends Monster implements IAnimatedEntity, PossessedB
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(SPIN_SPEED, 0F);
-        this.entityData.define(RUNNING, false);
-        this.entityData.define(POSSESSOR_LICOWITCH_ID, -1);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(SPIN_SPEED, 0F);
+        builder.define(RUNNING, false);
+        builder.define(POSSESSOR_LICOWITCH_ID, -1);
     }
 
     public static AttributeSupplier.Builder createAttributes() {

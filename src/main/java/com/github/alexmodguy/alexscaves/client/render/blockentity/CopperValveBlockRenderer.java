@@ -2,6 +2,7 @@ package com.github.alexmodguy.alexscaves.client.render.blockentity;
 
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.client.model.CopperValveModel;
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexmodguy.alexscaves.server.block.CopperValveBlock;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.CopperValveBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -45,7 +46,7 @@ public class CopperValveBlockRenderer<T extends CopperValveBlockEntity> implemen
         poseStack.mulPose(dir.getOpposite().getRotation());
 
         MODEL.setupAnim(null, 0, 0, valve.getDownAmount(partialTicks), 0, 0);
-        MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(RenderType.entityCutoutNoCull(TEXTURE)), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1);
+        MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(RenderType.entityCutoutNoCull(TEXTURE)), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(1.0F, 1.0F, 1.0F, 1.0F));
         poseStack.popPose();
 
     }

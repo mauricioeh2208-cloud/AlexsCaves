@@ -10,7 +10,7 @@ public abstract class AnimalFollowOwnerGoal extends FollowOwnerGoal {
     private TamableAnimal tameable;
 
     public AnimalFollowOwnerGoal(TamableAnimal tameable, double speed, float minDist, float maxDist, boolean teleportToLeaves) {
-        super(tameable, speed, minDist, maxDist, teleportToLeaves);
+        super(tameable, speed, minDist, maxDist);
         this.tameable = tameable;
     }
 

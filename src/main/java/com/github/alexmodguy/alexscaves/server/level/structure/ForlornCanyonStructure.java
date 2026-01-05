@@ -2,7 +2,7 @@ package com.github.alexmodguy.alexscaves.server.level.structure;
 
 import com.github.alexmodguy.alexscaves.server.level.biome.ACBiomeRegistry;
 import com.github.alexmodguy.alexscaves.server.level.structure.piece.ForlornCanyonStructurePiece;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
@@ -15,7 +15,7 @@ public class ForlornCanyonStructure extends AbstractCaveGenerationStructure {
     private static final int BOWL_HEIGHT_RADIUS = 60;
     public static final int BOWL_Y_CENTER = -10;
 
-    public static final Codec<ForlornCanyonStructure> CODEC = simpleCodec((settings) -> new ForlornCanyonStructure(settings));
+    public static final MapCodec<ForlornCanyonStructure> CODEC = simpleCodec((settings) -> new ForlornCanyonStructure(settings));
 
     public ForlornCanyonStructure(StructureSettings settings) {
         super(settings, ACBiomeRegistry.FORLORN_HOLLOWS);

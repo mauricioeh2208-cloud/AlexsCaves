@@ -31,6 +31,7 @@ import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.LightLayer;
@@ -45,7 +46,7 @@ import java.util.function.Predicate;
 public class GammaroachEntity extends PathfinderMob implements IAnimatedEntity {
 
     private static final Predicate<LivingEntity> IRRADIATED_TARGET = (mob) -> {
-        return mob.hasEffect(ACEffectRegistry.IRRADIATED.get()) && !(mob instanceof RaycatEntity);
+        return mob.hasEffect(ACEffectRegistry.IRRADIATED) && !(mob instanceof RaycatEntity);
     };
     private Animation currentAnimation;
     private int animationTick;
@@ -87,10 +88,10 @@ public class GammaroachEntity extends PathfinderMob implements IAnimatedEntity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(SPRAY_COOLDOWN, 0);
-        this.entityData.define(FED, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(SPRAY_COOLDOWN, 0);
+        builder.define(FED, false);
     }
 
     public int getSprayCooldown() {
@@ -114,7 +115,7 @@ public class GammaroachEntity extends PathfinderMob implements IAnimatedEntity {
     }
 
     public boolean canBeAffected(MobEffectInstance effectInstance) {
-        return super.canBeAffected(effectInstance) && effectInstance.getEffect() != ACEffectRegistry.IRRADIATED.get();
+        return super.canBeAffected(effectInstance) && effectInstance.getEffect() != ACEffectRegistry.IRRADIATED;
     }
 
     public boolean removeWhenFarAway(double distanceToClosestPlayer) {
@@ -138,8 +139,8 @@ public class GammaroachEntity extends PathfinderMob implements IAnimatedEntity {
             if (this.getAnimationTick() == 10) {
                 AreaEffectCloud areaeffectcloud = new AreaEffectCloud(this.level(), this.getX(), this.getY() + 0.2F, this.getZ());
                 areaeffectcloud.setParticle(ACParticleRegistry.GAMMAROACH.get());
-                areaeffectcloud.setFixedColor(0X77D60E);
-                areaeffectcloud.addEffect(new MobEffectInstance(ACEffectRegistry.IRRADIATED.get(), 2000));
+                areaeffectcloud.setPotionContents(new PotionContents(java.util.Optional.empty(), java.util.Optional.of(0X77D60E), java.util.List.of()));
+                areaeffectcloud.addEffect(new MobEffectInstance(ACEffectRegistry.IRRADIATED, 2000));
                 areaeffectcloud.setRadius(2.3F);
                 areaeffectcloud.setDuration(200);
                 areaeffectcloud.setWaitTime(10);
@@ -152,10 +153,6 @@ public class GammaroachEntity extends PathfinderMob implements IAnimatedEntity {
             }
         }
         AnimationHandler.INSTANCE.updateAnimations(this);
-    }
-
-    public MobType getMobType() {
-        return MobType.ARTHROPOD;
     }
 
     @Override
@@ -194,7 +191,7 @@ public class GammaroachEntity extends PathfinderMob implements IAnimatedEntity {
     public boolean hurt(DamageSource damageSource, float damageAmount) {
         boolean prev = super.hurt(damageSource, damageAmount);
         Entity hurter = damageSource.getEntity();
-        if (prev && hurter instanceof LivingEntity living && !living.hasEffect(ACEffectRegistry.IRRADIATED.get())) {
+        if (prev && hurter instanceof LivingEntity living && !living.hasEffect(ACEffectRegistry.IRRADIATED)) {
             triggerSpraying();
         }
         return prev;

@@ -8,21 +8,18 @@ import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
 import com.github.alexmodguy.alexscaves.server.item.BiomeTreatItem;
 import com.github.alexmodguy.alexscaves.server.level.biome.ACBiomeRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACAdvancementTriggerRegistry;
-import com.github.alexmodguy.alexscaves.server.misc.ACDummyBiomeSource;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
-import com.github.alexthe666.citadel.server.generation.SurfaceRulesManager;
 import net.minecraft.Util;
 import net.minecraft.core.*;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.util.Mth;
@@ -38,9 +35,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraft.world.level.chunk.ChunkStatus;
-import net.minecraft.world.level.levelgen.*;
-import net.minecraft.world.level.levelgen.blending.Blender;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.AABB;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -49,7 +44,6 @@ import javax.annotation.Nullable;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ConversionCrucibleBlockEntity extends BlockEntity {
@@ -239,54 +233,23 @@ public class ConversionCrucibleBlockEntity extends BlockEntity {
             try {
                 Registry<Biome> registry = serverLevel.registryAccess().registryOrThrow(Registries.BIOME);
                 Optional<Holder.Reference<Biome>> biomeHolder = registry.getHolder(convertingToBiome);
-                ChunkAccess chunkaccess = serverLevel.getChunk(this.getBlockPos());
-                WorldGenRegion worldGenRegion = new WorldGenRegion(serverLevel, List.of(chunkaccess), ChunkStatus.SURFACE, 0);
-                ResourceKey<NoiseGeneratorSettings> dimensionType = NoiseGeneratorSettings.OVERWORLD;
                 if (biomeHolder.isPresent()) {
                     if (biomeHolder.get().is(BiomeTags.IS_NETHER)) {
-                        dimensionType = NoiseGeneratorSettings.NETHER;
+                        // Nether biome
                     } else if (biomeHolder.get().is(BiomeTags.IS_END)) {
-                        dimensionType = NoiseGeneratorSettings.END;
+                        // End biome
                     }
                     topBlockForBiome = getFallbackTopBlock(biomeHolder.get());
                     middleBlockForBiome = getFallbackMiddleBlock(biomeHolder.get());
                     bottomBlockForBiome = getFallbackBottomBlock(biomeHolder.get());
                 }
-                Holder<NoiseGeneratorSettings> settings = serverLevel.registryAccess().registryOrThrow(Registries.NOISE_SETTINGS).getHolderOrThrow(dimensionType);
-                //for compat with other world types, like flat worlds, we cannot assume the chunk generator of the world is noise-based so we must create a new one
-                NoiseBasedChunkGenerator noiseBasedChunkGenerator = new NoiseBasedChunkGenerator(new ACDummyBiomeSource(), settings);
-                //get or create a dummy noise chunk
-                NoiseChunk noisechunk = chunkaccess.getOrCreateNoiseChunk((chunkAccess) -> {
-                    return noiseBasedChunkGenerator.createNoiseChunk(chunkAccess, serverLevel.structureManager(), Blender.of(worldGenRegion), serverLevel.getChunkSource().randomState());
-                });
-                //should ideally be merged when we get it, for some reason isn't. Idk why
-                SurfaceRules.RuleSource ruleSource = SurfaceRulesManager.mergeOverworldRules(noiseBasedChunkGenerator.generatorSettings().value().surfaceRule());
-                WorldGenerationContext worldGenerationContext = new WorldGenerationContext(noiseBasedChunkGenerator, serverLevel);
-                Function<BlockPos, Holder<Biome>> biomeRef = (blockPos -> biomeHolder.get());
-                SurfaceRules.Context surfacerulesContext = new SurfaceRules.Context(serverLevel.getChunkSource().randomState().surfaceSystem(), serverLevel.getChunkSource().randomState(), chunkaccess, noisechunk, biomeRef, registry, worldGenerationContext);
-                SurfaceRules.SurfaceRule rule = ruleSource.apply(surfacerulesContext);
-                int x = this.getBlockPos().getX();
-                int z = this.getBlockPos().getZ();
-                //one over the top (grass condition)
-                int topHeight = serverLevel.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, x, z) + 1;
-                surfacerulesContext.updateXZ(x, z);
-                surfacerulesContext.updateY(1, 1, topHeight, x, topHeight, z);
-                BlockState grass = rule.tryApply(x, topHeight, z);
-                if (grass != null && !grass.is(Blocks.BEDROCK)) {
-                    topBlockForBiome = grass;
-                }
-                //tell it that there is a block about the top position
-                surfacerulesContext.updateY(1, 1, topHeight + 1, x, topHeight, z);
-                BlockState dirt = rule.tryApply(x, topHeight, z);
-                if (dirt != null && !dirt.is(Blocks.BEDROCK)) {
-                    middleBlockForBiome = dirt;
-                }
-                //tell it that there is many blocks about the top position
-                surfacerulesContext.updateY(1, 1, topHeight + 20, x, topHeight, z);
-                BlockState stone = rule.tryApply(x, topHeight, z);
-                if (stone != null && !stone.is(Blocks.BEDROCK)) {
-                    bottomBlockForBiome = stone;
-                }
+                // TODO: NeoForge 1.21.4 - The complex surface rule generation code has been commented out
+                // due to API changes:
+                // - WorldGenRegion constructor signature changed
+                // - NoiseBasedChunkGenerator.createNoiseChunk is now private
+                // - SurfaceRules.Context.updateXZ/updateY are protected
+                // For now, we just use the fallback blocks based on biome type.
+                // This may need to be reimplemented using a different approach or access transformers.
             } catch (Exception e) {
                 AlexsCaves.LOGGER.warn("Encountered error finding the surface blocks of a biome");
             }
@@ -324,11 +287,12 @@ public class ConversionCrucibleBlockEntity extends BlockEntity {
         if(biomeHolder.isEmpty()){
             return;
         }
-        AABB aabb = new AABB(this.getBlockPos().offset(-32, -32, -32), this.getBlockPos().offset(32, 32, 32));
+        BlockPos pos = this.getBlockPos();
+        AABB aabb = new AABB(pos.getX() - 32, pos.getY() - 32, pos.getZ() - 32, pos.getX() + 32, pos.getY() + 32, pos.getZ() + 32);
         for (Player player : level.getEntitiesOfClass(Player.class, aabb, EntitySelector.NO_SPECTATORS)) {
-            ACAdvancementTriggerRegistry.CONVERT_BIOME.triggerForEntity(player);
+            ACAdvancementTriggerRegistry.CONVERT_BIOME.get().triggerForEntity(player);
             if (biomeHolder.get().is(BiomeTags.IS_NETHER) && this.level.dimensionType().bedWorks()) {
-                ACAdvancementTriggerRegistry.CONVERT_NETHER_BIOME.triggerForEntity(player);
+                ACAdvancementTriggerRegistry.CONVERT_NETHER_BIOME.get().triggerForEntity(player);
             }
         }
         int width = (int) Math.ceil(getConversionAreaWidth() * 0.5F) + 1;
@@ -422,17 +386,13 @@ public class ConversionCrucibleBlockEntity extends BlockEntity {
     }
 
     @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
-        loadAdditional(compound);
-    }
-
-    public void loadAdditional(CompoundTag compound) {
+    public void loadAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+        super.loadAdditional(compound, registries);
         if (compound.contains("WantStack")) {
-            this.wantStack = ItemStack.of(compound.getCompound("WantStack"));
+            this.wantStack = ItemStack.parseOptional(registries, compound.getCompound("WantStack"));
         }
         if (compound.contains("DisplayStack")) {
-            this.displayStack = ItemStack.of(compound.getCompound("DisplayStack"));
+            this.displayStack = ItemStack.parseOptional(registries, compound.getCompound("DisplayStack"));
         }
         if (compound.contains("ConvertingToBiome")) {
             convertingToBiome = ResourceKey.create(Registries.BIOME, ResourceLocation.parse(compound.getString("ConvertingToBiome")));
@@ -445,17 +405,13 @@ public class ConversionCrucibleBlockEntity extends BlockEntity {
     }
 
     @Override
-    public void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
+    public void saveAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+        super.saveAdditional(compound, registries);
         if (this.wantStack != null && !this.wantStack.isEmpty()) {
-            CompoundTag stackTag = new CompoundTag();
-            this.wantStack.save(stackTag);
-            compound.put("WantStack", stackTag);
+            compound.put("WantStack", this.wantStack.saveOptional(registries));
         }
         if (this.displayStack != null && !this.displayStack.isEmpty()) {
-            CompoundTag stackTag = new CompoundTag();
-            this.displayStack.save(stackTag);
-            compound.put("DisplayStack", stackTag);
+            compound.put("DisplayStack", this.displayStack.saveOptional(registries));
         }
         if (convertingToBiome != null) {
             compound.putString("ConvertingToBiome", convertingToBiome.location().toString());
@@ -468,13 +424,13 @@ public class ConversionCrucibleBlockEntity extends BlockEntity {
 
     }
 
-    public CompoundTag getUpdateTag() {
-        return this.saveWithoutMetadata();
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return this.saveWithoutMetadata(registries);
     }
 
     public AABB getRenderBoundingBox() {
         int f = 16;
-        return new AABB(worldPosition.offset(-f, 0, -f), worldPosition.offset(f, 3, f));
+        return new AABB(worldPosition.getX() - f, worldPosition.getY(), worldPosition.getZ() - f, worldPosition.getX() + f, worldPosition.getY() + 3, worldPosition.getZ() + f);
     }
 
     @Override
@@ -483,13 +439,10 @@ public class ConversionCrucibleBlockEntity extends BlockEntity {
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet) {
-        if (packet != null && packet.getTag() != null) {
-            CompoundTag compound = packet.getTag();
-            displayStack = ItemStack.EMPTY;
-            wantStack = ItemStack.EMPTY;
-            loadAdditional(compound);
-        }
+    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider registries) {
+        displayStack = ItemStack.EMPTY;
+        wantStack = ItemStack.EMPTY;
+        loadAdditional(tag, registries);
     }
 
     public void markUpdated() {
@@ -622,12 +575,12 @@ public class ConversionCrucibleBlockEntity extends BlockEntity {
         if (BIOME_COLORS.containsKey(holder)) {
             return BIOME_COLORS.get(holder);
         } else {
-            int fogColor = holder.get().get().getFogColor();
+            int fogColor = holder.get().value().getFogColor();
             int color;
             if (ACBiomeRegistry.getBiomeTabletColor(holder.get().key()) != -1) {
                 color = ACBiomeRegistry.getBiomeTabletColor(holder.get().key());
             } else if (fogColor == PLAINS_FOG_COLOR) {
-                color = holder.get().get().getGrassColor(0.0D, 0.0D);
+                color = holder.get().value().getGrassColor(0.0D, 0.0D);
             } else {
                 fogColor = 0xff000000 | fogColor;
                 float[] hsb = Color.RGBtoHSB(fogColor >> 16 & 0xFF, fogColor >> 8 & 0xFF, fogColor & 0xFF, null);

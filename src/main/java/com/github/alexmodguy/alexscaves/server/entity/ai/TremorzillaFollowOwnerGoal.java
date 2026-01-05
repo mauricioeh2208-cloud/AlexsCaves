@@ -7,8 +7,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
-import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
+import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.EnumSet;
 
@@ -132,13 +131,17 @@ public class TremorzillaFollowOwnerGoal extends Goal {
     }
 
     private boolean canTeleportTo(BlockPos blockPos) {
-        BlockPathTypes blockpathtypes = WalkNodeEvaluator.getBlockPathTypeStatic(this.level, blockPos.mutable());
-        if (blockpathtypes != BlockPathTypes.WALKABLE) {
+        // Position must be passable (not solid) and ground below must be solid
+        BlockState stateAtPos = this.level.getBlockState(blockPos);
+        if (stateAtPos.isSolid()) {
             return false;
-        } else {
-            BlockPos blockpos = blockPos.subtract(this.tremorzilla.blockPosition());
-            return this.level.noCollision(this.tremorzilla, this.tremorzilla.getBoundingBox().move(blockpos));
         }
+        BlockState stateBelow = this.level.getBlockState(blockPos.below());
+        if (!stateBelow.isSolid()) {
+            return false;
+        }
+        BlockPos blockpos = blockPos.subtract(this.tremorzilla.blockPosition());
+        return this.level.noCollision(this.tremorzilla, this.tremorzilla.getBoundingBox().move(blockpos));
     }
 
     private int randomIntInclusive(int i, int j) {

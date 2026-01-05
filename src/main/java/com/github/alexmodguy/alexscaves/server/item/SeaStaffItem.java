@@ -1,6 +1,7 @@
 package com.github.alexmodguy.alexscaves.server.item;
 
 import com.github.alexmodguy.alexscaves.AlexsCaves;
+import com.github.alexmodguy.alexscaves.server.enchantment.ACEnchantmentHelper;
 import com.github.alexmodguy.alexscaves.server.enchantment.ACEnchantmentRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.item.WaterBoltEntity;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
@@ -8,6 +9,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -21,7 +23,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
 public class SeaStaffItem extends Item {
     public SeaStaffItem(Item.Properties properties) {
@@ -37,21 +39,21 @@ public class SeaStaffItem extends Item {
         ItemStack itemstack = player.getItemInHand(hand);
         level.playSound((Player) null, player.getX(), player.getY(), player.getZ(), ACSoundRegistry.SEA_STAFF_CAST.get(), SoundSource.PLAYERS, 0.5F, (level.getRandom().nextFloat() * 0.45F + 0.75F));
         player.swing(hand);
-        float seekAmount = itemstack.getEnchantmentLevel(ACEnchantmentRegistry.SOAK_SEEKING.get());
+        float seekAmount = ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.SOAK_SEEKING, itemstack);
         if (!level.isClientSide) {
             double dist = 128;
             Entity closestValid = getClosestLookingAtEntityFor(level, player, dist);
-            int bolts = itemstack.getEnchantmentLevel(ACEnchantmentRegistry.TRIPLE_SPLASH.get()) > 0 ? 3 : 1;
+            int bolts = ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.TRIPLE_SPLASH, itemstack) > 0 ? 3 : 1;
             for(int i = 0; i < bolts; i++){
                 float shootRot = i == 0 ? 0 : i == 1 ? -50 : 50;
                 WaterBoltEntity bolt = new WaterBoltEntity(level, player);
                 float rot = player.yHeadRot + (hand == InteractionHand.MAIN_HAND ? 45 : -45);
                 bolt.setPos(player.getX() - (double) (player.getBbWidth()) * 1.1F * (double) Mth.sin(rot * ((float) Math.PI / 180F)), player.getEyeY() - (double) 0.4F, player.getZ() + (double) (player.getBbWidth()) * 1.1F * (double) Mth.cos(rot * ((float) Math.PI / 180F)));
                 bolt.shootFromRotation(player, player.getXRot(), player.getYRot() + shootRot, -20.0F, i > 0 ? 1F : 2F, 12F);
-                if (itemstack.getEnchantmentLevel(ACEnchantmentRegistry.ENVELOPING_BUBBLE.get()) > 0) {
+                if (ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.ENVELOPING_BUBBLE, itemstack) > 0) {
                     bolt.setBubbling(player.getRandom().nextBoolean());
                 }
-                if (itemstack.getEnchantmentLevel(ACEnchantmentRegistry.BOUNCING_BOLT.get()) > 0) {
+                if (ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.BOUNCING_BOLT, itemstack) > 0) {
                     bolt.ricochet = true;
                 }
                 bolt.seekAmount = 0.3F + seekAmount * 0.2F;
@@ -64,9 +66,7 @@ public class SeaStaffItem extends Item {
         }
         player.awardStat(Stats.ITEM_USED.get(this));
         if (!player.getAbilities().instabuild) {
-            itemstack.hurtAndBreak(1, player, (player1) -> {
-                player1.broadcastBreakEvent(hand);
-            });
+            itemstack.hurtAndBreak(1, player, hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
         }
         return InteractionResultHolder.sidedSuccess(itemstack, level.isClientSide());
     }
@@ -108,7 +108,7 @@ public class SeaStaffItem extends Item {
         super.inventoryTick(stack, level, entity, i, held);
         boolean using = entity instanceof LivingEntity living && living.getUseItem().equals(stack);
         if (!level.isClientSide) {
-            if (stack.getEnchantmentLevel(ACEnchantmentRegistry.SEAPAIRING.get()) > 0 && !using) {
+            if (ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.SEAPAIRING, stack) > 0 && !using) {
                 if (level.random.nextFloat() < 0.02F) {
                     if (entity.isInWaterRainOrBubble()) {
                         stack.setDamageValue(Math.min(0, stack.getDamageValue() - 1));

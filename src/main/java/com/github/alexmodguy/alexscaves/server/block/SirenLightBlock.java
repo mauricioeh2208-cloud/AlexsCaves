@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.ACBlockEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.SirenLightBlockEntity;
 import com.github.alexmodguy.alexscaves.server.misc.ACMath;
@@ -35,8 +36,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.ToIntFunction;
 
 public class SirenLightBlock extends BaseEntityBlock {
+    public static final MapCodec<SirenLightBlock> CODEC = simpleCodec((properties) -> new SirenLightBlock());
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
+    }
 
     private static final VoxelShape SHAPE_UP = ACMath.buildShape(
             Block.box(4, 2, 4, 12, 10, 12),

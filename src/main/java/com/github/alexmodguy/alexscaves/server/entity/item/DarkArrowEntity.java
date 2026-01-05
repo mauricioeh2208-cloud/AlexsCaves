@@ -13,7 +13,6 @@ import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
-import net.minecraftforge.network.PlayMessages;
 
 public class DarkArrowEntity extends AbstractArrow {
 
@@ -30,31 +29,25 @@ public class DarkArrowEntity extends AbstractArrow {
     }
 
     public DarkArrowEntity(Level level, LivingEntity shooter) {
-        super(ACEntityRegistry.DARK_ARROW.get(), shooter, level);
+        super(ACEntityRegistry.DARK_ARROW.get(), shooter, level, ItemStack.EMPTY, ItemStack.EMPTY);
     }
 
     public DarkArrowEntity(Level level, double x, double y, double z) {
-        super(ACEntityRegistry.DARK_ARROW.get(), x, y, z, level);
-    }
-
-    public DarkArrowEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.DARK_ARROW.get(), level);
-        this.setBoundingBox(this.makeBoundingBox());
+        super(ACEntityRegistry.DARK_ARROW.get(), x, y, z, level, ItemStack.EMPTY, ItemStack.EMPTY);
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(SHADOW_ARROW_DAMAGE, 0.0F);
-        this.entityData.define(PERFECT_SHOT, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(SHADOW_ARROW_DAMAGE, 0.0F);
+        builder.define(PERFECT_SHOT, false);
     }
 
     @Override
-    protected ItemStack getPickupItem() {
+    protected ItemStack getDefaultPickupItem() {
         return ItemStack.EMPTY;
     }
 
-    @Override
     public void startFalling() {
         this.inGround = false;
     }

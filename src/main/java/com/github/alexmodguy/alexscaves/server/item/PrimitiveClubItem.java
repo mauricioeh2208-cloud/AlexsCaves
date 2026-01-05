@@ -1,45 +1,50 @@
 package com.github.alexmodguy.alexscaves.server.item;
 
 import com.github.alexmodguy.alexscaves.AlexsCaves;
+import com.github.alexmodguy.alexscaves.server.enchantment.ACEnchantmentHelper;
 import com.github.alexmodguy.alexscaves.server.enchantment.ACEnchantmentRegistry;
 import com.github.alexmodguy.alexscaves.server.message.UpdateEffectVisualityEntityMessage;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import com.github.alexmodguy.alexscaves.server.potion.ACEffectRegistry;
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
 public class PrimitiveClubItem extends Item {
-    private final Multimap<Attribute, AttributeModifier>[] defaultModifiers = new ImmutableMultimap[4];
 
     public PrimitiveClubItem(Item.Properties properties) {
-        super(properties);
-        for (int i = 0; i <= 3; i++) {
-            this.defaultModifiers[i] = getStatsForEnchantmentLevel(i);
-        }
+        super(properties.attributes(createDefaultAttributes()));
     }
 
-    private ImmutableMultimap getStatsForEnchantmentLevel(int swiftwoodLevel) {
-        ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
-        builder.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Tool modifier", 8.0D, AttributeModifier.Operation.ADDITION));
-        builder.put(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_UUID, "Tool modifier", (double) Math.min(0, -3.75F + 0.15F * swiftwoodLevel), AttributeModifier.Operation.ADDITION));
-        return builder.build();
+    private static ItemAttributeModifiers createDefaultAttributes() {
+        return ItemAttributeModifiers.builder()
+                .add(Attributes.ATTACK_DAMAGE, new AttributeModifier(ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "primitive_club_attack_damage"), 8.0D, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND)
+                .add(Attributes.ATTACK_SPEED, new AttributeModifier(ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "primitive_club_attack_speed"), -3.75D, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND)
+                .build();
+    }
+
+    private static ItemAttributeModifiers createAttributesForSwiftwoodLevel(int swiftwoodLevel) {
+        double speedModifier = Math.min(0, -3.75D + 0.15D * swiftwoodLevel);
+        return ItemAttributeModifiers.builder()
+                .add(Attributes.ATTACK_DAMAGE, new AttributeModifier(ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "primitive_club_attack_damage"), 8.0D, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND)
+                .add(Attributes.ATTACK_SPEED, new AttributeModifier(ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "primitive_club_attack_speed"), speedModifier, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND)
+                .build();
     }
 
     @Override
@@ -53,23 +58,21 @@ public class PrimitiveClubItem extends Item {
     }
 
     public boolean hurtEnemy(ItemStack stack, LivingEntity hurtEntity, LivingEntity player) {
-        stack.hurtAndBreak(1, player, (entity) -> {
-            entity.broadcastBreakEvent(EquipmentSlot.MAINHAND);
-        });
+        stack.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
         if (!hurtEntity.level().isClientSide) {
             SoundEvent soundEvent = ACSoundRegistry.PRIMITIVE_CLUB_MISS.get();
             if (hurtEntity.getRandom().nextFloat() < 0.8F) {
-                MobEffectInstance instance = new MobEffectInstance(ACEffectRegistry.STUNNED.get(), 150 + hurtEntity.getRandom().nextInt(150), 0, false, false);
+                MobEffectInstance instance = new MobEffectInstance(ACEffectRegistry.STUNNED, 150 + hurtEntity.getRandom().nextInt(150), 0, false, false);
                 if (hurtEntity.addEffect(instance)) {
                     AlexsCaves.sendMSGToAll(new UpdateEffectVisualityEntityMessage(hurtEntity.getId(), player.getId(), 3, instance.getDuration()));
                     soundEvent = ACSoundRegistry.PRIMITIVE_CLUB_HIT.get();
-                    int dazingEdgeLevel = stack.getEnchantmentLevel(ACEnchantmentRegistry.DAZING_SWEEP.get());
+                    int dazingEdgeLevel = ACEnchantmentHelper.getEnchantmentLevel(hurtEntity.level(), ACEnchantmentRegistry.DAZING_SWEEP, stack);
                     if (dazingEdgeLevel > 0) {
                         float f = dazingEdgeLevel + 1.2F;
                         AABB aabb = AABB.ofSize(hurtEntity.position(), f, f, f);
                         for (Entity entity : hurtEntity.level().getEntities(player, aabb, Entity::canBeHitByProjectile)) {
                             if (!entity.is(hurtEntity) && !entity.isAlliedTo(player) && entity.distanceTo(hurtEntity) <= f && entity instanceof LivingEntity inflict) {
-                                MobEffectInstance instance2 = new MobEffectInstance(ACEffectRegistry.STUNNED.get(), 80 + hurtEntity.getRandom().nextInt(80), 0, false, false);
+                                MobEffectInstance instance2 = new MobEffectInstance(ACEffectRegistry.STUNNED, 80 + hurtEntity.getRandom().nextInt(80), 0, false, false);
                                 inflict.hurt(inflict.level().damageSources().mobAttack(player), 1.0F);
                                 if (inflict.addEffect(instance2)) {
                                     AlexsCaves.sendMSGToAll(new UpdateEffectVisualityEntityMessage(inflict.getId(), player.getId(), 3, instance2.getDuration()));
@@ -88,17 +91,10 @@ public class PrimitiveClubItem extends Item {
     public boolean mineBlock(ItemStack itemStack, Level level, BlockState state, BlockPos blockPos, LivingEntity
             livingEntity) {
         if ((double) state.getDestroySpeed(level, blockPos) != 0.0D) {
-            itemStack.hurtAndBreak(2, livingEntity, (entity) -> {
-                entity.broadcastBreakEvent(EquipmentSlot.MAINHAND);
-            });
+            itemStack.hurtAndBreak(2, livingEntity, EquipmentSlot.MAINHAND);
         }
 
         return true;
-    }
-
-    @Override
-    public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot equipmentSlot) {
-        return equipmentSlot == EquipmentSlot.MAINHAND ? this.defaultModifiers[0] : super.getDefaultAttributeModifiers(equipmentSlot);
     }
 
     public boolean isValidRepairItem(ItemStack item, ItemStack repairItem) {
@@ -106,9 +102,12 @@ public class PrimitiveClubItem extends Item {
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        int swift = stack.getEnchantmentLevel(ACEnchantmentRegistry.SWIFTWOOD.get());
-        return slot == EquipmentSlot.MAINHAND ? defaultModifiers[Mth.clamp(swift, 0, 3)] : super.getAttributeModifiers(slot, stack);
+    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+        int swift = ACEnchantmentHelper.getEnchantmentLevel((Level) null, ACEnchantmentRegistry.SWIFTWOOD, stack);
+        if (swift > 0) {
+            return createAttributesForSwiftwoodLevel(Mth.clamp(swift, 0, 3));
+        }
+        return super.getDefaultAttributeModifiers(stack);
     }
 
     @Override

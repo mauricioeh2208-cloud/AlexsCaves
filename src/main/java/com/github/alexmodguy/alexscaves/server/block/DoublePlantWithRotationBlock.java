@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -23,6 +24,11 @@ public class DoublePlantWithRotationBlock extends DoublePlantBlock implements Bo
     public DoublePlantWithRotationBlock(Properties properties) {
         super(properties);
         this.registerDefaultState(this.defaultBlockState().setValue(FACING, Direction.NORTH).setValue(HALF, DoubleBlockHalf.LOWER));
+    }
+
+    @Override
+    public MapCodec<? extends DoublePlantBlock> codec() {
+        return simpleCodec(DoublePlantWithRotationBlock::new);
     }
 
     public boolean canSurvive(BlockState state, LevelReader levelReader, BlockPos pos) {
@@ -58,7 +64,7 @@ public class DoublePlantWithRotationBlock extends DoublePlantBlock implements Bo
         level.setBlock(blockpos, copyWaterloggedFrom(level, blockpos, this.defaultBlockState().setValue(HALF, DoubleBlockHalf.UPPER).setValue(FACING, state.getValue(FACING))), 3);
     }
 
-    public boolean isValidBonemealTarget(LevelReader level, BlockPos blockPos, BlockState blockState, boolean idk) {
+    public boolean isValidBonemealTarget(LevelReader level, BlockPos blockPos, BlockState blockState) {
         return true;
     }
 

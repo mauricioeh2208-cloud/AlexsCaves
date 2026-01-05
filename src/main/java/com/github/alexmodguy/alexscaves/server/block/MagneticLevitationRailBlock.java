@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
 import net.minecraft.world.level.Level;
@@ -14,7 +15,13 @@ import net.minecraft.world.level.block.state.properties.RailShape;
 
 public class MagneticLevitationRailBlock extends BaseRailBlock {
 
+    public static final MapCodec<MagneticLevitationRailBlock> CODEC = simpleCodec((properties) -> new MagneticLevitationRailBlock());
     public static final EnumProperty<RailShape> SHAPE = BlockStateProperties.RAIL_SHAPE_STRAIGHT;
+
+    @Override
+    protected MapCodec<? extends BaseRailBlock> codec() {
+        return CODEC;
+    }
 
     public MagneticLevitationRailBlock() {
         super(true, BlockBehaviour.Properties.of().noCollission().strength(0.7F).sound(SoundType.METAL).lightLevel((i) -> 3).emissiveRendering((state, level, pos) -> true));

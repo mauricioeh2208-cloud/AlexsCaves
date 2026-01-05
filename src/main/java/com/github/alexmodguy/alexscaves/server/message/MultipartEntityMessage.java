@@ -2,14 +2,23 @@ package com.github.alexmodguy.alexscaves.server.message;
 
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Supplier;
+public class MultipartEntityMessage implements CustomPacketPayload {
 
-public class MultipartEntityMessage {
+    public static final CustomPacketPayload.Type<MultipartEntityMessage> TYPE =
+        new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "multipart_entity"));
+
+    public static final StreamCodec<FriendlyByteBuf, MultipartEntityMessage> CODEC =
+        StreamCodec.ofMember(MultipartEntityMessage::write, MultipartEntityMessage::read);
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() { return TYPE; }
 
     public int parentId;
     public int playerId;
@@ -38,10 +47,10 @@ public class MultipartEntityMessage {
         buf.writeDouble(message.damage);
     }
 
-    public static void handle(MultipartEntityMessage message, Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> {
-            Player playerSided = context.get().getSender();
-            if (context.get().getDirection().getReceptionSide() == LogicalSide.CLIENT) {
+    public static void handle(MultipartEntityMessage message, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            Player playerSided = context.player();
+            if (context.flow().isClientbound() == context.flow().isClientbound()) {
                 playerSided = AlexsCaves.PROXY.getClientSidePlayer();
             }
             Entity parent = playerSided.level().getEntity(message.parentId);
@@ -56,6 +65,6 @@ public class MultipartEntityMessage {
                 }
             }
         });
-        context.get().setPacketHandled(true);
+        // Packet handling is automatic in NeoForge;
     }
 }

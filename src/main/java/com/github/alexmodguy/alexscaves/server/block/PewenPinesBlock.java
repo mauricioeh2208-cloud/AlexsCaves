@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.DyeColor;
@@ -16,7 +17,13 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class PewenPinesBlock extends BushBlock {
 
+    public static final MapCodec<PewenPinesBlock> CODEC = simpleCodec((properties) -> new PewenPinesBlock());
     public static final VoxelShape SHAPE = Block.box(2, 0, 2, 14, 13, 14);
+
+    @Override
+    public MapCodec<? extends BushBlock> codec() {
+        return CODEC;
+    }
 
     public PewenPinesBlock() {
         super(BlockBehaviour.Properties.of().mapColor(DyeColor.GREEN).instabreak().sound(SoundType.ROOTS).randomTicks().offsetType(BlockBehaviour.OffsetType.XZ).noOcclusion().replaceable().noCollission());

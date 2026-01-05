@@ -1,53 +1,18 @@
 package com.github.alexmodguy.alexscaves.server.enchantment;
 
-import com.github.alexmodguy.alexscaves.AlexsCaves;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.EnchantmentCategory;
-
-public class ACWeaponEnchantment extends Enchantment {
-
-    private int levels;
-    private int minXP;
-    private String registryName;
-
-    protected ACWeaponEnchantment(String name, Rarity rarity, EnchantmentCategory category, int levels, int minXP, EquipmentSlot... equipmentSlot) {
-        super(rarity, category, equipmentSlot);
-        this.levels = levels;
-        this.minXP = minXP;
-        this.registryName = name;
-    }
-
-    public int getMinCost(int i) {
-        return 1 + (i - 1) * minXP;
-    }
-
-    public int getMaxCost(int i) {
-        return super.getMinCost(i) + 30;
-    }
-
-    public int getMaxLevel() {
-        return levels;
-    }
-
-
-    protected boolean checkCompatibility(Enchantment enchantment) {
-        return this != enchantment && ACEnchantmentRegistry.areCompatible(this, enchantment);
-    }
-
-    public boolean isTradeable() {
-        return AlexsCaves.COMMON_CONFIG.enchantmentsInLoot.get();
-    }
-
-    public boolean isDiscoverable() {
-        return true;
-    }
-
-    public boolean isAllowedOnBooks() {
-        return AlexsCaves.COMMON_CONFIG.enchantmentsInLoot.get();
-    }
-
-    public String getName(){
-        return registryName;
-    }
+/**
+ * Enchantments are now data-driven in NeoForge 1.21.
+ * The Enchantment class is final and cannot be extended.
+ * This class is kept for reference but enchantment behavior
+ * must be implemented via effects in JSON definitions.
+ * 
+ * TODO: Implement enchantment behavior via data-driven effects or
+ * by checking enchantment levels in item/entity code manually.
+ * 
+ * @deprecated Enchantment is final in 1.21. Use ResourceKey references from ACEnchantmentRegistry instead.
+ */
+@Deprecated
+public class ACWeaponEnchantment {
+    // Enchantment class is final in 1.21 - cannot extend
+    // See data/alexscaves/enchantment/ for JSON definitions
 }

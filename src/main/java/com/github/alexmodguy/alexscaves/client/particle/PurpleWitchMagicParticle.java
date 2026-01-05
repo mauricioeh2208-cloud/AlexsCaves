@@ -11,11 +11,12 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.ForgeRenderTypes;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -88,15 +89,16 @@ public class PurpleWitchMagicParticle extends AbstractTrailParticle {
         PoseStack.Pose posestack$pose = posestack.last();
         Matrix4f matrix4f = posestack$pose.pose();
         Matrix3f matrix3f = posestack$pose.normal();
-        vertexconsumer.vertex((double) avector3f[0].x(), (double) avector3f[0].y(), (double) avector3f[0].z()).color(this.rCol, this.gCol, this.bCol, alpha).uv(f8, f6).overlayCoords(NO_OVERLAY).uv2(j).normal(matrix3f, 0.0F, 1.0F, 0.0F).endVertex();
-        vertexconsumer.vertex((double) avector3f[1].x(), (double) avector3f[1].y(), (double) avector3f[1].z()).color(this.rCol, this.gCol, this.bCol, alpha).uv(f8, f5).overlayCoords(NO_OVERLAY).uv2(j).normal(matrix3f, 0.0F, 1.0F, 0.0F).endVertex();
-        vertexconsumer.vertex((double) avector3f[2].x(), (double) avector3f[2].y(), (double) avector3f[2].z()).color(this.rCol, this.gCol, this.bCol, alpha).uv(f7, f5).overlayCoords(NO_OVERLAY).uv2(j).normal(matrix3f, 0.0F, 1.0F, 0.0F).endVertex();
-        vertexconsumer.vertex((double) avector3f[3].x(), (double) avector3f[3].y(), (double) avector3f[3].z()).color(this.rCol, this.gCol, this.bCol, alpha).uv(f7, f6).overlayCoords(NO_OVERLAY).uv2(j).normal(matrix3f, 0.0F, 1.0F, 0.0F).endVertex();
+        int packedColor = FastColor.ARGB32.color((int)(alpha * 255), (int)(this.rCol * 255), (int)(this.gCol * 255), (int)(this.bCol * 255));
+        vertexconsumer.addVertex(avector3f[0].x(), avector3f[0].y(), avector3f[0].z()).setColor(packedColor).setUv(f8, f6).setOverlay(NO_OVERLAY).setLight(j).setNormal(0.0F, 1.0F, 0.0F);
+        vertexconsumer.addVertex(avector3f[1].x(), avector3f[1].y(), avector3f[1].z()).setColor(packedColor).setUv(f8, f5).setOverlay(NO_OVERLAY).setLight(j).setNormal(0.0F, 1.0F, 0.0F);
+        vertexconsumer.addVertex(avector3f[2].x(), avector3f[2].y(), avector3f[2].z()).setColor(packedColor).setUv(f7, f5).setOverlay(NO_OVERLAY).setLight(j).setNormal(0.0F, 1.0F, 0.0F);
+        vertexconsumer.addVertex(avector3f[3].x(), avector3f[3].y(), avector3f[3].z()).setColor(packedColor).setUv(f7, f6).setOverlay(NO_OVERLAY).setLight(j).setNormal(0.0F, 1.0F, 0.0F);
         multibuffersource$buffersource.endBatch();
     }
 
     protected VertexConsumer getVetrexConsumer(MultiBufferSource.BufferSource multibuffersource$buffersource) {
-        return multibuffersource$buffersource.getBuffer(ForgeRenderTypes.getUnlitTranslucent(getTrailTexture()));
+        return multibuffersource$buffersource.getBuffer(RenderType.entityTranslucent(getTrailTexture()));
     }
 
     public float getAlpha() {

@@ -5,8 +5,6 @@ import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -18,11 +16,10 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
 
 public class InkBombEntity extends ThrowableItemProjectile {
 
@@ -30,10 +27,6 @@ public class InkBombEntity extends ThrowableItemProjectile {
 
     public InkBombEntity(EntityType entityType, Level level) {
         super(entityType, level);
-    }
-
-    public InkBombEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.INK_BOMB.get(), level);
     }
 
     public InkBombEntity(Level level, LivingEntity thrower) {
@@ -45,9 +38,9 @@ public class InkBombEntity extends ThrowableItemProjectile {
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(GLOWING_BOMB, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(GLOWING_BOMB, false);
     }
 
     public void readAdditionalSaveData(CompoundTag tag) {
@@ -59,11 +52,6 @@ public class InkBombEntity extends ThrowableItemProjectile {
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putBoolean("GlowingBomb", this.isGlowingBomb());
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
     }
 
     public void handleEntityEvent(byte message) {
@@ -107,7 +95,7 @@ public class InkBombEntity extends ThrowableItemProjectile {
             this.discard();
             AreaEffectCloud areaeffectcloud = new AreaEffectCloud(this.level(), this.getX(), this.getY() + 0.2F, this.getZ());
             areaeffectcloud.setParticle(isGlowingBomb() ? ParticleTypes.GLOW_SQUID_INK : ParticleTypes.SQUID_INK);
-            areaeffectcloud.setFixedColor(0);
+            areaeffectcloud.setPotionContents(new PotionContents(java.util.Optional.empty(), java.util.Optional.of(0), java.util.List.of()));
             areaeffectcloud.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 100));
             if (isGlowingBomb()) {
                 areaeffectcloud.addEffect(new MobEffectInstance(MobEffects.GLOWING, 300));

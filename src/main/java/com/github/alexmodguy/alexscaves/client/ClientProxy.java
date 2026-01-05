@@ -15,6 +15,8 @@ import com.github.alexmodguy.alexscaves.client.render.item.ACArmorRenderProperti
 import com.github.alexmodguy.alexscaves.client.render.item.ACItemRenderProperties;
 import com.github.alexmodguy.alexscaves.client.render.item.tooltip.ClientSackOfSatingTooltip;
 import com.github.alexmodguy.alexscaves.client.sound.*;
+import com.github.alexmodguy.alexscaves.mixin.client.SoundEngineAccessor;
+import com.github.alexmodguy.alexscaves.mixin.client.SoundManagerAccessor;
 import com.github.alexmodguy.alexscaves.server.CommonProxy;
 import com.github.alexmodguy.alexscaves.server.block.ACBlockRegistry;
 import com.github.alexmodguy.alexscaves.server.block.AcidBlock;
@@ -37,6 +39,7 @@ import com.github.alexthe666.citadel.server.tick.ServerTickRateTracker;
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
@@ -54,8 +57,12 @@ import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.client.renderer.entity.FallingBlockRenderer;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 import net.minecraft.client.renderer.item.ItemProperties;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
+import net.minecraft.client.sounds.SoundEngine;
+import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
@@ -66,16 +73,17 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.event.*;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.neoforge.client.event.*;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.ModContainer;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -83,12 +91,21 @@ import java.util.*;
 
 public class ClientProxy extends CommonProxy {
 
-    private static final List<String> FULLBRIGHTS = ImmutableList.of("alexscaves:ambersol#", "alexscaves:radrock_uranium_ore#", "alexscaves:acidic_radrock#", "alexscaves:uranium_rod#axis=x", "alexscaves:uranium_rod#axis=y", "alexscaves:uranium_rod#axis=z", "alexscaves:block_of_uranium#", "alexscaves:abyssal_altar#active=true", "alexscaves:abyssmarine_", "alexscaves:peering_coprolith#", "alexscaves:forsaken_idol#", "alexscaves:magnetic_light#", "alexscaves:tremorzilla_egg#");
-    public static final ResourceLocation BOMB_FLASH = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "textures/misc/bomb_flash.png");
-    public static final ResourceLocation WATCHER_EFFECT = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "textures/misc/watcher_effect.png");
-    public static final ResourceLocation IRRADIATED_SHADER = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "shaders/post/irradiated.json");
-    public static final ResourceLocation HOLOGRAM_SHADER = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "shaders/post/hologram.json");
-    public static final ResourceLocation PURPLE_WITCH_SHADER = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "shaders/post/purple_witch.json");
+    private static final List<String> FULLBRIGHTS = ImmutableList.of("alexscaves:ambersol#",
+            "alexscaves:radrock_uranium_ore#", "alexscaves:acidic_radrock#", "alexscaves:uranium_rod#axis=x",
+            "alexscaves:uranium_rod#axis=y", "alexscaves:uranium_rod#axis=z", "alexscaves:block_of_uranium#",
+            "alexscaves:abyssal_altar#active=true", "alexscaves:abyssmarine_", "alexscaves:peering_coprolith#",
+            "alexscaves:forsaken_idol#", "alexscaves:magnetic_light#", "alexscaves:tremorzilla_egg#");
+    public static final ResourceLocation BOMB_FLASH = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID,
+            "textures/misc/bomb_flash.png");
+    public static final ResourceLocation WATCHER_EFFECT = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID,
+            "textures/misc/watcher_effect.png");
+    public static final ResourceLocation IRRADIATED_SHADER = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID,
+            "shaders/post/irradiated.json");
+    public static final ResourceLocation HOLOGRAM_SHADER = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID,
+            "shaders/post/hologram.json");
+    public static final ResourceLocation PURPLE_WITCH_SHADER = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID,
+            "shaders/post/purple_witch.json");
     public static final RandomSource random = RandomSource.create();
     public static int lastTremorTick = -1;
     public static float[] randomTremorOffsets = new float[3];
@@ -128,23 +145,21 @@ public class ClientProxy extends CommonProxy {
 
     @SuppressWarnings("removal")
     @Override
-    public void commonInit() {
-        IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
-        bus.addListener(this::setupParticles);
-        bus.addListener(this::registerKeybinds);
-        bus.addListener(this::onItemColors);
-        bus.addListener(this::onBlockColors);
-        bus.addListener(this::onRegisterTooltips);
+    public void commonInit(IEventBus modEventBus) {
+        modEventBus.addListener(this::setupParticles);
+        modEventBus.addListener(this::registerKeybinds);
+        modEventBus.addListener(this::onItemColors);
+        modEventBus.addListener(this::onBlockColors);
+        modEventBus.addListener(this::onRegisterTooltips);
     }
 
     @SuppressWarnings("removal")
     @Override
-    public void clientInit() {
-        MinecraftForge.EVENT_BUS.register(new ClientEvents());
-        IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
-        bus.addListener(ClientLayerRegistry::addLayers);
-        bus.addListener(this::bakeModels);
-        bus.addListener(this::registerShaders);
+    public void clientInit(IEventBus modEventBus) {
+        NeoForge.EVENT_BUS.register(new ClientEvents());
+        modEventBus.addListener(ClientLayerRegistry::addLayers);
+        modEventBus.addListener(this::bakeModels);
+        modEventBus.addListener(this::registerShaders);
         EntityRenderers.register(ACEntityRegistry.BOAT.get(), (context) -> {
             return new AlexsCavesBoatRenderer(context, false);
         });
@@ -153,7 +168,8 @@ public class ClientProxy extends CommonProxy {
         });
         BlockEntityRenderers.register(ACBlockEntityRegistry.MAGNET.get(), MagnetBlockRenderer::new);
         BlockEntityRenderers.register(ACBlockEntityRegistry.TESLA_BULB.get(), TelsaBulbBlockRenderer::new);
-        BlockEntityRenderers.register(ACBlockEntityRegistry.HOLOGRAM_PROJECTOR.get(), HologramProjectorBlockRenderer::new);
+        BlockEntityRenderers.register(ACBlockEntityRegistry.HOLOGRAM_PROJECTOR.get(),
+                HologramProjectorBlockRenderer::new);
         BlockEntityRenderers.register(ACBlockEntityRegistry.QUARRY.get(), QuarryBlockRenderer::new);
         BlockEntityRenderers.register(ACBlockEntityRegistry.AMBERSOL.get(), AmbersolBlockRenderer::new);
         BlockEntityRenderers.register(ACBlockEntityRegistry.AMBER_MONOLITH.get(), AmberMonolithBlockRenderer::new);
@@ -163,7 +179,8 @@ public class ClientProxy extends CommonProxy {
         BlockEntityRenderers.register(ACBlockEntityRegistry.COPPER_VALVE.get(), CopperValveBlockRenderer::new);
         BlockEntityRenderers.register(ACBlockEntityRegistry.BEHOLDER.get(), BeholderBlockRenderer::new);
         BlockEntityRenderers.register(ACBlockEntityRegistry.GOBTHUMPER.get(), GobthumperBlockRenderer::new);
-        BlockEntityRenderers.register(ACBlockEntityRegistry.CONVERSION_CRUCIBLE.get(), ConversionCrucibleBlockRenderer::new);
+        BlockEntityRenderers.register(ACBlockEntityRegistry.CONVERSION_CRUCIBLE.get(),
+                ConversionCrucibleBlockRenderer::new);
         EntityRenderers.register(ACEntityRegistry.MOVING_METAL_BLOCK.get(), MovingMetalBlockRenderer::new);
         EntityRenderers.register(ACEntityRegistry.TELETOR.get(), TeletorRenderer::new);
         EntityRenderers.register(ACEntityRegistry.MAGNETIC_WEAPON.get(), MagneticWeaponRenderer::new);
@@ -259,45 +276,70 @@ public class ClientProxy extends CommonProxy {
         });
         Sheets.addWoodType(ACBlockRegistry.PEWEN_WOOD_TYPE);
         Sheets.addWoodType(ACBlockRegistry.THORNWOOD_WOOD_TYPE);
-        ItemProperties.register(ACItemRegistry.HOLOCODER.get(), ResourceLocation.withDefaultNamespace("bound"), (stack, level, living, j) -> {
-            return HolocoderItem.isBound(stack) ? 1.0F : 0.0F;
-        });
-        ItemProperties.register(ACItemRegistry.DINOSAUR_NUGGET.get(), ResourceLocation.withDefaultNamespace("nugget"), (stack, level, living, j) -> {
-            return (stack.getCount() % 4) / 4F;
-        });
-        ItemProperties.register(ACItemRegistry.LIMESTONE_SPEAR.get(), ResourceLocation.withDefaultNamespace("throwing"), (stack, level, living, j) -> {
-            return living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0F : 0.0F;
-        });
-        ItemProperties.register(ACItemRegistry.EXTINCTION_SPEAR.get(), ResourceLocation.withDefaultNamespace("throwing"), (stack, level, living, j) -> {
-            return living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0F : 0.0F;
-        });
-        ItemProperties.register(ACItemRegistry.REMOTE_DETONATOR.get(), ResourceLocation.withDefaultNamespace("active"), (stack, level, living, j) -> {
-            return RemoteDetonatorItem.isActive(stack) ? 1.0F : 0.0F;
-        });
-        ItemProperties.register(ACItemRegistry.MAGIC_CONCH.get(), ResourceLocation.withDefaultNamespace("tooting"), (stack, level, living, j) -> {
-            return living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0F : 0.0F;
-        });
-        ItemProperties.register(ACItemRegistry.ORTHOLANCE.get(), ResourceLocation.withDefaultNamespace("charging"), (stack, level, living, j) -> {
-            return living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0F : 0.0F;
-        });
-        ItemProperties.register(ACItemRegistry.TOTEM_OF_POSSESSION.get(), ResourceLocation.withDefaultNamespace("totem"), (stack, level, living, j) -> {
-            return TotemOfPossessionItem.isBound(stack) ? living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0F : 0.5F : 0.0F;
-        });
-        ItemProperties.register(ACItemRegistry.CANDY_CANE_HOOK.get(), ResourceLocation.withDefaultNamespace("cast"), (stack, level, holder, i) -> {
-            return holder != null && CandyCaneHookItem.isActive(stack) ? 1.0F : 0.0F;
-        });
-        ItemProperties.register(ACItemRegistry.SACK_OF_SATING.get(), ResourceLocation.withDefaultNamespace("open"), (stack, level, living, j) -> {
-            return level != null && SackOfSatingItem.isChewing(stack, level.getGameTime()) ? 1.0F : stack.getTag() == null || living instanceof Player player && player.containerMenu != null && SackOfSatingItem.calculateWholeStackHungerValue(player.containerMenu.getCarried(), player) > 0 ? 0.5F : 0.0F;
-        });
-        ItemProperties.register(ACItemRegistry.FROSTMINT_SPEAR.get(), ResourceLocation.withDefaultNamespace("throwing"), (stack, level, living, j) -> {
-            return living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0F : 0.0F;
-        });
+        ItemProperties.register(ACItemRegistry.HOLOCODER.get(), ResourceLocation.withDefaultNamespace("bound"),
+                (stack, level, living, j) -> {
+                    return HolocoderItem.isBound(stack) ? 1.0F : 0.0F;
+                });
+        ItemProperties.register(ACItemRegistry.DINOSAUR_NUGGET.get(), ResourceLocation.withDefaultNamespace("nugget"),
+                (stack, level, living, j) -> {
+                    return (stack.getCount() % 4) / 4F;
+                });
+        ItemProperties.register(ACItemRegistry.LIMESTONE_SPEAR.get(), ResourceLocation.withDefaultNamespace("throwing"),
+                (stack, level, living, j) -> {
+                    return living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0F : 0.0F;
+                });
+        ItemProperties.register(ACItemRegistry.EXTINCTION_SPEAR.get(),
+                ResourceLocation.withDefaultNamespace("throwing"), (stack, level, living, j) -> {
+                    return living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0F : 0.0F;
+                });
+        ItemProperties.register(ACItemRegistry.REMOTE_DETONATOR.get(), ResourceLocation.withDefaultNamespace("active"),
+                (stack, level, living, j) -> {
+                    return RemoteDetonatorItem.isActive(stack) ? 1.0F : 0.0F;
+                });
+        ItemProperties.register(ACItemRegistry.MAGIC_CONCH.get(), ResourceLocation.withDefaultNamespace("tooting"),
+                (stack, level, living, j) -> {
+                    return living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0F : 0.0F;
+                });
+        ItemProperties.register(ACItemRegistry.ORTHOLANCE.get(), ResourceLocation.withDefaultNamespace("charging"),
+                (stack, level, living, j) -> {
+                    return living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0F : 0.0F;
+                });
+        ItemProperties.register(ACItemRegistry.TOTEM_OF_POSSESSION.get(),
+                ResourceLocation.withDefaultNamespace("totem"), (stack, level, living, j) -> {
+                    return TotemOfPossessionItem.isBound(stack)
+                            ? living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0F : 0.5F
+                            : 0.0F;
+                });
+        ItemProperties.register(ACItemRegistry.CANDY_CANE_HOOK.get(), ResourceLocation.withDefaultNamespace("cast"),
+                (stack, level, holder, i) -> {
+                    return holder != null && CandyCaneHookItem.isActive(stack) ? 1.0F : 0.0F;
+                });
+        ItemProperties.register(ACItemRegistry.SACK_OF_SATING.get(), ResourceLocation.withDefaultNamespace("open"),
+                (stack, level, living, j) -> {
+                    return level != null && SackOfSatingItem.isChewing(stack, level.getGameTime()) ? 1.0F
+                            : stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).isEmpty()
+                                    || living instanceof Player player && player.containerMenu != null
+                                            && SackOfSatingItem.calculateWholeStackHungerValue(
+                                                    player.containerMenu.getCarried(), player) > 0 ? 0.5F : 0.0F;
+                });
+        ItemProperties.register(ACItemRegistry.FROSTMINT_SPEAR.get(), ResourceLocation.withDefaultNamespace("throwing"),
+                (stack, level, living, j) -> {
+                    return living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0F : 0.0F;
+                });
         blockedParticleLocations.clear();
         PostEffectRegistry.registerEffect(IRRADIATED_SHADER);
         PostEffectRegistry.registerEffect(HOLOGRAM_SHADER);
         PostEffectRegistry.registerEffect(PURPLE_WITCH_SHADER);
-        MenuScreens.register(ACMenuRegistry.SPELUNKERY_TABLE_MENU.get(), SpelunkeryTableScreen::new);
-        MenuScreens.register(ACMenuRegistry.NUCLEAR_FURNACE_MENU.get(), NuclearFurnaceScreen::new);
+        // TODO: MenuScreens.register is now private - use RegisterMenuScreensEvent
+        // /* TODO: MenuScreens.register is private in 1.21 - use
+        // RegisterMenuScreensEvent */
+        // MenuScreens.register(ACMenuRegistry.SPELUNKERY_TABLE_MENU.get(),
+        // SpelunkeryTableScreen::new);
+        // TODO: MenuScreens.register is now private - use RegisterMenuScreensEvent
+        // /* TODO: MenuScreens.register is private in 1.21 - use
+        // RegisterMenuScreensEvent */
+        // MenuScreens.register(ACMenuRegistry.NUCLEAR_FURNACE_MENU.get(),
+        // NuclearFurnaceScreen::new);
         hasACSplashText = random.nextInt(300) == 0;
         ItemBlockRenderTypes.setRenderLayer(ACFluidRegistry.ACID_FLUID_SOURCE.get(), RenderType.cutoutMipped());
         ItemBlockRenderTypes.setRenderLayer(ACFluidRegistry.ACID_FLUID_FLOWING.get(), RenderType.cutoutMipped());
@@ -307,30 +349,42 @@ public class ClientProxy extends CommonProxy {
 
     public void setupParticles(RegisterParticleProvidersEvent registry) {
         AlexsCaves.LOGGER.debug("Registered particle factories");
-        registry.registerSpecial(ACParticleRegistry.SCARLET_MAGNETIC_ORBIT.get(), new MagneticOrbitParticle.ScarletFactory());
-        registry.registerSpecial(ACParticleRegistry.AZURE_MAGNETIC_ORBIT.get(), new MagneticOrbitParticle.AzureFactory());
-        registry.registerSpecial(ACParticleRegistry.SCARLET_MAGNETIC_FLOW.get(), new MagneticFlowParticle.ScarletFactory());
+        registry.registerSpecial(ACParticleRegistry.SCARLET_MAGNETIC_ORBIT.get(),
+                new MagneticOrbitParticle.ScarletFactory());
+        registry.registerSpecial(ACParticleRegistry.AZURE_MAGNETIC_ORBIT.get(),
+                new MagneticOrbitParticle.AzureFactory());
+        registry.registerSpecial(ACParticleRegistry.SCARLET_MAGNETIC_FLOW.get(),
+                new MagneticFlowParticle.ScarletFactory());
         registry.registerSpecial(ACParticleRegistry.AZURE_MAGNETIC_FLOW.get(), new MagneticFlowParticle.AzureFactory());
-        registry.registerSpecial(ACParticleRegistry.TESLA_BULB_LIGHTNING.get(), new TeslaBulbLightningParticle.Factory());
+        registry.registerSpecial(ACParticleRegistry.TESLA_BULB_LIGHTNING.get(),
+                new TeslaBulbLightningParticle.Factory());
         registry.registerSpecial(ACParticleRegistry.MAGNET_LIGHTNING.get(), new MagnetLightningParticle.Factory());
         registry.registerSpriteSet(ACParticleRegistry.GALENA_DEBRIS.get(), GalenaDebrisParticle.Factory::new);
-        registry.registerSpecial(ACParticleRegistry.MAGNETIC_CAVES_AMBIENT.get(), new MagneticCavesAmbientParticle.Factory());
+        registry.registerSpecial(ACParticleRegistry.MAGNETIC_CAVES_AMBIENT.get(),
+                new MagneticCavesAmbientParticle.Factory());
         registry.registerSpriteSet(ACParticleRegistry.FERROUSLIME.get(), FerrouslimeParticle.Factory::new);
-        registry.registerSpecial(ACParticleRegistry.QUARRY_BORDER_LIGHTING.get(), new QuarryBorderLightningParticle.Factory());
-        registry.registerSpecial(ACParticleRegistry.AZURE_SHIELD_LIGHTNING.get(), new ResistorShieldLightningParticle.AzureFactory());
-        registry.registerSpecial(ACParticleRegistry.SCARLET_SHIELD_LIGHTNING.get(), new ResistorShieldLightningParticle.ScarletFactory());
+        registry.registerSpecial(ACParticleRegistry.QUARRY_BORDER_LIGHTING.get(),
+                new QuarryBorderLightningParticle.Factory());
+        registry.registerSpecial(ACParticleRegistry.AZURE_SHIELD_LIGHTNING.get(),
+                new ResistorShieldLightningParticle.AzureFactory());
+        registry.registerSpecial(ACParticleRegistry.SCARLET_SHIELD_LIGHTNING.get(),
+                new ResistorShieldLightningParticle.ScarletFactory());
         registry.registerSpriteSet(ACParticleRegistry.FLY.get(), FlyParticle.Factory::new);
         registry.registerSpriteSet(ACParticleRegistry.WATER_TREMOR.get(), WaterTremorParticle.Factory::new);
         registry.registerSpriteSet(ACParticleRegistry.AMBER_MONOLITH.get(), AmberMonolithParticle.Factory::new);
         registry.registerSpriteSet(ACParticleRegistry.AMBER_EXPLOSION.get(), SmallExplosionParticle.AmberFactory::new);
-        registry.registerSpecial(ACParticleRegistry.DINOSAUR_TRANSFORMATION_AMBER.get(), new DinosaurTransformParticle.AmberFactory());
-        registry.registerSpecial(ACParticleRegistry.DINOSAUR_TRANSFORMATION_TECTONIC.get(), new DinosaurTransformParticle.TectonicFactory());
+        registry.registerSpecial(ACParticleRegistry.DINOSAUR_TRANSFORMATION_AMBER.get(),
+                new DinosaurTransformParticle.AmberFactory());
+        registry.registerSpecial(ACParticleRegistry.DINOSAUR_TRANSFORMATION_TECTONIC.get(),
+                new DinosaurTransformParticle.TectonicFactory());
         registry.registerSpecial(ACParticleRegistry.STUN_STAR.get(), new StunStarParticle.Factory());
         registry.registerSpriteSet(ACParticleRegistry.TEPHRA.get(), TephraParticle.Factory::new);
         registry.registerSpriteSet(ACParticleRegistry.TEPHRA_SMALL.get(), TephraParticle.SmallFactory::new);
         registry.registerSpriteSet(ACParticleRegistry.TEPHRA_FLAME.get(), TephraParticle.FlameFactory::new);
-        registry.registerSpriteSet(ACParticleRegistry.LUXTRUCTOSAURUS_SPIT.get(), LuxtructosaurusSpitParticle.Factory::new);
-        registry.registerSpriteSet(ACParticleRegistry.LUXTRUCTOSAURUS_ASH.get(), LuxtructosaurusAshParticle.Factory::new);
+        registry.registerSpriteSet(ACParticleRegistry.LUXTRUCTOSAURUS_SPIT.get(),
+                LuxtructosaurusSpitParticle.Factory::new);
+        registry.registerSpriteSet(ACParticleRegistry.LUXTRUCTOSAURUS_ASH.get(),
+                LuxtructosaurusAshParticle.Factory::new);
         registry.registerSpriteSet(ACParticleRegistry.HAPPINESS.get(), HappinessParticle.Factory::new);
         registry.registerSpriteSet(ACParticleRegistry.ACID_BUBBLE.get(), AcidBubbleParticle.Factory::new);
         registry.registerSpriteSet(ACParticleRegistry.BLACK_VENT_SMOKE.get(), VentSmokeParticle.BlackFactory::new);
@@ -338,29 +392,44 @@ public class ClientProxy extends CommonProxy {
         registry.registerSpriteSet(ACParticleRegistry.GREEN_VENT_SMOKE.get(), VentSmokeParticle.GreenFactory::new);
         registry.registerSpriteSet(ACParticleRegistry.RED_VENT_SMOKE.get(), VentSmokeParticle.RedFactory::new);
         registry.registerSpecial(ACParticleRegistry.MUSHROOM_CLOUD.get(), new MushroomCloudParticle.Factory());
-        registry.registerSpriteSet(ACParticleRegistry.MUSHROOM_CLOUD_SMOKE.get(), SmallExplosionParticle.NukeFactory::new);
-        registry.registerSpriteSet(ACParticleRegistry.MUSHROOM_CLOUD_EXPLOSION.get(), SmallExplosionParticle.NukeFactory::new);
+        registry.registerSpriteSet(ACParticleRegistry.MUSHROOM_CLOUD_SMOKE.get(),
+                SmallExplosionParticle.NukeFactory::new);
+        registry.registerSpriteSet(ACParticleRegistry.MUSHROOM_CLOUD_EXPLOSION.get(),
+                SmallExplosionParticle.NukeFactory::new);
         registry.registerSpecial(ACParticleRegistry.PROTON.get(), new ProtonParticle.Factory());
         registry.registerSpriteSet(ACParticleRegistry.FALLOUT.get(), FalloutParticle.Factory::new);
         registry.registerSpriteSet(ACParticleRegistry.GAMMAROACH.get(), GammaroachParticle.Factory::new);
         registry.registerSpriteSet(ACParticleRegistry.HAZMAT_BREATHE.get(), HazmatBreatheParticle.Factory::new);
-        registry.registerSpriteSet(ACParticleRegistry.BLUE_HAZMAT_BREATHE.get(), HazmatBreatheParticle.BlueFactory::new);
+        registry.registerSpriteSet(ACParticleRegistry.BLUE_HAZMAT_BREATHE.get(),
+                HazmatBreatheParticle.BlueFactory::new);
         registry.registerSpriteSet(ACParticleRegistry.RADGILL_SPLASH.get(), RadgillSplashParticle.Factory::new);
         registry.registerSpriteSet(ACParticleRegistry.ACID_DROP.get(), AcidDropParticle.Factory::new);
-        registry.registerSpriteSet(ACParticleRegistry.NUCLEAR_SIREN_SONAR.get(), NuclearSirenSonarParticle.Factory::new);
-        registry.registerSpriteSet(ACParticleRegistry.RAYGUN_EXPLOSION.get(), SmallExplosionParticle.RaygunFactory::new);
-        registry.registerSpriteSet(ACParticleRegistry.BLUE_RAYGUN_EXPLOSION.get(), SmallExplosionParticle.BlueRaygunFactory::new);
+        registry.registerSpriteSet(ACParticleRegistry.NUCLEAR_SIREN_SONAR.get(),
+                NuclearSirenSonarParticle.Factory::new);
+        registry.registerSpriteSet(ACParticleRegistry.RAYGUN_EXPLOSION.get(),
+                SmallExplosionParticle.RaygunFactory::new);
+        registry.registerSpriteSet(ACParticleRegistry.BLUE_RAYGUN_EXPLOSION.get(),
+                SmallExplosionParticle.BlueRaygunFactory::new);
         registry.registerSpriteSet(ACParticleRegistry.RAYGUN_BLAST.get(), RaygunBlastParticle.Factory::new);
-        registry.registerSpriteSet(ACParticleRegistry.TREMORZILLA_EXPLOSION.get(), SmallExplosionParticle.TremorzillaFactory::new);
-        registry.registerSpriteSet(ACParticleRegistry.TREMORZILLA_RETRO_EXPLOSION.get(), SmallExplosionParticle.TremorzillaRetroFactory::new);
-        registry.registerSpriteSet(ACParticleRegistry.TREMORZILLA_TECTONIC_EXPLOSION.get(), SmallExplosionParticle.TremorzillaTectonicFactory::new);
+        registry.registerSpriteSet(ACParticleRegistry.TREMORZILLA_EXPLOSION.get(),
+                SmallExplosionParticle.TremorzillaFactory::new);
+        registry.registerSpriteSet(ACParticleRegistry.TREMORZILLA_RETRO_EXPLOSION.get(),
+                SmallExplosionParticle.TremorzillaRetroFactory::new);
+        registry.registerSpriteSet(ACParticleRegistry.TREMORZILLA_TECTONIC_EXPLOSION.get(),
+                SmallExplosionParticle.TremorzillaTectonicFactory::new);
         registry.registerSpecial(ACParticleRegistry.TREMORZILLA_PROTON.get(), new TremorzillaProtonParticle.Factory());
-        registry.registerSpecial(ACParticleRegistry.TREMORZILLA_RETRO_PROTON.get(), new TremorzillaProtonParticle.RetroFactory());
-        registry.registerSpecial(ACParticleRegistry.TREMORZILLA_TECTONIC_PROTON.get(), new TremorzillaProtonParticle.TectonicFactory());
-        registry.registerSpriteSet(ACParticleRegistry.TREMORZILLA_LIGHTNING.get(), TremorzillaLightningParticle.Factory::new);
-        registry.registerSpriteSet(ACParticleRegistry.TREMORZILLA_RETRO_LIGHTNING.get(), TremorzillaLightningParticle.Factory::new);
-        registry.registerSpriteSet(ACParticleRegistry.TREMORZILLA_TECTONIC_LIGHTNING.get(), TremorzillaLightningParticle.Factory::new);
-        registry.registerSpriteSet(ACParticleRegistry.TREMORZILLA_BLAST.get(), RaygunBlastParticle.TremorzillaFactory::new);
+        registry.registerSpecial(ACParticleRegistry.TREMORZILLA_RETRO_PROTON.get(),
+                new TremorzillaProtonParticle.RetroFactory());
+        registry.registerSpecial(ACParticleRegistry.TREMORZILLA_TECTONIC_PROTON.get(),
+                new TremorzillaProtonParticle.TectonicFactory());
+        registry.registerSpriteSet(ACParticleRegistry.TREMORZILLA_LIGHTNING.get(),
+                TremorzillaLightningParticle.Factory::new);
+        registry.registerSpriteSet(ACParticleRegistry.TREMORZILLA_RETRO_LIGHTNING.get(),
+                TremorzillaLightningParticle.Factory::new);
+        registry.registerSpriteSet(ACParticleRegistry.TREMORZILLA_TECTONIC_LIGHTNING.get(),
+                TremorzillaLightningParticle.Factory::new);
+        registry.registerSpriteSet(ACParticleRegistry.TREMORZILLA_BLAST.get(),
+                RaygunBlastParticle.TremorzillaFactory::new);
         registry.registerSpriteSet(ACParticleRegistry.TREMORZILLA_STEAM.get(), TremorzillaSteamParticle.Factory::new);
         registry.registerSpecial(ACParticleRegistry.TUBE_WORM.get(), new TubeWormParticle.Factory());
         registry.registerSpriteSet(ACParticleRegistry.DEEP_ONE_MAGIC.get(), DeepOneMagicParticle.Factory::new);
@@ -374,17 +443,20 @@ public class ClientProxy extends CommonProxy {
         registry.registerSpecial(ACParticleRegistry.VOID_BEING_TENDRIL.get(), new VoidBeingTendrilParticle.Factory());
         registry.registerSpecial(ACParticleRegistry.VOID_BEING_EYE.get(), new VoidBeingEyeParticle.Factory());
         registry.registerSpriteSet(ACParticleRegistry.UNDERZEALOT_MAGIC.get(), UnderzealotMagicParticle.Factory::new);
-        registry.registerSpriteSet(ACParticleRegistry.UNDERZEALOT_EXPLOSION.get(), SmallExplosionParticle.UnderzealotFactory::new);
+        registry.registerSpriteSet(ACParticleRegistry.UNDERZEALOT_EXPLOSION.get(),
+                SmallExplosionParticle.UnderzealotFactory::new);
         registry.registerSpriteSet(ACParticleRegistry.FALLING_GUANO.get(), FallingGuanoParticle.Factory::new);
         registry.registerSpriteSet(ACParticleRegistry.MOTH_DUST.get(), MothDustParticle.Factory::new);
         registry.registerSpriteSet(ACParticleRegistry.FORSAKEN_SPIT.get(), ForsakenSpitParticle.Factory::new);
         registry.registerSpriteSet(ACParticleRegistry.FORSAKEN_SONAR.get(), ForsakenSonarParticle.Factory::new);
-        registry.registerSpriteSet(ACParticleRegistry.FORSAKEN_SONAR_LARGE.get(), ForsakenSonarParticle.LargeFactory::new);
+        registry.registerSpriteSet(ACParticleRegistry.FORSAKEN_SONAR_LARGE.get(),
+                ForsakenSonarParticle.LargeFactory::new);
         registry.registerSpriteSet(ACParticleRegistry.TOTEM_EXPLOSION.get(), SmallExplosionParticle.TotemFactory::new);
         registry.registerSpriteSet(ACParticleRegistry.ICE_CREAM_DRIP.get(), IceCreamDripParticle.Factory::new);
         registry.registerSpriteSet(ACParticleRegistry.ICE_CREAM_SPLASH.get(), IceCreamSplashParticle.Factory::new);
         registry.registerSpriteSet(ACParticleRegistry.PURPLE_SODA_BUBBLE.get(), PurpleSodaBubbleParticle.Factory::new);
-        registry.registerSpriteSet(ACParticleRegistry.PURPLE_SODA_BUBBLE_EMITTER.get(), PurpleSodaBubbleEmitterParticle.Factory::new);
+        registry.registerSpriteSet(ACParticleRegistry.PURPLE_SODA_BUBBLE_EMITTER.get(),
+                PurpleSodaBubbleEmitterParticle.Factory::new);
         registry.registerSpriteSet(ACParticleRegistry.PURPLE_SODA_FIZZ.get(), PurpleSodaFizzParticle.Factory::new);
         registry.registerSpriteSet(ACParticleRegistry.SUNDROP.get(), SundropParticle.Factory::new);
         registry.registerSpecial(ACParticleRegistry.RAINBOW.get(), new RainbowParticle.Factory());
@@ -396,28 +468,48 @@ public class ClientProxy extends CommonProxy {
         registry.registerSpriteSet(ACParticleRegistry.SLEEP.get(), SleepParticle.Factory::new);
         registry.registerSpriteSet(ACParticleRegistry.WITCH_COOKIE.get(), WitchCookieParticle.Factory::new);
         registry.registerSpecial(ACParticleRegistry.PURPLE_WITCH_MAGIC.get(), new PurpleWitchMagicParticle.Factory());
-        registry.registerSpriteSet(ACParticleRegistry.PURPLE_WITCH_EXPLOSION.get(), SmallExplosionParticle.PurpleWitchFactory::new);
+        registry.registerSpriteSet(ACParticleRegistry.PURPLE_WITCH_EXPLOSION.get(),
+                SmallExplosionParticle.PurpleWitchFactory::new);
         registry.registerSpriteSet(ACParticleRegistry.GOBTHUMPER.get(), GobthumperParticle.Factory::new);
         registry.registerSpriteSet(ACParticleRegistry.COLORED_DUST.get(), ColoredDustParticle.Factory::new);
         registry.registerSpriteSet(ACParticleRegistry.SMALL_COLORED_DUST.get(), ColoredDustParticle.SmallFactory::new);
-        registry.registerSpriteSet(ACParticleRegistry.CONVERSION_CRUCIBLE_EXPLOSION.get(), SmallExplosionParticle.ConversionCrucibleFactory::new);
-        registry.registerSpriteSet(ACParticleRegistry.FROSTMINT_EXPLOSION.get(), SmallExplosionParticle.FrostmintFactory::new);
+        registry.registerSpriteSet(ACParticleRegistry.CONVERSION_CRUCIBLE_EXPLOSION.get(),
+                SmallExplosionParticle.ConversionCrucibleFactory::new);
+        registry.registerSpriteSet(ACParticleRegistry.FROSTMINT_EXPLOSION.get(),
+                SmallExplosionParticle.FrostmintFactory::new);
         registry.registerSpriteSet(ACParticleRegistry.SUGAR_FLAKE.get(), SugarFlakeParticle.Factory::new);
     }
 
     public void onItemColors(RegisterColorHandlersEvent.Item event) {
         AlexsCaves.LOGGER.info("loaded in item colorizer");
-        event.register((stack, colorIn) -> colorIn != 1 ? -1 : CaveInfoItem.getBiomeColorOf(Minecraft.getInstance().level, stack, false), ACItemRegistry.CAVE_TABLET.get());
-        event.register((stack, colorIn) -> colorIn != 1 ? -1 : CaveInfoItem.getBiomeColorOf(Minecraft.getInstance().level, stack, false), ACItemRegistry.CAVE_CODEX.get());
-        event.register((stack, colorIn) -> colorIn != 0 ? -1 : GazingPearlItem.getPearlColor(stack), ACItemRegistry.GAZING_PEARL.get());
-        event.register((stack, colorIn) -> colorIn != 0 ? -1 : JellyBeanItem.getBeanColor(stack), ACItemRegistry.JELLY_BEAN.get());
-        event.register((stack, colorIn) -> colorIn != 1 ? -1 : BiomeTreatItem.getBiomeTreatColorOf(Minecraft.getInstance().level, stack), ACItemRegistry.BIOME_TREAT.get());
+        event.register(
+                (stack, colorIn) -> colorIn != 1 ? -1
+                        : CaveInfoItem.getBiomeColorOf(Minecraft.getInstance().level, stack, false),
+                ACItemRegistry.CAVE_TABLET.get());
+        event.register(
+                (stack, colorIn) -> colorIn != 1 ? -1
+                        : CaveInfoItem.getBiomeColorOf(Minecraft.getInstance().level, stack, false),
+                ACItemRegistry.CAVE_CODEX.get());
+        event.register((stack, colorIn) -> colorIn != 0 ? -1 : GazingPearlItem.getPearlColor(stack),
+                ACItemRegistry.GAZING_PEARL.get());
+        event.register((stack, colorIn) -> colorIn != 0 ? -1 : JellyBeanItem.getBeanColor(stack),
+                ACItemRegistry.JELLY_BEAN.get());
+        event.register(
+                (stack, colorIn) -> colorIn != 1 ? -1
+                        : BiomeTreatItem.getBiomeTreatColorOf(Minecraft.getInstance().level, stack),
+                ACItemRegistry.BIOME_TREAT.get());
     }
 
     public void onBlockColors(RegisterColorHandlersEvent.Block event) {
         AlexsCaves.LOGGER.info("loaded in block colorizer");
-        event.register((blockState, blockAndTintGetter, blockPos, colorIn) -> colorIn != 0 ? -1 : FrostedChocolateBlock.calculateFrostingColor(blockPos), ACBlockRegistry.BLOCK_OF_FROSTED_CHOCOLATE.get());
-        event.register((blockState, blockAndTintGetter, blockPos, colorIn) -> colorIn != 0 ? -1 : FrostedChocolateBlock.calculateFrostingColor(blockPos), ACBlockRegistry.BLOCK_OF_FROSTING.get());
+        event.register(
+                (blockState, blockAndTintGetter, blockPos, colorIn) -> colorIn != 0 ? -1
+                        : FrostedChocolateBlock.calculateFrostingColor(blockPos),
+                ACBlockRegistry.BLOCK_OF_FROSTED_CHOCOLATE.get());
+        event.register(
+                (blockState, blockAndTintGetter, blockPos, colorIn) -> colorIn != 0 ? -1
+                        : FrostedChocolateBlock.calculateFrostingColor(blockPos),
+                ACBlockRegistry.BLOCK_OF_FROSTING.get());
     }
 
     private void onRegisterTooltips(RegisterClientTooltipComponentFactoriesEvent registry) {
@@ -427,7 +519,7 @@ public class ClientProxy extends CommonProxy {
     private void bakeModels(final ModelEvent.ModifyBakingResult e) {
         if (AlexsCaves.CLIENT_CONFIG.emissiveBlockModels.get()) {
             long time = System.currentTimeMillis();
-            for (ResourceLocation id : e.getModels().keySet()) {
+            for (ModelResourceLocation id : e.getModels().keySet()) {
                 if (FULLBRIGHTS.stream().anyMatch(str -> id.toString().startsWith(str))) {
                     e.getModels().put(id, new BakedModelShadeLayerFullbright(e.getModels().get(id)));
                 }
@@ -439,14 +531,34 @@ public class ClientProxy extends CommonProxy {
 
     private void registerShaders(final RegisterShadersEvent e) {
         try {
-            e.registerShader(new ShaderInstance(e.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "rendertype_ferrouslime_gel"), DefaultVertexFormat.NEW_ENTITY), ACInternalShaders::setRenderTypeFerrouslimeGelShader);
-            e.registerShader(new ShaderInstance(e.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "rendertype_hologram"), DefaultVertexFormat.POSITION_COLOR), ACInternalShaders::setRenderTypeHologramShader);
-            e.registerShader(new ShaderInstance(e.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "rendertype_irradiated"), DefaultVertexFormat.POSITION_COLOR_TEX), ACInternalShaders::setRenderTypeIrradiatedShader);
-            e.registerShader(new ShaderInstance(e.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "rendertype_blue_irradiated"), DefaultVertexFormat.POSITION_COLOR_TEX), ACInternalShaders::setRenderTypeBlueIrradiatedShader);
-            e.registerShader(new ShaderInstance(e.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "rendertype_bubbled"), DefaultVertexFormat.NEW_ENTITY), ACInternalShaders::setRenderTypeBubbledShader);
-            e.registerShader(new ShaderInstance(e.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "rendertype_sepia"), DefaultVertexFormat.NEW_ENTITY), ACInternalShaders::setRenderTypeSepiaShader);
-            e.registerShader(new ShaderInstance(e.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "rendertype_red_ghost"), DefaultVertexFormat.NEW_ENTITY), ACInternalShaders::setRenderTypeRedGhostShader);
-            e.registerShader(new ShaderInstance(e.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "rendertype_purple_witch"), DefaultVertexFormat.NEW_ENTITY), ACInternalShaders::setRenderTypePurpleWitchShader);
+            e.registerShader(new ShaderInstance(e.getResourceProvider(),
+                    ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "rendertype_ferrouslime_gel"),
+                    DefaultVertexFormat.NEW_ENTITY), ACInternalShaders::setRenderTypeFerrouslimeGelShader);
+            e.registerShader(new ShaderInstance(e.getResourceProvider(),
+                    ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "rendertype_hologram"),
+                    DefaultVertexFormat.POSITION_COLOR), ACInternalShaders::setRenderTypeHologramShader);
+            e.registerShader(
+                    new ShaderInstance(e.getResourceProvider(),
+                            ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "rendertype_irradiated"),
+                            DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP),
+                    ACInternalShaders::setRenderTypeIrradiatedShader);
+            e.registerShader(
+                    new ShaderInstance(e.getResourceProvider(),
+                            ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "rendertype_blue_irradiated"),
+                            DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP),
+                    ACInternalShaders::setRenderTypeBlueIrradiatedShader);
+            e.registerShader(new ShaderInstance(e.getResourceProvider(),
+                    ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "rendertype_bubbled"),
+                    DefaultVertexFormat.NEW_ENTITY), ACInternalShaders::setRenderTypeBubbledShader);
+            e.registerShader(new ShaderInstance(e.getResourceProvider(),
+                    ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "rendertype_sepia"),
+                    DefaultVertexFormat.NEW_ENTITY), ACInternalShaders::setRenderTypeSepiaShader);
+            e.registerShader(new ShaderInstance(e.getResourceProvider(),
+                    ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "rendertype_red_ghost"),
+                    DefaultVertexFormat.NEW_ENTITY), ACInternalShaders::setRenderTypeRedGhostShader);
+            e.registerShader(new ShaderInstance(e.getResourceProvider(),
+                    ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "rendertype_purple_witch"),
+                    DefaultVertexFormat.NEW_ENTITY), ACInternalShaders::setRenderTypePurpleWitchShader);
             AlexsCaves.LOGGER.info("registered internal shaders");
         } catch (IOException exception) {
             AlexsCaves.LOGGER.error("could not register internal shaders");
@@ -478,7 +590,8 @@ public class ClientProxy extends CommonProxy {
     }
 
     public float getPrimordialBossActiveAmount(float partialTicks) {
-        return prevPrimordialBossActiveAmount + (primordialBossActiveAmount - prevPrimordialBossActiveAmount) * partialTicks;
+        return prevPrimordialBossActiveAmount
+                + (primordialBossActiveAmount - prevPrimordialBossActiveAmount) * partialTicks;
     }
 
     public float getPossessionStrengthAmount(float partialTicks) {
@@ -507,10 +620,12 @@ public class ClientProxy extends CommonProxy {
         blockedParticleLocations.get(Minecraft.getInstance().level).remove(at);
     }
 
-
     public boolean isKeyDown(int keyType) {
         if (keyType == -1) {
-            return Minecraft.getInstance().options.keyLeft.isDown() || Minecraft.getInstance().options.keyRight.isDown() || Minecraft.getInstance().options.keyUp.isDown() || Minecraft.getInstance().options.keyDown.isDown() || Minecraft.getInstance().options.keyJump.isDown();
+            return Minecraft.getInstance().options.keyLeft.isDown() || Minecraft.getInstance().options.keyRight.isDown()
+                    || Minecraft.getInstance().options.keyUp.isDown()
+                    || Minecraft.getInstance().options.keyDown.isDown()
+                    || Minecraft.getInstance().options.keyJump.isDown();
         }
         if (keyType == 0) {
             return Minecraft.getInstance().options.keyJump.isDown();
@@ -541,7 +656,7 @@ public class ClientProxy extends CommonProxy {
     }
 
     public float getPartialTicks() {
-        return Minecraft.getInstance().getPartialTick();
+        return Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(false);
     }
 
     public void setSpelunkeryTutorialComplete(boolean completedTutorial) {
@@ -553,7 +668,8 @@ public class ClientProxy extends CommonProxy {
     }
 
     public void setRenderViewEntity(Player player, Entity entity) {
-        if (player == Minecraft.getInstance().player && Minecraft.getInstance().getCameraEntity() == Minecraft.getInstance().player) {
+        if (player == Minecraft.getInstance().player
+                && Minecraft.getInstance().getCameraEntity() == Minecraft.getInstance().player) {
             lastPOV = Minecraft.getInstance().options.getCameraType();
             Minecraft.getInstance().setCameraEntity(entity);
             Minecraft.getInstance().options.setCameraType(CameraType.FIRST_PERSON);
@@ -586,7 +702,8 @@ public class ClientProxy extends CommonProxy {
                 if (soundEmitter instanceof NuclearSirenBlockEntity nuclearSiren) {
                     NuclearSirenSound sound;
                     AbstractTickableSoundInstance old = BLOCK_ENTITY_SOUND_INSTANCE_MAP.get(nuclearSiren);
-                    if (old == null || !(old instanceof NuclearSirenSound nuclearSirenSound && nuclearSirenSound.isSameBlockEntity(nuclearSiren)) || old.isStopped()) {
+                    if (old == null || !(old instanceof NuclearSirenSound nuclearSirenSound
+                            && nuclearSirenSound.isSameBlockEntity(nuclearSiren)) || old.isStopped()) {
                         sound = new NuclearSirenSound(nuclearSiren);
                         BLOCK_ENTITY_SOUND_INSTANCE_MAP.put(nuclearSiren, sound);
                     } else {
@@ -601,7 +718,8 @@ public class ClientProxy extends CommonProxy {
                 if (soundEmitter instanceof NucleeperEntity nucleeper) {
                     NucleeperSound sound;
                     AbstractTickableSoundInstance old = ENTITY_SOUND_INSTANCE_MAP.get(nucleeper.getId());
-                    if (old == null || !(old instanceof NucleeperSound nucleeperSound && nucleeperSound.isSameEntity(nucleeper))) {
+                    if (old == null || !(old instanceof NucleeperSound nucleeperSound
+                            && nucleeperSound.isSameEntity(nucleeper))) {
                         sound = new NucleeperSound(nucleeper);
                         ENTITY_SOUND_INSTANCE_MAP.put(nucleeper.getId(), sound);
                     } else {
@@ -616,7 +734,8 @@ public class ClientProxy extends CommonProxy {
                 if (soundEmitter instanceof NotorEntity notor) {
                     NotorHologramSound sound;
                     AbstractTickableSoundInstance old = ENTITY_SOUND_INSTANCE_MAP.get(notor.getId());
-                    if (old == null || !(old instanceof NotorHologramSound hologramSound && hologramSound.isSameEntity(notor))) {
+                    if (old == null || !(old instanceof NotorHologramSound hologramSound
+                            && hologramSound.isSameEntity(notor))) {
                         sound = new NotorHologramSound(notor);
                         ENTITY_SOUND_INSTANCE_MAP.put(notor.getId(), sound);
                     } else {
@@ -631,7 +750,8 @@ public class ClientProxy extends CommonProxy {
                 if (soundEmitter instanceof HologramProjectorBlockEntity hologramProjector) {
                     HologramProjectorSound sound;
                     AbstractTickableSoundInstance old = BLOCK_ENTITY_SOUND_INSTANCE_MAP.get(hologramProjector);
-                    if (old == null || !(old instanceof HologramProjectorSound hologramSound && hologramSound.isSameBlockEntity(hologramProjector)) || old.isStopped()) {
+                    if (old == null || !(old instanceof HologramProjectorSound hologramSound
+                            && hologramSound.isSameBlockEntity(hologramProjector)) || old.isStopped()) {
                         sound = new HologramProjectorSound(hologramProjector);
                         BLOCK_ENTITY_SOUND_INSTANCE_MAP.put(hologramProjector, sound);
                     } else {
@@ -646,7 +766,9 @@ public class ClientProxy extends CommonProxy {
                 if (soundEmitter instanceof MagnetBlockEntity magnet) {
                     MagnetSound sound;
                     AbstractTickableSoundInstance old = BLOCK_ENTITY_SOUND_INSTANCE_MAP.get(magnet);
-                    if (old == null || !(old instanceof MagnetSound magnetSound && magnetSound.isSameBlockEntity(magnet)) || old.isStopped()) {
+                    if (old == null
+                            || !(old instanceof MagnetSound magnetSound && magnetSound.isSameBlockEntity(magnet))
+                            || old.isStopped()) {
                         sound = new MagnetSound(magnet);
                         BLOCK_ENTITY_SOUND_INSTANCE_MAP.put(magnet, sound);
                     } else {
@@ -661,7 +783,8 @@ public class ClientProxy extends CommonProxy {
                 if (soundEmitter instanceof UnderzealotEntity underzealot) {
                     UnderzealotSound sound;
                     AbstractTickableSoundInstance old = ENTITY_SOUND_INSTANCE_MAP.get(underzealot.getId());
-                    if (old == null || !(old instanceof UnderzealotSound underzealotSound && underzealotSound.isSameEntity(underzealot))) {
+                    if (old == null || !(old instanceof UnderzealotSound underzealotSound
+                            && underzealotSound.isSameEntity(underzealot))) {
                         sound = new UnderzealotSound(underzealot);
                         ENTITY_SOUND_INSTANCE_MAP.put(underzealot.getId(), sound);
                     } else {
@@ -676,7 +799,8 @@ public class ClientProxy extends CommonProxy {
                 if (soundEmitter instanceof CorrodentEntity corrodent) {
                     CorrodentSound sound;
                     AbstractTickableSoundInstance old = ENTITY_SOUND_INSTANCE_MAP.get(corrodent.getId());
-                    if (old == null || !(old instanceof CorrodentSound corrodentSound && corrodentSound.isSameEntity(corrodent))) {
+                    if (old == null || !(old instanceof CorrodentSound corrodentSound
+                            && corrodentSound.isSameEntity(corrodent))) {
                         sound = new CorrodentSound(corrodent);
                         ENTITY_SOUND_INSTANCE_MAP.put(corrodent.getId(), sound);
                     } else {
@@ -691,7 +815,8 @@ public class ClientProxy extends CommonProxy {
                 if (soundEmitter instanceof NuclearFurnaceBlockEntity nuclearFurnace) {
                     NuclearFurnaceSound sound;
                     AbstractTickableSoundInstance old = BLOCK_ENTITY_SOUND_INSTANCE_MAP.get(nuclearFurnace);
-                    if (old == null || !(old instanceof NuclearFurnaceSound furnaceSound && furnaceSound.isSameBlockEntity(nuclearFurnace)) || old.isStopped()) {
+                    if (old == null || !(old instanceof NuclearFurnaceSound furnaceSound
+                            && furnaceSound.isSameBlockEntity(nuclearFurnace)) || old.isStopped()) {
                         sound = new NuclearFurnaceSound(nuclearFurnace);
                         BLOCK_ENTITY_SOUND_INSTANCE_MAP.put(nuclearFurnace, sound);
                     } else {
@@ -706,7 +831,8 @@ public class ClientProxy extends CommonProxy {
                 if (soundEmitter instanceof LivingEntity livingEntity) {
                     RaygunSound sound;
                     AbstractTickableSoundInstance old = ENTITY_SOUND_INSTANCE_MAP.get(livingEntity.getId());
-                    if (old == null || !(old instanceof RaygunSound raygunSound && raygunSound.isSameEntity(livingEntity))) {
+                    if (old == null
+                            || !(old instanceof RaygunSound raygunSound && raygunSound.isSameEntity(livingEntity))) {
                         sound = new RaygunSound(livingEntity);
                         ENTITY_SOUND_INSTANCE_MAP.put(livingEntity.getId(), sound);
                     } else {
@@ -721,7 +847,8 @@ public class ClientProxy extends CommonProxy {
                 if (soundEmitter instanceof LivingEntity livingEntity) {
                     ResistorShieldSound sound;
                     AbstractTickableSoundInstance old = ENTITY_SOUND_INSTANCE_MAP.get(livingEntity.getId());
-                    if (old == null || !(old instanceof ResistorShieldSound resistorShieldSound && resistorShieldSound.isSameEntity(livingEntity) && !resistorShieldSound.isAzure())) {
+                    if (old == null || !(old instanceof ResistorShieldSound resistorShieldSound
+                            && resistorShieldSound.isSameEntity(livingEntity) && !resistorShieldSound.isAzure())) {
                         sound = new ResistorShieldSound(livingEntity, false);
                         ENTITY_SOUND_INSTANCE_MAP.put(livingEntity.getId(), sound);
                     } else {
@@ -736,7 +863,8 @@ public class ClientProxy extends CommonProxy {
                 if (soundEmitter instanceof LivingEntity livingEntity) {
                     ResistorShieldSound sound;
                     AbstractTickableSoundInstance old = ENTITY_SOUND_INSTANCE_MAP.get(livingEntity.getId());
-                    if (old == null || !(old instanceof ResistorShieldSound resistorShieldSound && resistorShieldSound.isSameEntity(livingEntity) && resistorShieldSound.isAzure())) {
+                    if (old == null || !(old instanceof ResistorShieldSound resistorShieldSound
+                            && resistorShieldSound.isSameEntity(livingEntity) && resistorShieldSound.isAzure())) {
                         sound = new ResistorShieldSound(livingEntity, true);
                         ENTITY_SOUND_INSTANCE_MAP.put(livingEntity.getId(), sound);
                     } else {
@@ -751,7 +879,8 @@ public class ClientProxy extends CommonProxy {
                 if (soundEmitter instanceof LivingEntity livingEntity) {
                     GalenaGauntletSound sound;
                     AbstractTickableSoundInstance old = ENTITY_SOUND_INSTANCE_MAP.get(livingEntity.getId());
-                    if (old == null || !(old instanceof GalenaGauntletSound gauntletSound && gauntletSound.isSameEntity(livingEntity))) {
+                    if (old == null || !(old instanceof GalenaGauntletSound gauntletSound
+                            && gauntletSound.isSameEntity(livingEntity))) {
                         sound = new GalenaGauntletSound(livingEntity);
                         ENTITY_SOUND_INSTANCE_MAP.put(livingEntity.getId(), sound);
                     } else {
@@ -766,7 +895,8 @@ public class ClientProxy extends CommonProxy {
                 if (soundEmitter instanceof BoundroidEntity boundroid) {
                     BoundroidSound sound;
                     AbstractTickableSoundInstance old = ENTITY_SOUND_INSTANCE_MAP.get(boundroid.getId());
-                    if (old == null || !(old instanceof BoundroidSound boundroidSound && boundroidSound.isSameEntity(boundroid))) {
+                    if (old == null || !(old instanceof BoundroidSound boundroidSound
+                            && boundroidSound.isSameEntity(boundroid))) {
                         sound = new BoundroidSound(boundroid);
                         ENTITY_SOUND_INSTANCE_MAP.put(boundroid.getId(), sound);
                     } else {
@@ -781,7 +911,8 @@ public class ClientProxy extends CommonProxy {
                 if (soundEmitter instanceof FerrouslimeEntity ferrouslime) {
                     FerrouslimeSound sound;
                     AbstractTickableSoundInstance old = ENTITY_SOUND_INSTANCE_MAP.get(ferrouslime.getId());
-                    if (old == null || !(old instanceof FerrouslimeSound ferrouslimeSound && ferrouslimeSound.isSameEntity(ferrouslime))) {
+                    if (old == null || !(old instanceof FerrouslimeSound ferrouslimeSound
+                            && ferrouslimeSound.isSameEntity(ferrouslime))) {
                         sound = new FerrouslimeSound(ferrouslime);
                         ENTITY_SOUND_INSTANCE_MAP.put(ferrouslime.getId(), sound);
                     } else {
@@ -796,7 +927,8 @@ public class ClientProxy extends CommonProxy {
                 if (soundEmitter instanceof QuarrySmasherEntity quarrySmasher) {
                     QuarrySmasherSound sound;
                     AbstractTickableSoundInstance old = ENTITY_SOUND_INSTANCE_MAP.get(quarrySmasher.getId());
-                    if (old == null || !(old instanceof QuarrySmasherSound quarrySmasherSound && quarrySmasherSound.isSameEntity(quarrySmasher))) {
+                    if (old == null || !(old instanceof QuarrySmasherSound quarrySmasherSound
+                            && quarrySmasherSound.isSameEntity(quarrySmasher))) {
                         sound = new QuarrySmasherSound(quarrySmasher);
                         ENTITY_SOUND_INSTANCE_MAP.put(quarrySmasher.getId(), sound);
                     } else {
@@ -811,7 +943,8 @@ public class ClientProxy extends CommonProxy {
                 if (soundEmitter instanceof SubmarineEntity submarine) {
                     SubmarineSound sound;
                     AbstractTickableSoundInstance old = ENTITY_SOUND_INSTANCE_MAP.get(submarine.getId());
-                    if (old == null || !(old instanceof SubmarineSound submarineSound && submarineSound.isSameEntity(submarine))) {
+                    if (old == null || !(old instanceof SubmarineSound submarineSound
+                            && submarineSound.isSameEntity(submarine))) {
                         sound = new SubmarineSound(submarine);
                         ENTITY_SOUND_INSTANCE_MAP.put(submarine.getId(), sound);
                     } else {
@@ -826,7 +959,8 @@ public class ClientProxy extends CommonProxy {
                 if (soundEmitter instanceof TremorzillaEntity tremorzilla) {
                     TremorzillaBeamSound sound;
                     AbstractTickableSoundInstance old = ENTITY_SOUND_INSTANCE_MAP.get(tremorzilla.getId());
-                    if (old == null || !(old instanceof TremorzillaBeamSound tremorzillaBeamSound && tremorzillaBeamSound.isSameEntity(tremorzilla))) {
+                    if (old == null || !(old instanceof TremorzillaBeamSound tremorzillaBeamSound
+                            && tremorzillaBeamSound.isSameEntity(tremorzilla))) {
                         sound = new TremorzillaBeamSound(tremorzilla);
                         ENTITY_SOUND_INSTANCE_MAP.put(tremorzilla.getId(), sound);
                     } else {
@@ -841,7 +975,8 @@ public class ClientProxy extends CommonProxy {
                 if (soundEmitter instanceof GumWormEntity gumWorm) {
                     GumWormSound sound;
                     AbstractTickableSoundInstance old = ENTITY_SOUND_INSTANCE_MAP.get(gumWorm.getId());
-                    if (old == null || !(old instanceof GumWormSound gumWormSound && gumWormSound.isSameEntity(gumWorm))) {
+                    if (old == null
+                            || !(old instanceof GumWormSound gumWormSound && gumWormSound.isSameEntity(gumWorm))) {
                         sound = new GumWormSound(gumWorm);
                         ENTITY_SOUND_INSTANCE_MAP.put(gumWorm.getId(), sound);
                     } else {
@@ -856,7 +991,8 @@ public class ClientProxy extends CommonProxy {
                 if (soundEmitter instanceof LivingEntity livingEntity) {
                     SugarRushSound sound;
                     AbstractTickableSoundInstance old = ENTITY_SOUND_INSTANCE_MAP.get(livingEntity.getId());
-                    if (old == null || !(old instanceof SugarRushSound sugarRushSound && sugarRushSound.isSameEntity(livingEntity))) {
+                    if (old == null || !(old instanceof SugarRushSound sugarRushSound
+                            && sugarRushSound.isSameEntity(livingEntity))) {
                         sound = new SugarRushSound(livingEntity);
                         ENTITY_SOUND_INSTANCE_MAP.put(livingEntity.getId(), sound);
                     } else {
@@ -871,7 +1007,8 @@ public class ClientProxy extends CommonProxy {
                 if (soundEmitter instanceof CandicornEntity candicorn) {
                     CandicornSound sound;
                     AbstractTickableSoundInstance old = ENTITY_SOUND_INSTANCE_MAP.get(candicorn.getId());
-                    if (old == null || !(old instanceof CandicornSound candicornSound && candicornSound.isSameEntity(candicorn))) {
+                    if (old == null || !(old instanceof CandicornSound candicornSound
+                            && candicornSound.isSameEntity(candicorn))) {
                         sound = new CandicornSound(candicorn);
                         ENTITY_SOUND_INSTANCE_MAP.put(candicorn.getId(), sound);
                     } else {
@@ -886,38 +1023,59 @@ public class ClientProxy extends CommonProxy {
     }
 
     private boolean isSoundPlaying(AbstractTickableSoundInstance sound) {
-        return Minecraft.getInstance().getSoundManager().soundEngine.queuedTickableSounds.contains(sound) || Minecraft.getInstance().getSoundManager().soundEngine.tickingSounds.contains(sound);
+        SoundManager soundManager = Minecraft.getInstance().getSoundManager();
+        SoundEngine soundEngine = ((SoundManagerAccessor) soundManager).getSoundEngine();
+        SoundEngineAccessor engineAccessor = (SoundEngineAccessor) soundEngine;
+        return engineAccessor.getQueuedTickableSounds().contains(sound)
+                || engineAccessor.getTickingSounds().containsKey(sound);
     }
 
     public void playWorldEvent(int messageId, Level level, BlockPos pos) {
         if (messageId == 0 && AcidBlock.doesBlockCorrode(level.getBlockState(pos))) {
-            level.playLocalSound((double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D, ACSoundRegistry.ACID_CORROSION.get(), SoundSource.BLOCKS, 0.5F, level.random.nextFloat() * 0.4F + 0.8F, false);
+            level.playLocalSound((double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D,
+                    ACSoundRegistry.ACID_CORROSION.get(), SoundSource.BLOCKS, 0.5F,
+                    level.random.nextFloat() * 0.4F + 0.8F, false);
         }
         if (messageId == 1 && level.getBlockState(pos).getBlock() instanceof ActivatedByAltar) {
-            level.playLocalSound((double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D, ACSoundRegistry.ABYSSMARINE_GLOW_ON.get(), SoundSource.BLOCKS, 1.5F, level.random.nextFloat() * 0.4F + 0.8F, false);
+            level.playLocalSound((double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D,
+                    ACSoundRegistry.ABYSSMARINE_GLOW_ON.get(), SoundSource.BLOCKS, 1.5F,
+                    level.random.nextFloat() * 0.4F + 0.8F, false);
         }
         if (messageId == 2 && level.getBlockState(pos).getBlock() instanceof ActivatedByAltar) {
-            level.playLocalSound((double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D, ACSoundRegistry.ABYSSMARINE_GLOW_OFF.get(), SoundSource.BLOCKS, 1.5F, level.random.nextFloat() * 0.4F + 0.8F, false);
+            level.playLocalSound((double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D,
+                    ACSoundRegistry.ABYSSMARINE_GLOW_OFF.get(), SoundSource.BLOCKS, 1.5F,
+                    level.random.nextFloat() * 0.4F + 0.8F, false);
         }
         if (messageId == 3 && level.getBlockState(pos).is(ACBlockRegistry.DRAIN.get())) {
-            level.playLocalSound((double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D, ACSoundRegistry.DRAIN_START.get(), SoundSource.BLOCKS, 1.5F, level.random.nextFloat() * 0.4F + 0.8F, false);
+            level.playLocalSound((double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D,
+                    ACSoundRegistry.DRAIN_START.get(), SoundSource.BLOCKS, 1.5F, level.random.nextFloat() * 0.4F + 0.8F,
+                    false);
         }
         if (messageId == 4 && level.getBlockState(pos).is(ACBlockRegistry.DRAIN.get())) {
-            level.playLocalSound((double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D, ACSoundRegistry.DRAIN_STOP.get(), SoundSource.BLOCKS, 1.5F, level.random.nextFloat() * 0.4F + 0.8F, false);
+            level.playLocalSound((double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D,
+                    ACSoundRegistry.DRAIN_STOP.get(), SoundSource.BLOCKS, 1.5F, level.random.nextFloat() * 0.4F + 0.8F,
+                    false);
         }
         if (messageId == 5 && level.getBlockState(pos).is(ACBlockRegistry.SPELUNKERY_TABLE.get())) {
-            level.playLocalSound((double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D, ACSoundRegistry.SPELUNKERY_TABLE_FAIL.get(), SoundSource.BLOCKS, 1.5F, level.random.nextFloat() * 0.4F + 0.8F, false);
-            BlockParticleOption blockparticleoption = new BlockParticleOption(ParticleTypes.BLOCK, Blocks.STONE.defaultBlockState());
+            level.playLocalSound((double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D,
+                    ACSoundRegistry.SPELUNKERY_TABLE_FAIL.get(), SoundSource.BLOCKS, 1.5F,
+                    level.random.nextFloat() * 0.4F + 0.8F, false);
+            BlockParticleOption blockparticleoption = new BlockParticleOption(ParticleTypes.BLOCK,
+                    Blocks.STONE.defaultBlockState());
             for (int i = 0; i < 8; i++) {
-                level.addParticle(blockparticleoption, pos.getX() + level.random.nextFloat(), pos.getY() + 1.0F, pos.getZ() + level.random.nextFloat(), 0, 0, 0);
+                level.addParticle(blockparticleoption, pos.getX() + level.random.nextFloat(), pos.getY() + 1.0F,
+                        pos.getZ() + level.random.nextFloat(), 0, 0, 0);
             }
         }
-        if (messageId == 6 && level.getBlockState(pos).is(ACBlockRegistry.ABYSSAL_ALTAR.get()) && level.getBlockEntity(pos) instanceof AbyssalAltarBlockEntity altarBlock) {
+        if (messageId == 6 && level.getBlockState(pos).is(ACBlockRegistry.ABYSSAL_ALTAR.get())
+                && level.getBlockEntity(pos) instanceof AbyssalAltarBlockEntity altarBlock) {
             altarBlock.resetSlideAnimation();
         }
         if (messageId == 7) {
             for (int i = 0; i < 8; i++) {
-                level.addParticle(ACParticleRegistry.PURPLE_WITCH_EXPLOSION.get(), pos.getX() + level.random.nextFloat(), pos.getY() + level.random.nextFloat(), pos.getZ() + level.random.nextFloat(), 0, 0, 0);
+                level.addParticle(ACParticleRegistry.PURPLE_WITCH_EXPLOSION.get(),
+                        pos.getX() + level.random.nextFloat(), pos.getY() + level.random.nextFloat(),
+                        pos.getZ() + level.random.nextFloat(), 0, 0, 0);
             }
         }
         if (messageId == 8) {
@@ -925,7 +1083,9 @@ public class ClientProxy extends CommonProxy {
                 float particleX = random.nextFloat() * 8 - 4;
                 float particleY = random.nextFloat() * 8 - 4;
                 float particleZ = random.nextFloat() * 8 - 4;
-                level.addAlwaysVisibleParticle(random.nextInt(5) == 0 ? ACParticleRegistry.FROSTMINT_EXPLOSION.get() : ParticleTypes.SNOWFLAKE, true, pos.getX() + particleX, pos.getY() + particleY, pos.getZ() + particleZ, 0, 0, 0);
+                level.addAlwaysVisibleParticle(
+                        random.nextInt(5) == 0 ? ACParticleRegistry.FROSTMINT_EXPLOSION.get() : ParticleTypes.SNOWFLAKE,
+                        true, pos.getX() + particleX, pos.getY() + particleY, pos.getZ() + particleZ, 0, 0, 0);
             }
         }
         if (messageId == 9) {
@@ -933,7 +1093,8 @@ public class ClientProxy extends CommonProxy {
                 float particleX = random.nextFloat() * 4 - 2;
                 float particleY = random.nextFloat() * 4 - 2;
                 float particleZ = random.nextFloat() * 4 - 2;
-                level.addAlwaysVisibleParticle(ParticleTypes.SNOWFLAKE, true, pos.getX() + particleX, pos.getY() + particleY, pos.getZ() + particleZ, 0, 0, 0);
+                level.addAlwaysVisibleParticle(ParticleTypes.SNOWFLAKE, true, pos.getX() + particleX,
+                        pos.getY() + particleY, pos.getZ() + particleZ, 0, 0, 0);
             }
         }
     }
@@ -962,7 +1123,6 @@ public class ClientProxy extends CommonProxy {
         return d0.add(d1.scale(partialTick));
     }
 
-
     public int getPlayerTime() {
         return Minecraft.getInstance().player == null ? 0 : Minecraft.getInstance().player.tickCount;
     }
@@ -982,13 +1142,12 @@ public class ClientProxy extends CommonProxy {
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, nukeFlashAmount * screenEffectIntensity);
             RenderSystem.setShaderTexture(0, ClientProxy.BOMB_FLASH);
             Tesselator tesselator = Tesselator.getInstance();
-            BufferBuilder bufferbuilder = tesselator.getBuilder();
-            bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-            bufferbuilder.vertex(0.0D, screenHeight, -90.0D).uv(0.0F, 1.0F).endVertex();
-            bufferbuilder.vertex(screenWidth, screenHeight, -90.0D).uv(1.0F, 1.0F).endVertex();
-            bufferbuilder.vertex(screenWidth, 0.0D, -90.0D).uv(1.0F, 0.0F).endVertex();
-            bufferbuilder.vertex(0.0D, 0.0D, -90.0D).uv(0.0F, 0.0F).endVertex();
-            tesselator.end();
+            BufferBuilder bufferbuilder = tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+            bufferbuilder.addVertex(0.0F, (float) screenHeight, -90.0F).setUv(0.0F, 1.0F);
+            bufferbuilder.addVertex((float) screenWidth, (float) screenHeight, -90.0F).setUv(1.0F, 1.0F);
+            bufferbuilder.addVertex((float) screenWidth, 0.0F, -90.0F).setUv(1.0F, 0.0F);
+            bufferbuilder.addVertex(0.0F, 0.0F, -90.0F).setUv(0.0F, 0.0F);
+            BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
             RenderSystem.depthMask(true);
             RenderSystem.enableDepthTest();
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -1003,14 +1162,13 @@ public class ClientProxy extends CommonProxy {
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, watcherPossessionStrength * screenEffectIntensity);
             RenderSystem.setShaderTexture(0, ClientProxy.WATCHER_EFFECT);
-            Tesselator tesselator = Tesselator.getInstance();
-            BufferBuilder bufferbuilder = tesselator.getBuilder();
-            bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-            bufferbuilder.vertex(0.0D, screenHeight, -90.0D).uv(0.0F, 1.0F).endVertex();
-            bufferbuilder.vertex(screenWidth, screenHeight, -90.0D).uv(1.0F, 1.0F).endVertex();
-            bufferbuilder.vertex(screenWidth, 0.0D, -90.0D).uv(1.0F, 0.0F).endVertex();
-            bufferbuilder.vertex(0.0D, 0.0D, -90.0D).uv(0.0F, 0.0F).endVertex();
-            tesselator.end();
+            Tesselator tesselator2 = Tesselator.getInstance();
+            BufferBuilder bufferbuilder2 = tesselator2.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+            bufferbuilder2.addVertex(0.0F, (float) screenHeight, -90.0F).setUv(0.0F, 1.0F);
+            bufferbuilder2.addVertex((float) screenWidth, (float) screenHeight, -90.0F).setUv(1.0F, 1.0F);
+            bufferbuilder2.addVertex((float) screenWidth, 0.0F, -90.0F).setUv(1.0F, 0.0F);
+            bufferbuilder2.addVertex(0.0F, 0.0F, -90.0F).setUv(0.0F, 0.0F);
+            BufferUploader.drawWithShader(bufferbuilder2.buildOrThrow());
             RenderSystem.depthMask(true);
             RenderSystem.enableDepthTest();
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -1018,9 +1176,9 @@ public class ClientProxy extends CommonProxy {
     }
 
     public boolean isFirstPersonPlayer(Entity entity) {
-        return entity.equals(Minecraft.getInstance().cameraEntity) && Minecraft.getInstance().options.getCameraType().isFirstPerson();
+        return entity.equals(Minecraft.getInstance().cameraEntity)
+                && Minecraft.getInstance().options.getCameraType().isFirstPerson();
     }
-
 
     public void openBookGUI(ItemStack itemStackIn) {
         Minecraft.getInstance().setScreen(new CaveBookScreen());
@@ -1063,7 +1221,7 @@ public class ClientProxy extends CommonProxy {
         bossBarRenderTypes.put(bossBar, renderType);
     }
 
-    public boolean isTickRateModificationActive(Level level){
+    public boolean isTickRateModificationActive(Level level) {
         return ClientTickRateTracker.getForClient(Minecraft.getInstance()).getClientTickRate() != 50;
     }
 
@@ -1072,8 +1230,7 @@ public class ClientProxy extends CommonProxy {
         return Minecraft.getInstance().gameRenderer.getMainCamera().getPosition().distanceToSqr(x, y, z) >= 256.0D;
     }
 
-    public void renderVanillaMapDecoration(MapDecoration mapDecoration, int index){
+    public void renderVanillaMapDecoration(MapDecoration mapDecoration, int index) {
         ClientEvents.renderVanillaMapDecoration(mapDecoration, index + 1);
     }
 }
-

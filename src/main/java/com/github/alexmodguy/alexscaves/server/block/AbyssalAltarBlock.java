@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.ACBlockEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.AbyssalAltarBlockEntity;
 import com.github.alexmodguy.alexscaves.server.misc.ACMath;
@@ -50,6 +51,11 @@ public class AbyssalAltarBlock extends BaseEntityBlock implements SimpleWaterlog
     public AbyssalAltarBlock() {
         super(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_BLUE).dynamicShape().strength(2.5F, 10.0F).sound(SoundType.DEEPSLATE).lightLevel(LIGHT_EMISSION));
         this.registerDefaultState(this.defaultBlockState().setValue(WATERLOGGED, Boolean.valueOf(false)).setValue(ACTIVE, Boolean.valueOf(false)));
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return MapCodec.unit(this);
     }
 
     @Override

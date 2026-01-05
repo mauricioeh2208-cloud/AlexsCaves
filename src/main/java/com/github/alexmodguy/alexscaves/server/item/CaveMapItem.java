@@ -6,6 +6,7 @@ import com.github.alexmodguy.alexscaves.server.message.UpdateItemTagMessage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -21,11 +22,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,17 +51,17 @@ public class CaveMapItem extends Item implements UpdatesStackTags {
         ItemStack itemstack = player.getItemInHand(hand);
         if (!isLoading(itemstack) && !isFilled(itemstack)) {
             if (!level.isClientSide) {
-                CompoundTag tag = itemstack.getOrCreateTag();
+                CompoundTag tag = getOrCreateCustomTag(itemstack);
                 UUID uuid;
                 if (!tag.contains("MapUUID")) {
                     uuid = UUID.randomUUID();
                     tag.putUUID("MapUUID", uuid);
                     AlexsCaves.sendMSGToAll(new UpdateItemTagMessage(player.getId(), itemstack));
-                }else{
+                } else {
                     uuid = tag.getUUID("MapUUID");
                 }
                 tag.putBoolean("Loading", true);
-                itemstack.setTag(tag);
+                itemstack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
                 ACWorldData acWorldData = ACWorldData.get(level);
                 if (acWorldData != null) {
                     acWorldData.fillOutCaveMap(uuid, itemstack, (ServerLevel) level, player.getRootVehicle().blockPosition(), player);
@@ -75,50 +76,64 @@ public class CaveMapItem extends Item implements UpdatesStackTags {
         ItemStack map = new ItemStack(ACItemRegistry.CAVE_MAP.get());
         CompoundTag tag = new CompoundTag();
         tag.putString("BiomeTargetResourceKey", biomeResourceKey.location().toString());
-        map.setTag(tag);
+        map.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         return map;
     }
 
+    private static CompoundTag getCustomTag(ItemStack stack) {
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+        return customData != null ? customData.copyTag() : null;
+    }
+
+    private static CompoundTag getOrCreateCustomTag(ItemStack stack) {
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+        return customData != null ? customData.copyTag() : new CompoundTag();
+    }
+
     public static boolean isLoading(ItemStack stack) {
-        return stack.getTag() != null && stack.getTag().getBoolean("Loading");
+        CompoundTag tag = getCustomTag(stack);
+        return tag != null && tag.getBoolean("Loading");
     }
 
     public static boolean isFilled(ItemStack stack) {
-        return stack.getTag() != null && stack.getTag().getBoolean("Filled");
+        CompoundTag tag = getCustomTag(stack);
+        return tag != null && tag.getBoolean("Filled");
     }
 
     public static BlockPos getBiomeBlockPos(ItemStack stack) {
-        if (stack.getTag() != null) {
-            return new BlockPos(stack.getTag().getInt("BiomeX"), stack.getTag().getInt("BiomeY"), stack.getTag().getInt("BiomeZ"));
+        CompoundTag tag = getCustomTag(stack);
+        if (tag != null) {
+            return new BlockPos(tag.getInt("BiomeX"), tag.getInt("BiomeY"), tag.getInt("BiomeZ"));
         }
         return BlockPos.ZERO;
     }
 
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int i, boolean held) {
         super.inventoryTick(stack, level, entity, i, held);
-        if(!level.isClientSide() && held && !isLoading(stack) && isFilled(stack) && (entity.tickCount + entity.getId()) % CHECK_REGEN_TICKS == 0 && entity instanceof Player){
+        if (!level.isClientSide() && held && !isLoading(stack) && isFilled(stack) && (entity.tickCount + entity.getId()) % CHECK_REGEN_TICKS == 0 && entity instanceof Player) {
             BlockPos biomePos = getBiomeBlockPos(stack);
             double xD = biomePos.getX() - entity.blockPosition().getX();
             double zD = biomePos.getZ() - entity.blockPosition().getZ();
-            if(Mth.sqrt((float) (xD * xD + zD * zD)) < TRIGGER_REGEN_DIST){
+            if (Mth.sqrt((float) (xD * xD + zD * zD)) < TRIGGER_REGEN_DIST) {
                 ResourceKey<Biome> biomeResourceKey = getBiomeTarget(stack);
                 Holder<Biome> currentBiome = level.getBiome(biomePos);
-                if(biomeResourceKey == null || !currentBiome.is(biomeResourceKey)){
+                if (biomeResourceKey == null || !currentBiome.is(biomeResourceKey)) {
                     ACWorldData acWorldData = ACWorldData.get(level);
                     if (acWorldData != null) {
                         UUID uuid;
-                        CompoundTag tag = stack.getOrCreateTag();
+                        CompoundTag tag = getOrCreateCustomTag(stack);
                         if (!tag.contains("MapUUID")) {
                             uuid = UUID.randomUUID();
                             tag.putUUID("MapUUID", uuid);
+                            stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
                             AlexsCaves.sendMSGToAll(new UpdateItemTagMessage(entity.getId(), stack));
-                        }else{
+                        } else {
                             uuid = tag.getUUID("MapUUID");
                         }
                         String currentBiomeName = currentBiome.unwrapKey().isPresent() ? currentBiome.unwrapKey().get().location().toString() : "NULL";
                         String wantedBiomeName = biomeResourceKey == null ? "NULL" : biomeResourceKey.location().toString();
                         AlexsCaves.LOGGER.info("regenerating cave biome map, incorrect biome {} found at {} {} {}, should be {}", currentBiomeName, biomePos.getX(), biomePos.getY(), biomePos.getZ(), wantedBiomeName);
-                        acWorldData.fillOutCaveMap(uuid, stack, (ServerLevel) level, entity.getRootVehicle().blockPosition(), (Player)entity);
+                        acWorldData.fillOutCaveMap(uuid, stack, (ServerLevel) level, entity.getRootVehicle().blockPosition(), (Player) entity);
                     }
                 }
             }
@@ -126,18 +141,19 @@ public class CaveMapItem extends Item implements UpdatesStackTags {
     }
 
     public static int[] createBiomeArray(ItemStack stack) {
-        if (stack.getTag() != null) {
-            ListTag listTag = stack.getTag().getList("MapBiomeList", 10);
+        CompoundTag tag = getCustomTag(stack);
+        if (tag != null) {
+            ListTag listTag = tag.getList("MapBiomeList", 10);
             Map<Byte, Integer> integerByteMap = new HashMap<>();
             for (int i = 0; i < listTag.size(); ++i) {
                 CompoundTag innerTag = listTag.getCompound(i);
                 integerByteMap.put(innerTag.getByte("BiomeHash"), innerTag.getInt("BiomeID"));
             }
-            byte[] byteArray = stack.getTag().getByteArray("MapBiomes");
+            byte[] byteArray = tag.getByteArray("MapBiomes");
             int[] intArray = new int[128 * 128];
             int j = Math.min(intArray.length, byteArray.length);
-            if(j > 0){
-                for(int i = 0; i < j; i++){
+            if (j > 0) {
+                for (int i = 0; i < j; i++) {
                     intArray[i] = integerByteMap.get(byteArray[i]);
                 }
             }
@@ -147,25 +163,28 @@ public class CaveMapItem extends Item implements UpdatesStackTags {
     }
 
     public static long getSeed(ItemStack stack) {
-        if (stack.getTag() != null) {
-            return stack.getTag().getLong("RandomSeed");
+        CompoundTag tag = getCustomTag(stack);
+        if (tag != null) {
+            return tag.getLong("RandomSeed");
         }
         return 0;
     }
 
-    public void appendHoverText(ItemStack stack, @Nullable Level worldIn, List<Component> tooltip, TooltipFlag flagIn) {
+    @Override
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
         ResourceKey<Biome> biomeResourceKey = getBiomeTarget(stack);
         if (biomeResourceKey != null) {
             String biomeName = "biome." + biomeResourceKey.location().toString().replace(":", ".");
             tooltip.add(Component.translatable(biomeName).withStyle(ChatFormatting.GRAY));
         }
-        super.appendHoverText(stack, worldIn, tooltip, flagIn);
+        super.appendHoverText(stack, context, tooltip, flagIn);
     }
 
     public static ResourceKey<Biome> getBiomeTarget(ItemStack stack) {
-        if (stack.getTag() != null) {
-            String s = stack.getTag().getString("BiomeTargetResourceKey");
-            return s == null ? null : ResourceKey.create(Registries.BIOME, ResourceLocation.parse(s));
+        CompoundTag tag = getCustomTag(stack);
+        if (tag != null) {
+            String s = tag.getString("BiomeTargetResourceKey");
+            return s == null || s.isEmpty() ? null : ResourceKey.create(Registries.BIOME, ResourceLocation.parse(s));
         }
         return null;
     }

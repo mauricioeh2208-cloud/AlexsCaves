@@ -1,35 +1,36 @@
 package com.github.alexmodguy.alexscaves.server.potion;
 
+import com.github.alexmodguy.alexscaves.AlexsCaves;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
-import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.phys.AABB;
 
-import java.util.UUID;
-
 public class RageEffect extends MobEffect {
 
-    private static final UUID RAGE_ATTACK_DAMAGE_UUID = UUID.fromString("1eaf83ff-7207-4596-b37a-d7a07b3ec4ff");
+    private static final ResourceLocation RAGE_ATTACK_DAMAGE_ID = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "rage_attack_boost");
 
     protected RageEffect() {
         super(MobEffectCategory.NEUTRAL, 0XBA2E2E);
     }
 
-    public void applyEffectTick(LivingEntity entity, int level) {
+    @Override
+    public boolean applyEffectTick(LivingEntity entity, int level) {
         AttributeInstance attributeinstance = entity.getAttribute(Attributes.ATTACK_DAMAGE);
         if (attributeinstance != null) {
             float levelScale = (1 + level) * 2.5F;
             float f = (1F - (entity.getHealth() / entity.getMaxHealth())) * levelScale;
             removeRageModifier(entity);
-            attributeinstance.addTransientModifier(new AttributeModifier(RAGE_ATTACK_DAMAGE_UUID, "Rage attack boost", (double) f, AttributeModifier.Operation.ADDITION));
+            attributeinstance.addTransientModifier(new AttributeModifier(RAGE_ATTACK_DAMAGE_ID, (double) f, AttributeModifier.Operation.ADD_VALUE));
         }
         if (!entity.level().isClientSide && entity instanceof Mob mob && mob.getTarget() == null && entity.tickCount % 10 == 0 && entity.getRandom().nextInt(2) == 0) {
             AABB aabb = mob.getBoundingBox().inflate(80);
@@ -49,28 +50,25 @@ public class RageEffect extends MobEffect {
                 }
             }
         }
+        return true;
     }
 
-    public boolean isDurationEffectTick(int duration, int amplifier) {
+    @Override
+    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
         return duration > 0;
     }
 
     protected void removeRageModifier(LivingEntity living) {
         AttributeInstance attributeinstance = living.getAttribute(Attributes.ATTACK_DAMAGE);
         if (attributeinstance != null) {
-            if (attributeinstance.getModifier(RAGE_ATTACK_DAMAGE_UUID) != null) {
-                attributeinstance.removeModifier(RAGE_ATTACK_DAMAGE_UUID);
+            if (attributeinstance.getModifier(RAGE_ATTACK_DAMAGE_ID) != null) {
+                attributeinstance.removeModifier(RAGE_ATTACK_DAMAGE_ID);
             }
 
         }
     }
 
-    public void addAttributeModifiers(LivingEntity entity, AttributeMap map, int i) {
-        super.addAttributeModifiers(entity, map, i);
-    }
-
-    public void removeAttributeModifiers(LivingEntity entity, AttributeMap map, int i) {
-        super.removeAttributeModifiers(entity, map, i);
+    public void onMobRemoved(LivingEntity entity, int amplifier, Entity.RemovalReason reason) {
         removeRageModifier(entity);
     }
 

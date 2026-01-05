@@ -2,6 +2,7 @@ package com.github.alexmodguy.alexscaves.server.block.blockentity;
 
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
@@ -24,6 +25,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public class GingerbarrelBlockEntity extends RandomizableContainerBlockEntity {
     private NonNullList<ItemStack> items = NonNullList.withSize(9, ItemStack.EMPTY);
+    private Component customName;
     private final ContainerOpenersCounter openersCounter = new ContainerOpenersCounter() {
         protected void onOpen(Level p_155062_, BlockPos p_155063_, BlockState p_155064_) {
             GingerbarrelBlockEntity.this.playSound(p_155064_, ACSoundRegistry.METAL_BARREL_LID.get());
@@ -52,19 +54,25 @@ public class GingerbarrelBlockEntity extends RandomizableContainerBlockEntity {
         super(ACBlockEntityRegistry.GINGERBARREL.get(), p_155052_, p_155053_);
     }
 
-    protected void saveAdditional(CompoundTag p_187459_) {
-        super.saveAdditional(p_187459_);
+    protected void saveAdditional(CompoundTag p_187459_, HolderLookup.Provider registries) {
+        super.saveAdditional(p_187459_, registries);
+        if (this.customName != null) {
+            p_187459_.putString("CustomName", Component.Serializer.toJson(this.customName, registries));
+        }
         if (!this.trySaveLootTable(p_187459_)) {
-            ContainerHelper.saveAllItems(p_187459_, this.items);
+            ContainerHelper.saveAllItems(p_187459_, this.items, registries);
         }
 
     }
 
-    public void load(CompoundTag p_155055_) {
-        super.load(p_155055_);
+    protected void loadAdditional(CompoundTag p_155055_, HolderLookup.Provider registries) {
+        super.loadAdditional(p_155055_, registries);
+        if (p_155055_.contains("CustomName", 8)) {
+            this.customName = Component.Serializer.fromJson(p_155055_.getString("CustomName"), registries);
+        }
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
         if (!this.tryLoadLootTable(p_155055_)) {
-            ContainerHelper.loadAllItems(p_155055_, this.items);
+            ContainerHelper.loadAllItems(p_155055_, this.items, registries);
         }
 
     }
@@ -83,6 +91,20 @@ public class GingerbarrelBlockEntity extends RandomizableContainerBlockEntity {
 
     protected Component getDefaultName() {
         return Component.translatable("block.alexscaves.gingerbarrel");
+    }
+
+    public void setCustomName(Component name) {
+        this.customName = name;
+    }
+
+    @Override
+    public Component getName() {
+        return this.customName != null ? this.customName : this.getDefaultName();
+    }
+
+    @Override
+    public Component getDisplayName() {
+        return this.getName();
     }
 
     protected AbstractContainerMenu createMenu(int p_58598_, Inventory p_58599_) {

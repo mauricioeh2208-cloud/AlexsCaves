@@ -28,7 +28,7 @@ public class UnrefinedWasteBlock extends FallingBlockWithColor {
     public void entityInside(BlockState state, Level level, BlockPos blockPos, Entity entity) {
         if(entity instanceof LivingEntity living && !entity.getType().is(ACTagRegistry.RESISTS_RADIATION)){
             entity.setDeltaMovement(entity.getDeltaMovement().multiply(0.9D, 1.0D, 0.9D));
-            living.addEffect(new MobEffectInstance(ACEffectRegistry.IRRADIATED.get(), 4000));
+            living.addEffect(new MobEffectInstance(ACEffectRegistry.IRRADIATED, 4000));
         }
     }
 

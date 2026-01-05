@@ -2,7 +2,8 @@ package com.github.alexmodguy.alexscaves.server.config;
 
 import com.github.alexmodguy.alexscaves.server.level.biome.ACBiomeRarity;
 import com.github.alexmodguy.alexscaves.server.misc.VoronoiGenerator;
-import com.github.alexthe666.citadel.server.event.EventReplaceBiome;
+// TODO: EventReplaceBiome was removed in Citadel 1.21 - biome generation needs to be refactored
+// import com.github.alexthe666.citadel.server.event.EventReplaceBiome;
 import net.minecraft.core.QuartPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
@@ -37,6 +38,8 @@ public class BiomeGenerationNoiseCondition {
         this.dimensions = List.of(dimensions);
     }
 
+    // TODO: EventReplaceBiome was removed in Citadel 1.21 - this method needs to be refactored
+    /*
     @Deprecated(forRemoval = true, since="1.21")
     public boolean test(EventReplaceBiome event, VoronoiGenerator.VoronoiInfo info) {
         if (disabledCompletely) {
@@ -87,6 +90,7 @@ public class BiomeGenerationNoiseCondition {
         int z = QuartPos.fromSection(event.getZ());
         return x * x + z * z >= dist * dist;
     }
+    */
 
     public boolean test(int x, int y, int z, float unquantizedDepth, Climate.Sampler climateSampler, ResourceKey<Level> dimension, VoronoiGenerator.VoronoiInfo info) {
         if (disabledCompletely) {

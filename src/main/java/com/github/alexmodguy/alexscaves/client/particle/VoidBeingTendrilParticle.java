@@ -16,8 +16,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -134,10 +134,10 @@ public class VoidBeingTendrilParticle extends Particle {
             PoseStack.Pose posestack$pose = posestack.last();
             Matrix4f matrix4f = posestack$pose.pose();
             Matrix3f matrix3f = posestack$pose.normal();
-            vertexconsumer.vertex(matrix4f, (float) drawFrom.x + (float) bottomAngleVec.x, (float) drawFrom.y + (float) bottomAngleVec.y, (float) drawFrom.z + (float) bottomAngleVec.z).color(1F, 1F, 1F, startA).uv(u1, 1F).overlayCoords(NO_OVERLAY).uv2(j).normal(matrix3f, 0.0F, 1.0F, 0.0F).endVertex();
-            vertexconsumer.vertex(matrix4f, (float) drawTo.x + (float) bottomAngleVec.x, (float) drawTo.y + (float) bottomAngleVec.y, (float) drawTo.z + (float) bottomAngleVec.z).color(1F, 1F, 1F, endA).uv(u2, 1F).overlayCoords(NO_OVERLAY).uv2(j).normal(matrix3f, 0.0F, 1.0F, 0.0F).endVertex();
-            vertexconsumer.vertex(matrix4f, (float) drawTo.x + (float) topAngleVec.x, (float) drawTo.y + (float) topAngleVec.y, (float) drawTo.z + (float) topAngleVec.z).color(1F, 1F, 1F, endA).uv(u2, 0).overlayCoords(NO_OVERLAY).uv2(j).normal(matrix3f, 0.0F, 1.0F, 0.0F).endVertex();
-            vertexconsumer.vertex(matrix4f, (float) drawFrom.x + (float) topAngleVec.x, (float) drawFrom.y + (float) topAngleVec.y, (float) drawFrom.z + (float) topAngleVec.z).color(1F, 1F, 1F, startA).uv(u1, 0).overlayCoords(NO_OVERLAY).uv2(j).normal(matrix3f, 0.0F, 1.0F, 0.0F).endVertex();
+            vertexconsumer.addVertex(matrix4f, (float) drawFrom.x + (float) bottomAngleVec.x, (float) drawFrom.y + (float) bottomAngleVec.y, (float) drawFrom.z + (float) bottomAngleVec.z).setColor(1F, 1F, 1F, startA).setUv(u1, 1F).setOverlay(NO_OVERLAY).setLight(j).setNormal(0.0F, 1.0F, 0.0F);
+            vertexconsumer.addVertex(matrix4f, (float) drawTo.x + (float) bottomAngleVec.x, (float) drawTo.y + (float) bottomAngleVec.y, (float) drawTo.z + (float) bottomAngleVec.z).setColor(1F, 1F, 1F, endA).setUv(u2, 1F).setOverlay(NO_OVERLAY).setLight(j).setNormal(0.0F, 1.0F, 0.0F);
+            vertexconsumer.addVertex(matrix4f, (float) drawTo.x + (float) topAngleVec.x, (float) drawTo.y + (float) topAngleVec.y, (float) drawTo.z + (float) topAngleVec.z).setColor(1F, 1F, 1F, endA).setUv(u2, 0).setOverlay(NO_OVERLAY).setLight(j).setNormal(0.0F, 1.0F, 0.0F);
+            vertexconsumer.addVertex(matrix4f, (float) drawFrom.x + (float) topAngleVec.x, (float) drawFrom.y + (float) topAngleVec.y, (float) drawFrom.z + (float) topAngleVec.z).setColor(1F, 1F, 1F, startA).setUv(u1, 0).setOverlay(NO_OVERLAY).setLight(j).setNormal(0.0F, 1.0F, 0.0F);
             samples++;
             drawFrom = drawTo;
         }

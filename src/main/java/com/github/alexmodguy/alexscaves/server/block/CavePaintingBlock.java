@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import net.minecraft.Util;
 import net.minecraft.core.Direction;
@@ -18,6 +19,11 @@ public class CavePaintingBlock extends DirectionalBlock {
     public CavePaintingBlock() {
         super(BlockBehaviour.Properties.of().mapColor(MapColor.TERRACOTTA_YELLOW).requiresCorrectToolForDrops().strength(1.2F, 4.5F).sound(SoundType.DRIPSTONE_BLOCK));
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.SOUTH));
+    }
+
+    @Override
+    protected MapCodec<? extends DirectionalBlock> codec() {
+        return MapCodec.unit(this);
     }
 
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> blockStateBuilder) {

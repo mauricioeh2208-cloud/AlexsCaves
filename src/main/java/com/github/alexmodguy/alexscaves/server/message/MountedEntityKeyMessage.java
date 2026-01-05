@@ -3,14 +3,23 @@ package com.github.alexmodguy.alexscaves.server.message;
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.server.entity.util.KeybindUsingMount;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Supplier;
+public class MountedEntityKeyMessage implements CustomPacketPayload {
 
-public class MountedEntityKeyMessage {
+    public static final CustomPacketPayload.Type<MountedEntityKeyMessage> TYPE =
+        new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "mounted_entity_key"));
+
+    public static final StreamCodec<FriendlyByteBuf, MountedEntityKeyMessage> CODEC =
+        StreamCodec.ofMember(MountedEntityKeyMessage::write, MountedEntityKeyMessage::read);
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() { return TYPE; }
 
     public int mountId;
     public int playerId;
@@ -36,10 +45,10 @@ public class MountedEntityKeyMessage {
         buf.writeInt(message.type);
     }
 
-    public static void handle(MountedEntityKeyMessage message, Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> {
-            Player playerSided = context.get().getSender();
-            if (context.get().getDirection().getReceptionSide() == LogicalSide.CLIENT) {
+    public static void handle(MountedEntityKeyMessage message, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            Player playerSided = context.player();
+            if (context.flow().isClientbound() == context.flow().isClientbound()) {
                 playerSided = AlexsCaves.PROXY.getClientSidePlayer();
             }
             Entity parent = playerSided.level().getEntity(message.mountId);
@@ -48,6 +57,6 @@ public class MountedEntityKeyMessage {
                 mount.onKeyPacket(keyPresser, message.type);
             }
         });
-        context.get().setPacketHandled(true);
+        // Packet handling is automatic in NeoForge;
     }
 }

@@ -5,10 +5,12 @@ import com.github.alexmodguy.alexscaves.server.entity.ACEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACDamageTypes;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
+import net.minecraft.core.Holder;
 import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -22,8 +24,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
 
 public class DesolateDaggerEntity extends Entity {
 
@@ -52,16 +52,6 @@ public class DesolateDaggerEntity extends Entity {
     public DesolateDaggerEntity(EntityType<?> entityType, Level level) {
         super(entityType, level);
         orbitFor = 20 + level.random.nextInt(10);
-    }
-
-    public DesolateDaggerEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.DESOLATE_DAGGER.get(), level);
-        this.setBoundingBox(this.makeBoundingBox());
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
     }
 
     @Override
@@ -95,10 +85,16 @@ public class DesolateDaggerEntity extends Entity {
                 if (this.getStab() >= 1F) {
                     Entity player = getPlayer();
                     Entity damageFrom = player == null ? this : player;
-                    float damage = 2 + this.getItemStack().getEnchantmentLevel(ACEnchantmentRegistry.IMPENDING_STAB.get()) * 2F;
+                    Holder<Enchantment> impendingStabHolder = level().registryAccess()
+                        .lookupOrThrow(Registries.ENCHANTMENT)
+                        .getOrThrow(ACEnchantmentRegistry.IMPENDING_STAB);
+                    float damage = 2 + EnchantmentHelper.getItemEnchantmentLevel(impendingStabHolder, this.getItemStack()) * 2F;
                     if (entity.hurt(ACDamageTypes.causeDesolateDaggerDamage(this.level().registryAccess(), damageFrom), damage)) {
                         this.playSound(ACSoundRegistry.DESOLATE_DAGGER_HIT.get());
-                        int healBy = this.getItemStack().getEnchantmentLevel(ACEnchantmentRegistry.SATED_BLADE.get());
+                        Holder<Enchantment> satedBladeHolder = level().registryAccess()
+                            .lookupOrThrow(Registries.ENCHANTMENT)
+                            .getOrThrow(ACEnchantmentRegistry.SATED_BLADE);
+                        int healBy = EnchantmentHelper.getItemEnchantmentLevel(satedBladeHolder, this.getItemStack());
                         if(healBy > 0 && damageFrom instanceof Player healPlayer && healPlayer.getFoodData().getSaturationLevel() < 5F){
                             healPlayer.getFoodData().setSaturation(healPlayer.getFoodData().getSaturationLevel() + healBy * 0.1F);
                         }
@@ -143,7 +139,7 @@ public class DesolateDaggerEntity extends Entity {
     }
 
     @Override
-    public void lerpTo(double x, double y, double z, float yr, float xr, int steps, boolean b) {
+    public void lerpTo(double x, double y, double z, float yr, float xr, int steps) {
         this.lx = x;
         this.ly = y;
         this.lz = z;
@@ -162,11 +158,11 @@ public class DesolateDaggerEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(TARGET_ID, -1);
-        this.entityData.define(PLAYER_ID, -1);
-        this.entityData.define(STAB, 0F);
-        this.entityData.define(ITEMSTACK, new ItemStack(Items.IRON_SWORD));
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(TARGET_ID, -1);
+        builder.define(PLAYER_ID, -1);
+        builder.define(STAB, 0F);
+        builder.define(ITEMSTACK, new ItemStack(Items.IRON_SWORD));
     }
 
     @Override

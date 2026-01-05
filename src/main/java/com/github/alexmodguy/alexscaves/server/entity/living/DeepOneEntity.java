@@ -6,8 +6,11 @@ import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import com.github.alexthe666.citadel.animation.Animation;
 import com.github.alexthe666.citadel.animation.IAnimatedEntity;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityDimensions;
@@ -29,8 +32,8 @@ public class DeepOneEntity extends DeepOneBaseEntity {
     public static final Animation ANIMATION_SCRATCH = Animation.create(22);
     public static final Animation ANIMATION_TRADE = Animation.create(55);
 
-    private static final EntityDimensions SWIMMING_SIZE = new EntityDimensions(0.99F, 0.99F, false);
-    public static final ResourceLocation BARTER_LOOT = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "gameplay/deep_one_barter");
+    private static final EntityDimensions SWIMMING_SIZE = EntityDimensions.scalable(0.99F, 0.99F);
+    public static final ResourceKey<LootTable> BARTER_LOOT = ResourceKey.create(Registries.LOOT_TABLE, ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "gameplay/deep_one_barter"));
 
     public DeepOneEntity(EntityType entityType, Level level) {
         super(entityType, level);
@@ -61,7 +64,7 @@ public class DeepOneEntity extends DeepOneBaseEntity {
     }
 
     @Override
-    protected ResourceLocation getBarterLootTable() {
+    protected ResourceKey<LootTable> getBarterLootTable() {
         return BARTER_LOOT;
     }
 

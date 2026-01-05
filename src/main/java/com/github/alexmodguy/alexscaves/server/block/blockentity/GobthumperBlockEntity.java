@@ -7,6 +7,7 @@ import com.github.alexmodguy.alexscaves.server.entity.living.GumWormEntity;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
@@ -77,7 +78,7 @@ public class GobthumperBlockEntity extends BlockEntity {
                         GumWormEntity summonedWorm = ACEntityRegistry.GUM_WORM.get().create(level);
                         summonedWorm.setPos(Vec3.atCenterOf(summonPos));
                         summonedWorm.setTempSummon(true);
-                        summonedWorm.finalizeSpawn((ServerLevel) level, level.getCurrentDifficultyAt(summonPos), MobSpawnType.MOB_SUMMONED, (SpawnGroupData) null, (CompoundTag) null);
+                        summonedWorm.finalizeSpawn((ServerLevel) level, level.getCurrentDifficultyAt(summonPos), MobSpawnType.MOB_SUMMONED, (SpawnGroupData) null);
                         level.addFreshEntity(summonedWorm);
                         this.summonedWormId = summonedWorm.getId();
                     }
@@ -90,13 +91,13 @@ public class GobthumperBlockEntity extends BlockEntity {
         return thumpTime + partialTicks;
     }
 
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         this.summonedWormId = tag.getInt("SummonedWormID");
     }
 
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
         tag.putInt("SummonedWormID", this.summonedWormId);
     }
 

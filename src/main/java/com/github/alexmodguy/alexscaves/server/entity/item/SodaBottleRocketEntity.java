@@ -5,28 +5,47 @@ import com.github.alexmodguy.alexscaves.client.particle.ACParticleRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.ACEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.projectile.FireworkRocketEntity;
+import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 import java.util.OptionalInt;
 
 public class SodaBottleRocketEntity extends FireworkRocketEntity {
 
+    private static final EntityDataAccessor<ItemStack> DATA_FIREWORKS_ITEM = SynchedEntityData.defineId(SodaBottleRocketEntity.class, EntityDataSerializers.ITEM_STACK);
+    private static final EntityDataAccessor<OptionalInt> DATA_ATTACHED_TARGET = SynchedEntityData.defineId(SodaBottleRocketEntity.class, EntityDataSerializers.OPTIONAL_UNSIGNED_INT);
+    private static final EntityDataAccessor<Boolean> DATA_SHOT_AT_ANGLE = SynchedEntityData.defineId(SodaBottleRocketEntity.class, EntityDataSerializers.BOOLEAN);
+
     private int phageAge = 0;
+    private int life = 0;
+    private int lifetime = 0;
+    @Nullable
+    private LivingEntity attachedToEntity;
+
+    @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_FIREWORKS_ITEM, ItemStack.EMPTY);
+        builder.define(DATA_ATTACHED_TARGET, OptionalInt.empty());
+        builder.define(DATA_SHOT_AT_ANGLE, false);
+    }
 
     public SodaBottleRocketEntity(EntityType entityType, Level level) {
         super(entityType, level);
@@ -35,8 +54,8 @@ public class SodaBottleRocketEntity extends FireworkRocketEntity {
     public SodaBottleRocketEntity(Level worldIn, double x, double y, double z, ItemStack givenItem) {
         super(ACEntityRegistry.SODA_BOTTLE_ROCKET.get(), worldIn);
         this.setPos(x, y, z);
-        if (!givenItem.isEmpty() && givenItem.hasTag()) {
-            this.entityData.set(DATA_ID_FIREWORKS_ITEM, givenItem.copy());
+        if (!givenItem.isEmpty()) {
+            this.entityData.set(DATA_FIREWORKS_ITEM, givenItem.copy());
         }
 
         this.setDeltaMovement(this.random.nextGaussian() * 0.001D, 0.05D, this.random.nextGaussian() * 0.001D);
@@ -50,16 +69,20 @@ public class SodaBottleRocketEntity extends FireworkRocketEntity {
 
     public SodaBottleRocketEntity(Level level, ItemStack stack, LivingEntity livingEntity) {
         this(level, livingEntity, livingEntity.getX(), livingEntity.getY(), livingEntity.getZ(), stack);
-        this.entityData.set(DATA_ATTACHED_TO_TARGET, OptionalInt.of(livingEntity.getId()));
+        this.entityData.set(DATA_ATTACHED_TARGET, OptionalInt.of(livingEntity.getId()));
+        this.attachedToEntity = livingEntity;
     }
 
-    public SodaBottleRocketEntity(PlayMessages.SpawnEntity spawnEntity, Level world) {
-        this(ACEntityRegistry.SODA_BOTTLE_ROCKET.get(), world);
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
+    @Nullable
+    private LivingEntity getAttachedToEntity() {
+        OptionalInt optionalint = this.entityData.get(DATA_ATTACHED_TARGET);
+        if (optionalint.isPresent()) {
+            Entity entity = this.level().getEntity(optionalint.getAsInt());
+            if (entity instanceof LivingEntity) {
+                return (LivingEntity) entity;
+            }
+        }
+        return null;
     }
 
     public void tick() {

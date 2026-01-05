@@ -62,7 +62,7 @@ public class SugarStaffHexRenderer extends EntityRenderer<SugarStaffHexEntity> {
     }
 
     private static void vertex(VertexConsumer vertexConsumer, Matrix4f matrix4f, Matrix3f matrix3f, int p_253829_, float x, int y, int u, int v, float alpha, float r, float g, float b) {
-        vertexConsumer.vertex(matrix4f, x - 0.5F, (float) 0.01F, y - 0.5F).color(r, g, b, alpha).uv((float) u, (float) v).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(p_253829_).normal(matrix3f, 0.0F, 1.0F, 0.0F).endVertex();
+        vertexConsumer.addVertex(matrix4f, x - 0.5F, (float) 0.01F, y - 0.5F).setColor(r, g, b, alpha).setUv((float) u, (float) v).setOverlay(OverlayTexture.NO_OVERLAY).setLight(p_253829_).setNormal(0.0F, 1.0F, 0.0F);
     }
 
     public ResourceLocation getTextureLocation(SugarStaffHexEntity gumballEntity) {

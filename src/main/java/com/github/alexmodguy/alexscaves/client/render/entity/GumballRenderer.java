@@ -63,7 +63,7 @@ public class GumballRenderer extends EntityRenderer<GumballEntity> {
     }
 
     private static void vertex(VertexConsumer vertexConsumer, Matrix4f matrix4f, Matrix3f matrix3f, int p_253829_, float x, int y, int u, int v, float alpha) {
-        vertexConsumer.vertex(matrix4f, x - 0.5F, (float)y - 0.25F, 0.0F).color(1F, 1F, 1F, alpha).uv((float)u, (float)v).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(p_253829_).normal(matrix3f, 0.0F, 1.0F, 0.0F).endVertex();
+        vertexConsumer.addVertex(matrix4f, x - 0.5F, (float)y - 0.25F, 0.0F).setColor(1F, 1F, 1F, alpha).setUv((float)u, (float)v).setOverlay(OverlayTexture.NO_OVERLAY).setLight(p_253829_).setNormal(0.0F, 1.0F, 0.0F);
     }
 
     public ResourceLocation getTextureLocation(GumballEntity gumballEntity) {

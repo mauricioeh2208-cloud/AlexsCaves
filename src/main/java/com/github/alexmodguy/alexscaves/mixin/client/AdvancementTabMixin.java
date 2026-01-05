@@ -61,7 +61,7 @@ public class AdvancementTabMixin {
             at = @At(value = "HEAD")
     )
     private void ac_drawContents(GuiGraphics guiGraphics, int topX, int topY, CallbackInfo ci) {
-        if (ACAdvancementTabs.isAlexsCavesWidget(root.advancement)) {
+        if (ACAdvancementTabs.isAlexsCavesWidget(((AdvancementWidgetAccessor)root).getAdvancementHolder())) {
             ci.cancel();
             guiGraphics.enableScissor(topX, topY, topX + 234, topY + 113);
             guiGraphics.pose().pushPose();
@@ -91,7 +91,7 @@ public class AdvancementTabMixin {
             at = @At(value = "HEAD")
     )
     private void ac_drawTooltips(GuiGraphics guiGraphics, int mouseX, int mouseY, int topX, int topY, CallbackInfo ci) {
-        if (ACAdvancementTabs.isAlexsCavesWidget(root.advancement)) {
+        if (ACAdvancementTabs.isAlexsCavesWidget(((AdvancementWidgetAccessor)root).getAdvancementHolder())) {
             int i = Mth.floor(this.scrollX);
             int j = Mth.floor(this.scrollY);
             ACAdvancementTabs.Type hoverType = null;
@@ -99,7 +99,7 @@ public class AdvancementTabMixin {
                 for (AdvancementWidget advancementwidget : this.widgets.values()) {
                     if (advancementwidget.isMouseOver(i, j, mouseX, mouseY)) {
                         if (ACAdvancementTabs.Type.isTreeNodeUnlocked(advancementwidget)) {
-                            hoverType = ACAdvancementTabs.Type.forAdvancement(advancementwidget.advancement);
+                            hoverType = ACAdvancementTabs.Type.forAdvancementHolder(((AdvancementWidgetAccessor)advancementwidget).getAdvancementHolder());
                         }
                     }
                 }

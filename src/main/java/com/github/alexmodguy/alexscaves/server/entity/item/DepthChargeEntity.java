@@ -5,9 +5,8 @@ import com.github.alexmodguy.alexscaves.server.entity.util.MineExplosion;
 import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.tags.FluidTags;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
@@ -18,8 +17,6 @@ import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
 
 public class DepthChargeEntity extends ThrowableItemProjectile {
 
@@ -30,21 +27,12 @@ public class DepthChargeEntity extends ThrowableItemProjectile {
         super(entityType, level);
     }
 
-    public DepthChargeEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.DEPTH_CHARGE.get(), level);
-    }
-
     public DepthChargeEntity(Level level, LivingEntity thrower) {
         super(ACEntityRegistry.DEPTH_CHARGE.get(), thrower, level);
     }
 
     public DepthChargeEntity(Level level, double x, double y, double z) {
         super(ACEntityRegistry.DEPTH_CHARGE.get(), x, y, z, level);
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
     }
 
     public void handleEntityEvent(byte message) {
@@ -94,8 +82,9 @@ public class DepthChargeEntity extends ThrowableItemProjectile {
 
     private void explode() {
         this.remove(RemovalReason.KILLED);
-        Explosion.BlockInteraction blockinteraction = net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(level(), this) ? level().getGameRules().getBoolean(GameRules.RULE_MOB_EXPLOSION_DROP_DECAY) ? Explosion.BlockInteraction.DESTROY_WITH_DECAY : Explosion.BlockInteraction.DESTROY : Explosion.BlockInteraction.KEEP;
-        boolean inWater = this.getFeetBlockState() != null && this.getFeetBlockState().getFluidState().is(FluidTags.WATER);
+        Explosion.BlockInteraction blockinteraction = net.neoforged.neoforge.event.EventHooks.canEntityGrief(level(), this) ? level().getGameRules().getBoolean(GameRules.RULE_MOB_EXPLOSION_DROP_DECAY) ? Explosion.BlockInteraction.DESTROY_WITH_DECAY : Explosion.BlockInteraction.DESTROY : Explosion.BlockInteraction.KEEP;
+        BlockState feetBlockState = level().getBlockState(blockPosition());
+        boolean inWater = feetBlockState != null && feetBlockState.getFluidState().is(FluidTags.WATER);
         MineExplosion explosion = new MineExplosion(level(), this, this.getX(), this.getY(0.5), this.getZ(), 2.0F, inWater, blockinteraction);
         explosion.explode();
         explosion.finalizeExplosion(true);

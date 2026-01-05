@@ -31,7 +31,7 @@ public class FloaterRenderer extends EntityRenderer<FloaterEntity> {
         poseStack.mulPose(Axis.XP.rotationDegrees(180));
         FLOATER_MODEL.setupAnim(entity, 0.0F, 0.0F, ageInTicks, 0.0F, 0.0F);
         VertexConsumer textureVertexConsumer = bufferIn.getBuffer(ACRenderTypes.getGhostly(TEXTURE));
-        FLOATER_MODEL.renderToBuffer(poseStack, textureVertexConsumer, packedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+        FLOATER_MODEL.renderToBuffer(poseStack, textureVertexConsumer, packedLightIn, OverlayTexture.NO_OVERLAY, -1);
         poseStack.popPose();
 
         super.render(entity, entityYaw, partialTicks, poseStack, bufferIn, packedLightIn);

@@ -12,7 +12,11 @@ import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.level.Level;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
@@ -65,7 +69,7 @@ public class RaygunRenderHelper {
     }
 
     private static void vertex(VertexConsumer p_229108_0_, Matrix4f p_229108_1_, Matrix3f p_229108_2_, float x, float y, float z, int p_229108_6_, int p_229108_7_, int p_229108_8_, float u, float v) {
-        p_229108_0_.vertex(p_229108_1_, x, y, z).color(p_229108_6_, p_229108_7_, p_229108_8_, 255).uv(u, v).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(240).normal(p_229108_2_, 0.0F, 1.0F, 0.0F).endVertex();
+        p_229108_0_.addVertex(p_229108_1_, x, y, z).setColor(p_229108_6_, p_229108_7_, p_229108_8_, 255).setUv(u, v).setOverlay(OverlayTexture.NO_OVERLAY).setLight(240).setNormal(0.0F, 1.0F, 0.0F);
     }
 
     public static void renderRaysFor(LivingEntity entity,  Vec3 rayFrom, PoseStack poseStack, MultiBufferSource bufferSource, float partialTick, boolean firstPerson, int firstPersonPass) {
@@ -74,7 +78,14 @@ public class RaygunRenderHelper {
             float useRaygunAmount = RaygunItem.getUseTime(stack) / 5F;
             float ageInTicks = entity.tickCount + partialTick;
             Vec3 rayPosition = RaygunItem.getLerpedRayPosition(stack, partialTick);
-            boolean blue = stack.getEnchantmentLevel(ACEnchantmentRegistry.GAMMA_RAY.get()) > 0;
+            boolean blue = false;
+            Level level = Minecraft.getInstance().level;
+            if (level != null) {
+                Holder<Enchantment> gammaRay = level.registryAccess()
+                    .lookupOrThrow(Registries.ENCHANTMENT)
+                    .getOrThrow(ACEnchantmentRegistry.GAMMA_RAY);
+                blue = stack.getEnchantmentLevel(gammaRay) > 0;
+            }
             if (rayPosition != null && RaygunItem.getUseTime(stack) >= 5F) {
                 Vec3 gunPos = getGunOffset(entity, partialTick, firstPerson, entity.getMainArm() == HumanoidArm.LEFT);
                 Vec3 vec3 = rayPosition.subtract(rayFrom.add(gunPos));
@@ -94,7 +105,14 @@ public class RaygunRenderHelper {
             float useRaygunAmount = RaygunItem.getUseTime(stack) / 5F;
             float ageInTicks = entity.tickCount + partialTick;
             Vec3 rayPosition = RaygunItem.getLerpedRayPosition(stack, partialTick);
-            boolean blue = stack.getEnchantmentLevel(ACEnchantmentRegistry.GAMMA_RAY.get()) > 0;
+            boolean blue = false;
+            Level level = Minecraft.getInstance().level;
+            if (level != null) {
+                Holder<Enchantment> gammaRay = level.registryAccess()
+                    .lookupOrThrow(Registries.ENCHANTMENT)
+                    .getOrThrow(ACEnchantmentRegistry.GAMMA_RAY);
+                blue = stack.getEnchantmentLevel(gammaRay) > 0;
+            }
             if (rayPosition != null && RaygunItem.getUseTime(stack) >= 5F) {
                 Vec3 gunPos = getGunOffset(entity, partialTick, firstPerson, entity.getMainArm() == HumanoidArm.RIGHT);
                 Vec3 vec3 = rayPosition.subtract(rayFrom.add(gunPos));

@@ -5,8 +5,8 @@ import com.github.alexmodguy.alexscaves.server.entity.item.BeholderEyeEntity;
 import com.github.alexmodguy.alexscaves.server.misc.ACAdvancementTriggerRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.sounds.SoundSource;
@@ -78,7 +78,7 @@ public class BeholderBlockEntity extends BlockEntity  {
         BeholderEyeEntity beholderEyeEntity = ACEntityRegistry.BEHOLDER_EYE.get().create(level);
         double dist = Math.sqrt(this.getBlockPos().distSqr(player.blockPosition()));
         if(dist > 1000){
-            ACAdvancementTriggerRegistry.BEHOLDER_FAR_AWAY.triggerForEntity(player);
+            ACAdvancementTriggerRegistry.BEHOLDER_FAR_AWAY.get().triggerForEntity(player);
         }
         Vec3 vec = this.getBlockPos().getCenter().add(0, -0.15, 0);
         beholderEyeEntity.setPos(vec);
@@ -89,13 +89,15 @@ public class BeholderBlockEntity extends BlockEntity  {
         player.displayClientMessage(Component.translatable("item.alexscaves.occult_gem.start_observing"), true);
     }
 
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         this.currentlyUsingEntityId = tag.getInt("UsingEntityID");
     }
 
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
         tag.putInt("UsingEntityID", this.currentlyUsingEntityId);
     }
 
@@ -104,15 +106,14 @@ public class BeholderBlockEntity extends BlockEntity  {
         return ClientboundBlockEntityDataPacket.create(this);
     }
 
-    public CompoundTag getUpdateTag() {
-        return this.saveWithoutMetadata();
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return this.saveWithoutMetadata(registries);
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet) {
-        if (packet != null && packet.getTag() != null) {
-            this.currentlyUsingEntityId = packet.getTag().getInt("UsingEntityID");
-        }
+    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider registries) {
+        this.currentlyUsingEntityId = tag.getInt("UsingEntityID");
     }
 
     public boolean isFirstPersonView(Entity cameraEntity) {

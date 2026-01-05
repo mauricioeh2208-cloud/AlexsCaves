@@ -27,7 +27,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.EntityCollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -38,16 +38,16 @@ public class DinosaurEggBlock extends Block {
 
     private final VoxelShape voxelShape;
 
-    private final RegistryObject<EntityType> births;
+    private final DeferredHolder<EntityType<?>, ? extends EntityType<?>> births;
 
-    public DinosaurEggBlock(Properties properties, RegistryObject births, VoxelShape voxelShape) {
+    public DinosaurEggBlock(Properties properties, DeferredHolder<EntityType<?>, ? extends EntityType<?>> births, VoxelShape voxelShape) {
         super(properties);
         this.registerDefaultState(this.defaultBlockState().setValue(HATCH, Integer.valueOf(0)).setValue(NEEDS_PLAYER, false));
         this.births = births;
         this.voxelShape = voxelShape;
     }
 
-    public DinosaurEggBlock(Properties properties, RegistryObject births, int widthPx, int heightPx) {
+    public DinosaurEggBlock(Properties properties, DeferredHolder<EntityType<?>, ? extends EntityType<?>> births, int widthPx, int heightPx) {
         super(properties);
         this.registerDefaultState(this.defaultBlockState().setValue(HATCH, Integer.valueOf(0)).setValue(NEEDS_PLAYER, false));
         this.births = births;
@@ -134,7 +134,7 @@ public class DinosaurEggBlock extends Block {
                 Player closest = level.getNearestPlayer(pos.getX() + 0.5F, pos.getY() + 0.5F, pos.getZ() + 0.5F, 10, EntitySelector.NO_SPECTATORS);
                 if (closest != null) {
                     if (fromType instanceof DinosaurEntity dinosaur && dinosaur.tamesFromHatching()) {
-                        dinosaur.setTame(true);
+                        dinosaur.setTame(true, true);
                         dinosaur.setOrderedToSit(true);
                         dinosaur.tame(closest);
                     }
@@ -162,7 +162,7 @@ public class DinosaurEggBlock extends Block {
             if (!(trampler instanceof LivingEntity)) {
                 return false;
             } else {
-                return trampler instanceof Player || net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(worldIn, trampler);
+                return trampler instanceof Player || net.neoforged.neoforge.event.EventHooks.canEntityGrief(worldIn, trampler);
             }
         } else {
             return false;

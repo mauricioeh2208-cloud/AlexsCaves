@@ -66,12 +66,12 @@ public class AlexsCavesBoatRenderer<T extends Boat & AlexsCavesBoat> extends Ent
         if (isChest) {
             poseStack.pushPose();
             poseStack.translate(0.0F, -0.25F, 0.5F);
-            CHEST_MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(RenderType.entityCutoutNoCull(CHEST_TEXTURE)), packedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+            CHEST_MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(RenderType.entityCutoutNoCull(CHEST_TEXTURE)), packedLightIn, OverlayTexture.NO_OVERLAY, -1);
             poseStack.popPose();
         }
         model.setupAnim(entity, partialTicks, 0.0F, -0.1F, 0.0F, 0.0F);
         VertexConsumer vertexconsumer = bufferIn.getBuffer(RenderType.entityCutoutNoCull(getTextureLocation(entity)));
-        model.renderToBuffer(poseStack, vertexconsumer, packedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+        model.renderToBuffer(poseStack, vertexconsumer, packedLightIn, OverlayTexture.NO_OVERLAY, -1);
         if (!entity.isUnderWater()) {
             VertexConsumer vertexconsumer1 = bufferIn.getBuffer(RenderType.waterMask());
             model.getWaterMask().render(poseStack, vertexconsumer1, packedLightIn, OverlayTexture.NO_OVERLAY);

@@ -43,7 +43,7 @@ public class AbyssalRuinsStructurePiece extends TemplateStructurePiece {
     }
 
     private static StructurePlaceSettings makeSettings(Rotation rotation) {
-        return (new StructurePlaceSettings()).setRotation(rotation).setMirror(Mirror.NONE).setKeepLiquids(false);
+        return (new StructurePlaceSettings()).setRotation(rotation).setMirror(Mirror.NONE);
     }
 
     protected void addAdditionalSaveData(StructurePieceSerializationContext context, CompoundTag tag) {
@@ -99,7 +99,9 @@ public class AbyssalRuinsStructurePiece extends TemplateStructurePiece {
         accessor.setBlock(pos, Blocks.CAVE_AIR.defaultBlockState(), 0);
         switch (string) {
             case "loot_chest":
-                RandomizableContainerBlockEntity.setLootTable(accessor, random, pos.below(), ACLootTableRegistry.ABYSSAL_RUINS_CHEST);
+                if (accessor.getBlockEntity(pos.below()) instanceof RandomizableContainerBlockEntity container) {
+                    container.setLootTable(ACLootTableRegistry.ABYSSAL_RUINS_CHEST, random.nextLong());
+                }
                 break;
             case "submarine":
                 spawnSubmarine(accessor, pos, false);

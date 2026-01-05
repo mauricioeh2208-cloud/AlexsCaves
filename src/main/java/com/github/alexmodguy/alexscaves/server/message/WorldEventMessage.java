@@ -3,13 +3,17 @@ package com.github.alexmodguy.alexscaves.server.message;
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Supplier;
-
-public class WorldEventMessage  {
+public class WorldEventMessage implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<WorldEventMessage> TYPE = 
+        new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "world_event"));
+    public static final StreamCodec<FriendlyByteBuf, WorldEventMessage> CODEC = 
+        StreamCodec.ofMember(WorldEventMessage::write, WorldEventMessage::read);
 
     public int messageId;
     public int blockX;
@@ -23,7 +27,7 @@ public class WorldEventMessage  {
         this.blockZ = blockZ;
     }
 
-    public WorldEventMessage(){}
+    public WorldEventMessage() {}
 
     public static WorldEventMessage read(FriendlyByteBuf buf) {
         return new WorldEventMessage(buf.readInt(), buf.readInt(), buf.readInt(), buf.readInt());
@@ -36,17 +40,19 @@ public class WorldEventMessage  {
         buf.writeInt(message.blockZ);
     }
 
-    public static void handle(WorldEventMessage message, Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> {
-            Player playerSided = context.get().getSender();
-            if (context.get().getDirection().getReceptionSide() == LogicalSide.CLIENT) {
+    @Override
+    public Type<? extends CustomPacketPayload> type() { return TYPE; }
+
+    public static void handle(WorldEventMessage message, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            Player playerSided = context.player();
+            if (context.flow().isClientbound()) {
                 playerSided = AlexsCaves.PROXY.getClientSidePlayer();
             }
-            if(playerSided.level() != null){
+            if (playerSided != null && playerSided.level() != null) {
                 BlockPos blockPos = new BlockPos(message.blockX, message.blockY, message.blockZ);
                 AlexsCaves.PROXY.playWorldEvent(message.messageId, playerSided.level(), blockPos);
             }
         });
-        context.get().setPacketHandled(true);
     }
 }

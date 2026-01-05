@@ -50,13 +50,14 @@ public class FertilizerItem extends Item {
 
     private static boolean applyFertilizer(ItemStack itemStack, Level level, BlockPos blockPos, Player player) {
         BlockState blockstate = level.getBlockState(blockPos);
-        int hook = net.minecraftforge.event.ForgeEventFactory.onApplyBonemeal(player, level, blockPos, blockstate, itemStack);
-        if (hook != 0) {
-            return hook > 0;
+        var event = new net.neoforged.neoforge.event.entity.player.BonemealEvent(player, level, blockPos, blockstate, itemStack);
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(event);
+        if (event.isCanceled()) {
+            return event.isSuccessful();
         }
         if (blockstate.getBlock() instanceof BonemealableBlock) {
             BonemealableBlock bonemealableblock = (BonemealableBlock) blockstate.getBlock();
-            if (bonemealableblock.isValidBonemealTarget(level, blockPos, blockstate, level.isClientSide)) {
+            if (bonemealableblock.isValidBonemealTarget(level, blockPos, blockstate)) {
                 if (level instanceof ServerLevel) {
                     for (int boneMealAttempts = 0; boneMealAttempts < 4; boneMealAttempts++) {
                         bonemealableblock.performBonemeal((ServerLevel) level, level.random, blockPos, blockstate);

@@ -15,18 +15,19 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.fml.ModList;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModList;
 
 import javax.annotation.Nullable;
 import java.util.UUID;
 
 public class CommonProxy {
 
-    public void commonInit() {
+    public void commonInit(IEventBus modEventBus) {
 
     }
 
-    public void clientInit() {
+    public void clientInit(IEventBus modEventBus) {
     }
 
     public void blockRenderingEntity(UUID id) {
@@ -134,8 +135,9 @@ public class CommonProxy {
     }
 
     public void initPathfinding() {
-        //PathfindingConstants.isDebugMode = true;
-        PathfindingConstants.pathfindingThreads = Math.max(PathfindingConstants.pathfindingThreads, AlexsCaves.COMMON_CONFIG.pathfindingThreads.get());
+        // PathfindingConstants.isDebugMode = true;
+        PathfindingConstants.pathfindingThreads = Math.max(PathfindingConstants.pathfindingThreads,
+                AlexsCaves.COMMON_CONFIG.pathfindingThreads.get());
     }
 
     public void removeBossBarRender(UUID bossBar) {
@@ -144,7 +146,7 @@ public class CommonProxy {
     public void setBossBarRender(UUID bossBar, int renderType) {
     }
 
-    public boolean isTickRateModificationActive(Level level){
+    public boolean isTickRateModificationActive(Level level) {
         return ServerTickRateTracker.getForServer(level.getServer()).getServerTickLengthMs() != 50;
     }
 

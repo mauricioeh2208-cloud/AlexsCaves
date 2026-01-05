@@ -3,6 +3,7 @@ package com.github.alexmodguy.alexscaves.mixin;
 import com.github.alexmodguy.alexscaves.server.entity.util.*;
 import com.github.alexmodguy.alexscaves.server.potion.ACEffectRegistry;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
@@ -35,7 +36,7 @@ public abstract class LivingEntityMixin extends Entity implements HeadRotationEn
     public float yHeadRotO;
 
     @Shadow
-    public abstract boolean hasEffect(MobEffect p_21024_);
+    public abstract boolean hasEffect(Holder<MobEffect> p_21024_);
 
     @Shadow
     @Final
@@ -102,7 +103,7 @@ public abstract class LivingEntityMixin extends Entity implements HeadRotationEn
             at = @At(value = "HEAD")
     )
     protected void ac_increaseAirSupply(int air, CallbackInfoReturnable<Integer> cir) {
-        if (this.hasEffect(ACEffectRegistry.BUBBLED.get())) {
+        if (this.hasEffect(ACEffectRegistry.BUBBLED)) {
             cir.setReturnValue(air);
         }
     }

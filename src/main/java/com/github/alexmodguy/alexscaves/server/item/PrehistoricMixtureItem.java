@@ -4,7 +4,6 @@ import com.github.alexmodguy.alexscaves.server.entity.living.DinosaurEntity;
 import com.github.alexmodguy.alexscaves.server.entity.living.RelicheirusEntity;
 import com.github.alexmodguy.alexscaves.server.entity.living.TremorsaurusEntity;
 import com.github.alexmodguy.alexscaves.server.potion.ACEffectRegistry;
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -15,12 +14,11 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.BowlFoodItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
-public class PrehistoricMixtureItem extends BowlFoodItem {
+public class PrehistoricMixtureItem extends ACBowlFoodItem {
 
     public PrehistoricMixtureItem(Properties properties) {
         super(properties);
@@ -29,15 +27,15 @@ public class PrehistoricMixtureItem extends BowlFoodItem {
     public InteractionResult interactLivingEntity(ItemStack itemStack, Player player, LivingEntity livingEntity, InteractionHand hand) {
         FoodProperties foodProperties = itemStack.getFoodProperties(livingEntity);
         if (!livingEntity.level().isClientSide && livingEntity instanceof Mob && canFeedMob(player, (Mob) livingEntity) && foodProperties != null) {
-            livingEntity.heal(foodProperties.getNutrition());
+            livingEntity.heal(foodProperties.nutrition());
             if (!(livingEntity instanceof DinosaurEntity dinosaur && dinosaur.onFeedMixture(itemStack, player))) {
-                if (!foodProperties.getEffects().isEmpty()) {
-                    for (Pair<MobEffectInstance, Float> mobEffectInstance : foodProperties.getEffects()) {
-                        livingEntity.addEffect(mobEffectInstance.getFirst());
+                if (!foodProperties.effects().isEmpty()) {
+                    for (FoodProperties.PossibleEffect possibleEffect : foodProperties.effects()) {
+                        livingEntity.addEffect(possibleEffect.effect());
                     }
                 }
                 if (this == ACItemRegistry.SERENE_SALAD.get()) {
-                    livingEntity.removeEffect(ACEffectRegistry.STUNNED.get());
+                    livingEntity.removeEffect(ACEffectRegistry.STUNNED);
                 }
             }
             for (int i = 0; i < 4 + livingEntity.getRandom().nextInt(3); i++) {
@@ -56,13 +54,13 @@ public class PrehistoricMixtureItem extends BowlFoodItem {
 
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity livingEntity) {
         if (this == ACItemRegistry.SERENE_SALAD.get()) {
-            livingEntity.removeEffect(ACEffectRegistry.STUNNED.get());
+            livingEntity.removeEffect(ACEffectRegistry.STUNNED);
         }
         return super.finishUsingItem(stack, level, livingEntity);
     }
 
     private boolean canFeedMob(Player player, Mob mob) {
-        if (mob instanceof TremorsaurusEntity && mob.hasEffect(ACEffectRegistry.STUNNED.get()) && this == ACItemRegistry.SERENE_SALAD.get()) {
+        if (mob instanceof TremorsaurusEntity && mob.hasEffect(ACEffectRegistry.STUNNED) && this == ACItemRegistry.SERENE_SALAD.get()) {
             return true;
         }
         if (mob instanceof RelicheirusEntity relicheirus && relicheirus.getPushingTreesFor() > 0 && this == ACItemRegistry.PRIMORDIAL_SOUP.get()) {

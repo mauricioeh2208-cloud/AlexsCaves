@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.ACBlockEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.NuclearSirenBlockEntity;
 import com.github.alexmodguy.alexscaves.server.misc.ACMath;
@@ -27,8 +28,14 @@ import org.jetbrains.annotations.Nullable;
 
 public class NuclearSirenBlock extends BaseEntityBlock implements SimpleWaterloggedBlock {
 
+    public static final MapCodec<NuclearSirenBlock> CODEC = simpleCodec((properties) -> new NuclearSirenBlock());
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
+    }
     private static final VoxelShape SHAPE = ACMath.buildShape(
             Block.box(6, 0, 6, 10, 16, 10),
             Block.box(6, 9, 0, 10, 13, 6),

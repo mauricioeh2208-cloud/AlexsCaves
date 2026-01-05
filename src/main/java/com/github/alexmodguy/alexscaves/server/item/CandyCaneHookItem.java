@@ -3,7 +3,9 @@ package com.github.alexmodguy.alexscaves.server.item;
 import com.github.alexmodguy.alexscaves.server.entity.item.CandyCaneHookEntity;
 import com.github.alexmodguy.alexscaves.server.entity.living.GumWormSegmentEntity;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -17,7 +19,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
-import net.minecraftforge.common.ToolActions;
+import net.neoforged.neoforge.common.ItemAbilities;
 
 import javax.annotation.Nullable;
 import java.util.UUID;
@@ -49,20 +51,17 @@ public class CandyCaneHookItem extends Item {
                 return InteractionResultHolder.consume(itemstack);
             } else if(!(player.getRootVehicle() instanceof GumWormSegmentEntity) && !(itemStackOpposite.is(this) && !isActive(itemStackOpposite))){
                 if (isActive(itemstack)) {
+                    InteractionHand oppositeHand = hand == InteractionHand.MAIN_HAND ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
                     if(itemStackOpposite.is(this) && isActive(itemStackOpposite) && !isReelingIn(itemStackOpposite)){
                         setReelingIn(itemStackOpposite, true);
                         if (!level.isClientSide) {
-                            itemStackOpposite.hurtAndBreak(1, player, (stac) -> {
-                                stac.broadcastBreakEvent(hand);
-                            });
+                            itemStackOpposite.hurtAndBreak(1, player, oppositeHand == InteractionHand.MAIN_HAND ? net.minecraft.world.entity.EquipmentSlot.MAINHAND : net.minecraft.world.entity.EquipmentSlot.OFFHAND);
                         }
                     }
                     if (!isReelingIn(itemstack)) {
                         setReelingIn(itemstack, true);
                         if (!level.isClientSide) {
-                            itemstack.hurtAndBreak(1, player, (stac) -> {
-                                stac.broadcastBreakEvent(hand);
-                            });
+                            itemstack.hurtAndBreak(1, player, hand == InteractionHand.MAIN_HAND ? net.minecraft.world.entity.EquipmentSlot.MAINHAND : net.minecraft.world.entity.EquipmentSlot.OFFHAND);
                         }
                         level.playSound(null, player.getX(), player.getY(), player.getZ(), ACSoundRegistry.CANDY_CANE_HOOK_REEL.get(), SoundSource.NEUTRAL, 1.0F, 0.4F / (level.getRandom().nextFloat() * 0.4F + 0.8F));
                         player.gameEvent(GameEvent.ITEM_INTERACT_FINISH);
@@ -76,8 +75,9 @@ public class CandyCaneHookItem extends Item {
 
     private boolean isHookLaunchedInWorld(Level level, ItemStack stack) {
         if(isActive(stack)){
-            CompoundTag compoundTag = stack.getOrCreateTag();
-            if (level instanceof ServerLevel serverLevel && compoundTag.contains("LastLaunchedHookUUID") && compoundTag.contains("LastLaunchedHookUUID")) {
+            CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
+            CompoundTag compoundTag = customData.copyTag();
+            if (level instanceof ServerLevel serverLevel && compoundTag.contains("LastLaunchedHookUUID")) {
                 Entity entity = serverLevel.getEntity(compoundTag.getUUID("LastLaunchedHookUUID"));
                 if (entity instanceof CandyCaneHookEntity candyCaneHook) {
                     return candyCaneHook.isAlive() && candyCaneHook.tickCount > 0;
@@ -101,14 +101,16 @@ public class CandyCaneHookItem extends Item {
     }
 
     public static boolean isActive(ItemStack itemStack) {
-        CompoundTag compoundtag = itemStack.getTag();
-        return compoundtag != null && compoundtag.contains("LastLaunchedHookUUID");
+        CustomData customData = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
+        CompoundTag compoundtag = customData.copyTag();
+        return compoundtag.contains("LastLaunchedHookUUID");
     }
 
     @Nullable
     public static UUID getLaunchedHookUUID(ItemStack itemStack) {
-        CompoundTag compoundtag = itemStack.getTag();
-        if (compoundtag != null && compoundtag.contains("LastLaunchedHookUUID")) {
+        CustomData customData = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
+        CompoundTag compoundtag = customData.copyTag();
+        if (compoundtag.contains("LastLaunchedHookUUID")) {
             return compoundtag.getUUID("LastLaunchedHookUUID");
         } else {
             return null;
@@ -116,30 +118,34 @@ public class CandyCaneHookItem extends Item {
     }
 
     public static void setLastLaunchedHookUUID(ItemStack itemStack, @Nullable UUID uuid) {
-        CompoundTag compoundtag = itemStack.getOrCreateTag();
+        CustomData customData = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
+        CompoundTag compoundtag = customData.copyTag();
         if(uuid == null){
             compoundtag.remove("LastLaunchedHookUUID");
         }else{
             compoundtag.putUUID("LastLaunchedHookUUID", uuid);
         }
-        itemStack.setTag(compoundtag);
+        itemStack.set(DataComponents.CUSTOM_DATA, CustomData.of(compoundtag));
     }
 
 
     public static boolean isReelingIn(ItemStack itemStack) {
-        CompoundTag compoundtag = itemStack.getTag();
-        return isActive(itemStack) && compoundtag != null && compoundtag.getBoolean("Reeling");
+        CustomData customData = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
+        CompoundTag compoundtag = customData.copyTag();
+        return isActive(itemStack) && compoundtag.getBoolean("Reeling");
     }
 
     public static void setReelingIn(ItemStack itemStack, boolean reeling) {
-        CompoundTag compoundtag = itemStack.getOrCreateTag();
+        CustomData customData = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
+        CompoundTag compoundtag = customData.copyTag();
         compoundtag.putBoolean("Reeling", reeling);
-        itemStack.setTag(compoundtag);
+        itemStack.set(DataComponents.CUSTOM_DATA, CustomData.of(compoundtag));
     }
 
     public static boolean canLaunchHook(Player player, ItemStack itemStack, Level level, boolean checkHands, InteractionHand hand) {
-        CompoundTag compoundtag = itemStack.getOrCreateTag();
-        if (level instanceof ServerLevel serverLevel && compoundtag.contains("LastLaunchedHookUUID") && compoundtag.contains("LastLaunchedHookUUID")) {
+        CustomData customData = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
+        CompoundTag compoundtag = customData.copyTag();
+        if (level instanceof ServerLevel serverLevel && compoundtag.contains("LastLaunchedHookUUID")) {
             Entity entity = serverLevel.getEntity(compoundtag.getUUID("LastLaunchedHookUUID"));
             if (entity instanceof CandyCaneHookEntity candyCaneHook) {
                 return !(candyCaneHook.isAlive() && candyCaneHook.getOwner() != null && candyCaneHook.getOwner().is(player) && (!checkHands || hand == candyCaneHook.getHandLaunchedFrom()));
@@ -161,7 +167,7 @@ public class CandyCaneHookItem extends Item {
     }
 
     @Override
-    public boolean canPerformAction(ItemStack stack, net.minecraftforge.common.ToolAction toolAction) {
-        return toolAction == ToolActions.FISHING_ROD_CAST || super.canPerformAction(stack, toolAction);
+    public boolean canPerformAction(ItemStack stack, net.neoforged.neoforge.common.ItemAbility toolAction) {
+        return toolAction == ItemAbilities.FISHING_ROD_CAST || super.canPerformAction(stack, toolAction);
     }
 }

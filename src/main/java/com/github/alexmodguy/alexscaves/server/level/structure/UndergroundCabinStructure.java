@@ -3,7 +3,7 @@ package com.github.alexmodguy.alexscaves.server.level.structure;
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.server.level.structure.piece.UndergroundCabinStructurePiece;
 import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
@@ -18,7 +18,7 @@ import java.util.Optional;
 
 public class UndergroundCabinStructure extends Structure {
 
-    public static final Codec<UndergroundCabinStructure> CODEC = simpleCodec((settings) -> new UndergroundCabinStructure(settings));
+    public static final MapCodec<UndergroundCabinStructure> CODEC = simpleCodec((settings) -> new UndergroundCabinStructure(settings));
 
     private static final ResourceLocation[] CABIN_NBT = new ResourceLocation[]{
             ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "underground_cabin_0"),

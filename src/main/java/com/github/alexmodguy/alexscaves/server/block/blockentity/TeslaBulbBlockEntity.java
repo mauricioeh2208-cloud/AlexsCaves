@@ -2,6 +2,7 @@ package com.github.alexmodguy.alexscaves.server.block.blockentity;
 
 import com.github.alexmodguy.alexscaves.client.particle.ACParticleRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
@@ -13,8 +14,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 public class TeslaBulbBlockEntity extends BlockEntity {
 
@@ -58,7 +59,9 @@ public class TeslaBulbBlockEntity extends BlockEntity {
                     entity.dummyBolt.setDamage(1);
                     entity.dummyBolt.setVisualOnly(true);
                 }
-                for (LivingEntity entity1 : level.getEntitiesOfClass(LivingEntity.class, new AABB(blockPos.offset(-5, -5, -5), blockPos.offset(5, 5, 5)))) {
+                BlockPos min = blockPos.offset(-5, -5, -5);
+                BlockPos max = blockPos.offset(5, 5, 5);
+                for (LivingEntity entity1 : level.getEntitiesOfClass(LivingEntity.class, new AABB(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ()))) {
                     entity1.thunderHit((ServerLevel) level, entity.dummyBolt);
                     entity1.setRemainingFireTicks(0);
                 }
@@ -107,16 +110,20 @@ public class TeslaBulbBlockEntity extends BlockEntity {
     @OnlyIn(Dist.CLIENT)
     public AABB getRenderBoundingBox() {
         BlockPos pos = this.getBlockPos();
-        return new AABB(pos.offset(-1, -1, -1), pos.offset(2, 2, 2));
+        BlockPos min = pos.offset(-1, -1, -1);
+        BlockPos max = pos.offset(2, 2, 2);
+        return new AABB(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ());
     }
 
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    @Override
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         this.exploding = tag.getBoolean("Exploding");
     }
 
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
         tag.putBoolean("Exploding", this.exploding);
     }
 

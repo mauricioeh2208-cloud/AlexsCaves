@@ -136,7 +136,7 @@ public class SpelunkeryTableMenu extends AbstractContainerMenu {
             ItemStack itemstack = biomeResourceKey == null ? new ItemStack(Items.PAPER) : CaveInfoItem.create(ACItemRegistry.CAVE_CODEX.get(), biomeResourceKey);
             if (itemInFinalSlot.isEmpty()) {
                 this.resultContainer.setItem(2, itemstack);
-            } else if (ItemStack.isSameItemSameTags(itemInFinalSlot, itemstack) && itemInFinalSlot.getCount() + itemstack.getCount() < itemInFinalSlot.getMaxStackSize()) {
+            } else if (ItemStack.isSameItemSameComponents(itemInFinalSlot, itemstack) && itemInFinalSlot.getCount() + itemstack.getCount() < itemInFinalSlot.getMaxStackSize()) {
                 itemInFinalSlot.setCount(itemInFinalSlot.getCount() + itemstack.getCount());
                 this.resultContainer.setItem(2, itemInFinalSlot);
             } else {

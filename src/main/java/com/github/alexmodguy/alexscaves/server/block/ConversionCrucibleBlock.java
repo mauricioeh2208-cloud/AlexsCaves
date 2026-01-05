@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.ACBlockEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.ConversionCrucibleBlockEntity;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.CopperValveBlockEntity;
@@ -45,6 +46,11 @@ public class ConversionCrucibleBlock extends BaseEntityBlock {
 
     public ConversionCrucibleBlock() {
         super(Properties.of().mapColor(MapColor.GOLD).requiresCorrectToolForDrops().strength(5F, 12.0F).sound(SoundType.METAL));
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return MapCodec.unit(this);
     }
 
     public VoxelShape getShape(BlockState blockState, BlockGetter blockGetter, BlockPos pos, CollisionContext context) {

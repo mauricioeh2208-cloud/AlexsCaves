@@ -3,6 +3,7 @@ package com.github.alexmodguy.alexscaves.client.render.entity;
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.client.model.GumbeeperModel;
 import com.github.alexmodguy.alexscaves.client.render.ACRenderTypes;
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexmodguy.alexscaves.client.render.entity.layer.GumbeeperEnergySwirlLayer;
 import com.github.alexmodguy.alexscaves.client.render.entity.layer.LicowitchPossessionLayer;
 import com.github.alexmodguy.alexscaves.server.entity.living.DeepOneMageEntity;
@@ -20,7 +21,6 @@ import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.ForgeRenderTypes;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
@@ -75,11 +75,11 @@ public class GumbeeperRenderer extends MobRenderer<GumbeeperEntity, GumbeeperMod
 
         public void render(PoseStack poseStack, MultiBufferSource bufferIn, int packedLightIn, GumbeeperEntity entitylivingbaseIn, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
             VertexConsumer ivertexbuilder2 = bufferIn.getBuffer(sepia ? ACRenderTypes.getBookWidget(TEXTURE_GLASS, true) : RenderType.entityTranslucentCull(TEXTURE_GLASS));
-            this.getParentModel().renderToBuffer(poseStack, ivertexbuilder2, packedLightIn, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), 1.0F, 1.0F, 1.0F, 1.0F);
+            this.getParentModel().renderToBuffer(poseStack, ivertexbuilder2, packedLightIn, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), -1);
             float explodeProgress = entitylivingbaseIn.getExplodeProgress(partialTicks);
             float alpha = (float)(Math.sin(ageInTicks * 1.2F) + 1F) * 0.5F * explodeProgress * 0.8F;
             VertexConsumer ivertexbuilder4 = bufferIn.getBuffer(ACRenderTypes.getEyesAlphaEnabled(TEXTURE_EXPLODE));
-            this.getParentModel().renderToBuffer(poseStack, ivertexbuilder4, packedLightIn, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), 1.0F, 1.0F, 1.0F, alpha);
+            this.getParentModel().renderToBuffer(poseStack, ivertexbuilder4, packedLightIn, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), ColorUtil.packColor(1.0F, 1.0F, 1.0F, alpha));
 
         }
     }

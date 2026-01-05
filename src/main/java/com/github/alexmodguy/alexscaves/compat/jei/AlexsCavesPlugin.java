@@ -18,7 +18,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
 import net.minecraft.world.item.crafting.CraftingRecipe;
-import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,8 +50,11 @@ public class AlexsCavesPlugin implements IModPlugin {
         registration.addRecipes(SPELUNKERY_TABLE_RECIPE_TYPE, ACRecipeMaker.createSpelunkeryTableRecipes());
         registration.addRecipes(RecipeTypes.CRAFTING, ACRecipeMaker.createCaveMapRecipes());
         if(Minecraft.getInstance().level != null){
+            // getAllRecipesFor returns List<RecipeHolder<T>> in 1.21, extract the actual recipes
             List<AbstractCookingRecipe> abstractCookingRecipeList = new ArrayList<>();
-            abstractCookingRecipeList.addAll(Minecraft.getInstance().level.getRecipeManager().getAllRecipesFor(NuclearFurnaceBlockEntity.getRecipeType()));
+            for (RecipeHolder<? extends AbstractCookingRecipe> holder : Minecraft.getInstance().level.getRecipeManager().getAllRecipesFor(NuclearFurnaceBlockEntity.getRecipeType())) {
+                abstractCookingRecipeList.add(holder.value());
+            }
             registration.addRecipes(NUCLEAR_FURNACE_RECIPE_TYPE, abstractCookingRecipeList);
         }
     }
@@ -59,9 +62,12 @@ public class AlexsCavesPlugin implements IModPlugin {
     @Override
     public void registerRuntime(IRuntimeRegistration registration) {
         if(Minecraft.getInstance().level != null){
-            Optional<? extends Recipe> alexMealRecipe = Minecraft.getInstance().level.getRecipeManager().byKey(ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "alex_meal"));
-            if(alexMealRecipe.isPresent() && alexMealRecipe.get() instanceof CraftingRecipe craftingRecipe){
-                registration.getRecipeManager().hideRecipes(RecipeTypes.CRAFTING, List.of(craftingRecipe));
+            // byKey returns Optional<RecipeHolder<?>> in 1.21
+            Optional<RecipeHolder<?>> alexMealRecipeHolder = Minecraft.getInstance().level.getRecipeManager().byKey(ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "alex_meal"));
+            if(alexMealRecipeHolder.isPresent() && alexMealRecipeHolder.get().value() instanceof CraftingRecipe){
+                @SuppressWarnings("unchecked")
+                RecipeHolder<CraftingRecipe> craftingHolder = (RecipeHolder<CraftingRecipe>) (RecipeHolder<?>) alexMealRecipeHolder.get();
+                registration.getRecipeManager().hideRecipes(RecipeTypes.CRAFTING, List.of(craftingHolder));
             }
         }
     }

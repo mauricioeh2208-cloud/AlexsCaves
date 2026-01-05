@@ -31,8 +31,8 @@ public class TremorzillaEggBlock extends DinosaurEggBlock {
     public void spawnDinosaurs(Level level, BlockPos pos, BlockState state) {
         super.spawnDinosaurs(level, pos, state);
         if(!level.isClientSide){
-            for(Player player : level.getEntitiesOfClass(Player.class, new AABB(pos, pos.offset(1, 1, 1)).inflate(200))){
-                ACAdvancementTriggerRegistry.HATCH_TREMORZILLA_EGG.triggerForEntity(player);
+            for(Player player : level.getEntitiesOfClass(Player.class, new AABB(pos.getCenter(), pos.offset(1, 1, 1).getCenter()).inflate(200))){
+                ACAdvancementTriggerRegistry.HATCH_TREMORZILLA_EGG.get().triggerForEntity(player);
             }
         }
     }

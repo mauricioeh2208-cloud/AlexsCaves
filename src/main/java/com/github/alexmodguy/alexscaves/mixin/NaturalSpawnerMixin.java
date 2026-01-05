@@ -60,11 +60,11 @@ public class NaturalSpawnerMixin {
 
                             for (int i2 = 0; !flag && i2 < 4; ++i2) {
                                 BlockPos blockpos = getCaveCreatureSpawnPos(level, randomSource, caveBiome, mobspawnsettings$spawnerdata.type, l, i1);
-                                if (mobspawnsettings$spawnerdata.type.canSummon() && NaturalSpawner.isSpawnPositionOk(SpawnPlacements.getPlacementType(mobspawnsettings$spawnerdata.type), level, blockpos, mobspawnsettings$spawnerdata.type)) {
+                                if (mobspawnsettings$spawnerdata.type.canSummon() && SpawnPlacements.getPlacementType(mobspawnsettings$spawnerdata.type).isSpawnPositionOk(level, blockpos, mobspawnsettings$spawnerdata.type)) {
                                     float f = mobspawnsettings$spawnerdata.type.getWidth();
                                     double d0 = Mth.clamp((double) l, (double) i + (double) f, (double) i + 16.0D - (double) f);
                                     double d1 = Mth.clamp((double) i1, (double) j + (double) f, (double) j + 16.0D - (double) f);
-                                    if (!level.noCollision(mobspawnsettings$spawnerdata.type.getAABB(d0, (double) blockpos.getY(), d1)) || !SpawnPlacements.checkSpawnRules(mobspawnsettings$spawnerdata.type, level, MobSpawnType.CHUNK_GENERATION, BlockPos.containing(d0, (double) blockpos.getY(), d1), level.getRandom())) {
+                                    if (!level.noCollision(mobspawnsettings$spawnerdata.type.getDimensions().makeBoundingBox(d0, (double) blockpos.getY(), d1)) || !SpawnPlacements.checkSpawnRules(mobspawnsettings$spawnerdata.type, level, MobSpawnType.CHUNK_GENERATION, BlockPos.containing(d0, (double) blockpos.getY(), d1), level.getRandom())) {
                                         continue;
                                     }
 
@@ -79,10 +79,10 @@ public class NaturalSpawnerMixin {
                                     entity.moveTo(d0, (double) blockpos.getY(), d1, randomSource.nextFloat() * 360.0F, 0.0F);
                                     if (entity instanceof Mob) {
                                         Mob mob = (Mob) entity;
-                                        //if (net.minecraftforge.common.ForgeHooks.canEntitySpawn(mob, level, d0, blockpos.getY(), d1, null, MobSpawnType.CHUNK_GENERATION) == -1)
+                                        //if (net.neoforged.neoforge.common.CommonHooks.canEntitySpawn(mob, level, d0, blockpos.getY(), d1, null, MobSpawnType.CHUNK_GENERATION) == -1)
                                         //    continue;
                                         if (mob.checkSpawnRules(level, MobSpawnType.CHUNK_GENERATION) && mob.checkSpawnObstruction(level)) {
-                                            spawngroupdata = mob.finalizeSpawn(level, level.getCurrentDifficultyAt(mob.blockPosition()), MobSpawnType.CHUNK_GENERATION, spawngroupdata, (CompoundTag) null);
+                                            spawngroupdata = mob.finalizeSpawn(level, level.getCurrentDifficultyAt(mob.blockPosition()), MobSpawnType.CHUNK_GENERATION, spawngroupdata);
                                             level.addFreshEntityWithPassengers(mob);
                                             flag = true;
                                         }
@@ -111,7 +111,7 @@ public class NaturalSpawnerMixin {
             int height = level.getMinBuildHeight() + Math.round(heightRange * random.nextFloat());
             mutableBlockPos.setY(height);
             Holder<Biome> holder = level.getBiome(mutableBlockPos);
-            if (!holder.get().getMobSettings().getMobs(ACEntityRegistry.CAVE_CREATURE).isEmpty() && !cavesWithCreatures.contains(holder)) {
+            if (!holder.value().getMobSettings().getMobs(ACEntityRegistry.CAVE_CREATURE).isEmpty() && !cavesWithCreatures.contains(holder)) {
                 cavesWithCreatures.add(holder);
             }
         }

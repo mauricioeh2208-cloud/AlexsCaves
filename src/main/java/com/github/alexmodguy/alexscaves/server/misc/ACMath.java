@@ -2,11 +2,14 @@ package com.github.alexmodguy.alexscaves.server.misc;
 
 import com.github.alexthe666.citadel.animation.Animation;
 import com.google.common.collect.Sets;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.QuartPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.biome.Biome;
@@ -29,6 +32,17 @@ public class ACMath {
     public static final float HALF_SQRT_3 = (float) (Math.sqrt(3.0D) / 2.0D);
 
     public static final float QUARTER_PI = ((float)Math.PI / 4F);
+
+    public static final StreamCodec<ByteBuf, Vec3> VEC3_STREAM_CODEC = StreamCodec.of(
+            (buf, vec) -> {
+                buf.writeDouble(vec.x());
+                buf.writeDouble(vec.y());
+                buf.writeDouble(vec.z());
+            },
+            buf -> new Vec3(buf.readDouble(), buf.readDouble(), buf.readDouble())
+    );
+
+    public static final StreamCodec<ByteBuf, Optional<Vec3>> OPTIONAL_VEC3_STREAM_CODEC = ByteBufCodecs.optional(VEC3_STREAM_CODEC);
 
     public static float smin(float a, float b, float k) {
         float h = Math.max(k - Math.abs(a - b), 0.0F) / k;

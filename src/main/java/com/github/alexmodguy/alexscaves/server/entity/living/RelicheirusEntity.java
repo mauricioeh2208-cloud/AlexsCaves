@@ -64,11 +64,11 @@ public class RelicheirusEntity extends DinosaurEntity implements IAnimatedEntity
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(PECK_Y, 0);
-        this.entityData.define(HELD_MOB_ID, -1);
-        this.entityData.define(PUSHING_TREES_FOR, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(PECK_Y, 0);
+        builder.define(HELD_MOB_ID, -1);
+        builder.define(PUSHING_TREES_FOR, 0);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -101,7 +101,7 @@ public class RelicheirusEntity extends DinosaurEntity implements IAnimatedEntity
     }
 
     protected float getStandingEyeHeight(Pose pose, EntityDimensions dimensions) {
-        return 0.99F * dimensions.height;
+        return 0.99F * dimensions.height();
     }
 
     @Override

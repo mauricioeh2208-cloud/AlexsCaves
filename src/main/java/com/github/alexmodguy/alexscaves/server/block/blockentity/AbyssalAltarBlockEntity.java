@@ -6,6 +6,7 @@ import com.github.alexmodguy.alexscaves.server.entity.living.DeepOneBaseEntity;
 import com.github.alexmodguy.alexscaves.server.message.WorldEventMessage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
@@ -26,16 +27,14 @@ import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 import java.util.UUID;
 
 public class AbyssalAltarBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer {
 
-    net.minecraftforge.common.util.LazyOptional<? extends net.minecraftforge.items.IItemHandler>[] handlers = net.minecraftforge.items.wrapper.SidedInvWrapper.create(this, Direction.UP, Direction.DOWN);
     private NonNullList<ItemStack> stacks = NonNullList.withSize(1, ItemStack.EMPTY);
 
     private ItemStack displayCopyStack = ItemStack.EMPTY;
@@ -57,7 +56,7 @@ public class AbyssalAltarBlockEntity extends BaseContainerBlockEntity implements
     public static void tick(Level level, BlockPos pos, BlockState state, AbyssalAltarBlockEntity entity) {
         if (level.isClientSide) {
             ItemStack itemStack = entity.getItem(0);
-            if (!itemStack.equals(entity.displayCopyStack, false) || entity.slideImpulse) {
+            if (!ItemStack.matches(itemStack, entity.displayCopyStack) || entity.slideImpulse) {
                 if (entity.slideProgress > 0.0F) {
                     entity.prevSlideProgress = entity.slideProgress;
                     entity.slideProgress--;
@@ -75,7 +74,7 @@ public class AbyssalAltarBlockEntity extends BaseContainerBlockEntity implements
                 Vec3 vec3 = Vec3.atCenterOf(entity.worldPosition).add(0, 0.5F, 0).add(angleAdd);
                 ItemEntity itemEntity = new ItemEntity(level, vec3.x, vec3.y, vec3.z, drop);
                 if (entity.lastInteracter != null) {
-                    itemEntity.setThrower(entity.lastInteracter.getUUID());
+                    itemEntity.setThrower(entity.lastInteracter);
                     boolean kill = true;
                     if (entity.lastInteracter instanceof Player player) {
                         boolean fullInv = !hasInventorySpaceFor(player.getInventory(), drop);
@@ -160,7 +159,7 @@ public class AbyssalAltarBlockEntity extends BaseContainerBlockEntity implements
 
     @OnlyIn(Dist.CLIENT)
     public AABB getRenderBoundingBox() {
-        return new AABB(worldPosition, worldPosition.offset(1, 2, 1));
+        return new AABB(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), worldPosition.getX() + 1, worldPosition.getY() + 2, worldPosition.getZ() + 1);
     }
 
     @Override
@@ -208,7 +207,7 @@ public class AbyssalAltarBlockEntity extends BaseContainerBlockEntity implements
 
     @Override
     public void setItem(int index, ItemStack stack) {
-        boolean flag = !stack.isEmpty() && ItemStack.isSameItemSameTags(stack, this.stacks.get(index));
+        boolean flag = !stack.isEmpty() && ItemStack.isSameItemSameComponents(stack, this.stacks.get(index));
         this.stacks.set(index, stack);
         if (!stack.isEmpty() && stack.getCount() > this.getMaxStackSize()) {
             stack.setCount(this.getMaxStackSize());
@@ -217,12 +216,22 @@ public class AbyssalAltarBlockEntity extends BaseContainerBlockEntity implements
     }
 
     @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
+    protected NonNullList<ItemStack> getItems() {
+        return this.stacks;
+    }
+
+    @Override
+    protected void setItems(NonNullList<ItemStack> items) {
+        this.stacks = items;
+    }
+
+    @Override
+    protected void loadAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+        super.loadAdditional(compound, registries);
         this.stacks = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-        ContainerHelper.loadAllItems(compound, this.stacks);
+        ContainerHelper.loadAllItems(compound, this.stacks, registries);
         if (compound.contains("PopStack")) {
-            this.popStack = ItemStack.of(compound.getCompound("PopStack"));
+            this.popStack = ItemStack.parseOptional(registries, compound.getCompound("PopStack"));
         }
         if (compound.hasUUID("PlayerUUID")) {
             placingPlayer = compound.getUUID("PlayerUUID");
@@ -234,13 +243,11 @@ public class AbyssalAltarBlockEntity extends BaseContainerBlockEntity implements
     }
 
     @Override
-    public void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
-        ContainerHelper.saveAllItems(compound, this.stacks);
+    protected void saveAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+        super.saveAdditional(compound, registries);
+        ContainerHelper.saveAllItems(compound, this.stacks, registries);
         if (this.popStack != null && !this.popStack.isEmpty()) {
-            CompoundTag stackTag = new CompoundTag();
-            this.popStack.save(stackTag);
-            compound.put("PopStack", stackTag);
+            compound.put("PopStack", this.popStack.saveOptional(registries));
         }
         if (this.placingPlayer != null) {
             compound.putUUID("PlayerUUID", this.placingPlayer);
@@ -304,19 +311,17 @@ public class AbyssalAltarBlockEntity extends BaseContainerBlockEntity implements
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet) {
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet, HolderLookup.Provider registries) {
         if (packet != null && packet.getTag() != null) {
             this.stacks = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-            ContainerHelper.loadAllItems(packet.getTag(), this.stacks);
+            ContainerHelper.loadAllItems(packet.getTag(), this.stacks, registries);
             this.itemAngle = packet.getTag().getFloat("Angle");
         }
     }
 
-    public CompoundTag getUpdateTag() {
-        CompoundTag compoundtag = new CompoundTag();
-        ContainerHelper.saveAllItems(compoundtag, this.stacks, true);
-        compoundtag.putFloat("Angle", itemAngle);
-        return compoundtag;
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return this.saveWithoutMetadata(registries);
     }
 
     @Override
@@ -353,17 +358,6 @@ public class AbyssalAltarBlockEntity extends BaseContainerBlockEntity implements
             }
         }
         return true;
-    }
-
-    @Override
-    public <T> net.minecraftforge.common.util.LazyOptional<T> getCapability(net.minecraftforge.common.capabilities.Capability<T> capability, @Nullable Direction facing) {
-        if (!this.remove && facing != null && capability == ForgeCapabilities.ITEM_HANDLER) {
-            if (facing == Direction.DOWN)
-                return handlers[0].cast();
-            else
-                return handlers[1].cast();
-        }
-        return super.getCapability(capability, facing);
     }
 
     private void markUpdated() {

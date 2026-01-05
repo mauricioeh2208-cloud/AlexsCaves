@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.client.model;
 
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexmodguy.alexscaves.server.entity.living.GummyBearEntity;
 import com.github.alexmodguy.alexscaves.server.misc.ACMath;
 import com.github.alexthe666.citadel.animation.IAnimatedEntity;
@@ -101,12 +102,17 @@ public class GummyBearModel extends AdvancedEntityModel<GummyBearEntity> impleme
         this.alpha = alpha;
     }
 
-    public void renderToBuffer(PoseStack matrixStackIn, VertexConsumer bufferIn, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
+    public void renderToBuffer(PoseStack matrixStackIn, VertexConsumer bufferIn, int packedLightIn, int packedOverlayIn, int packedColor) {
+        float red = ColorUtil.unpackRed(packedColor);
+        float green = ColorUtil.unpackGreen(packedColor);
+        float blue = ColorUtil.unpackBlue(packedColor);
+        float alpha = ColorUtil.unpackAlpha(packedColor);
         if (alpha * this.alpha > 0.0F || ignoreColor) {
             float redIn = ignoreColor ? 1.0F : red * this.red;
             float greenIn = ignoreColor ? 1.0F : green * this.green;
             float blueIn = ignoreColor ? 1.0F : blue * this.blue;
             float alphaIn = ignoreColor ? 1.0F : alpha * this.alpha;
+            int color = ColorUtil.packColor(redIn, greenIn, blueIn, alphaIn);
             if (this.young) {
                 float f = 1.5F;
                 head.setScale(f, f, f);
@@ -115,14 +121,14 @@ public class GummyBearModel extends AdvancedEntityModel<GummyBearEntity> impleme
                 matrixStackIn.scale(0.5F, 0.5F, 0.5F);
                 matrixStackIn.translate(0.0D, 1.5D, 0D);
                 parts().forEach((part) -> {
-                    part.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, redIn, greenIn, blueIn, alphaIn);
+                    part.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, color);
                 });
                 matrixStackIn.popPose();
                 head.setScale(1, 1, 1);
             } else {
                 matrixStackIn.pushPose();
                 parts().forEach((part) -> {
-                    part.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, redIn, greenIn, blueIn, alphaIn);
+                    part.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, color);
                 });
                 matrixStackIn.popPose();
             }

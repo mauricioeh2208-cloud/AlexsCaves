@@ -9,6 +9,7 @@ import com.github.alexmodguy.alexscaves.server.entity.util.ActivatesSirens;
 import com.github.alexmodguy.alexscaves.server.misc.ACMath;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -133,12 +134,14 @@ public class NuclearSirenBlockEntity extends BlockEntity {
         return level.getBlockEntity(pos) instanceof NuclearFurnaceBlockEntity nuclearFurnaceBlockEntity && nuclearFurnaceBlockEntity.getCriticality() >= 2;
     }
 
-    public CompoundTag getUpdateTag() {
-        return this.saveWithoutMetadata();
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return this.saveWithoutMetadata(registries);
     }
 
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    @Override
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         this.bombId = tag.getInt("BombID");
         if (tag.contains("NearestFurnaceX")) {
             this.nearestMeltdownFurnace = new BlockPos(tag.getInt("NearestFurnaceX"), tag.getInt("NearestFurnaceY"), tag.getInt("NearestFurnaceZ"));
@@ -146,8 +149,9 @@ public class NuclearSirenBlockEntity extends BlockEntity {
         }
     }
 
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
         tag.putInt("BombID", this.bombId);
         if (nearestMeltdownFurnace != null) {
             tag.putInt("NearestFurnaceX", nearestMeltdownFurnace.getX());
@@ -168,12 +172,9 @@ public class NuclearSirenBlockEntity extends BlockEntity {
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet) {
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet, HolderLookup.Provider registries) {
         if (packet != null && packet.getTag() != null) {
-            this.bombId = packet.getTag().getInt("BombID");
-            if (packet.getTag().contains("NearestFurnaceX")) {
-                this.nearestMeltdownFurnace = new BlockPos(packet.getTag().getInt("NearestFurnaceX"), packet.getTag().getInt("NearestFurnaceY"), packet.getTag().getInt("NearestFurnaceZ"));
-            }
+            handleUpdateTag(packet.getTag(), registries);
         }
     }
 }

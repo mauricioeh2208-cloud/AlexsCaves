@@ -5,8 +5,6 @@ import com.github.alexmodguy.alexscaves.server.entity.util.MovingBlockData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -25,7 +23,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.network.NetworkHooks;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,8 +48,8 @@ public abstract class AbstractMovingBlockEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(BLOCK_DATA_TAG, new CompoundTag());
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(BLOCK_DATA_TAG, new CompoundTag());
     }
 
     public void tick() {
@@ -85,12 +82,12 @@ public abstract class AbstractMovingBlockEntity extends Entity {
                         if (dataBlock.blockData != null && dataBlock.getState().hasBlockEntity()) {
                             BlockEntity blockentity = this.level().getBlockEntity(set);
                             if (blockentity != null) {
-                                CompoundTag compoundtag = blockentity.saveWithoutMetadata();
+                                CompoundTag compoundtag = blockentity.saveWithoutMetadata(level().registryAccess());
                                 for (String s : dataBlock.blockData.getAllKeys()) {
                                     compoundtag.put(s, dataBlock.blockData.get(s).copy());
                                 }
                                 try {
-                                    blockentity.load(compoundtag);
+                                    blockentity.loadWithComponents(compoundtag, level().registryAccess());
                                 } catch (Exception exception) {
                                 }
                                 blockentity.setChanged();
@@ -120,8 +117,10 @@ public abstract class AbstractMovingBlockEntity extends Entity {
             if (!entity.noPhysics && !(entity instanceof MovingMetalBlockEntity)) {
                 double gravity = entity.isNoGravity() ? 0 : 0.08D;
                 if (entity instanceof LivingEntity living) {
-                    AttributeInstance attribute = living.getAttribute(net.minecraftforge.common.ForgeMod.ENTITY_GRAVITY.get());
-                    gravity = attribute.getValue();
+                    AttributeInstance attribute = living.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.GRAVITY);
+                    if (attribute != null) {
+                        gravity = attribute.getValue();
+                    }
                 }
                 float f2 = 1.0F;
                 entity.move(MoverType.SHULKER, new Vec3((double) (f2 * (float) this.getDeltaMovement().x), (double) (f2 * (float) this.getDeltaMovement().y), (double) (f2 * (float) this.getDeltaMovement().z)));
@@ -175,11 +174,6 @@ public abstract class AbstractMovingBlockEntity extends Entity {
         if (this.getAllBlockData() != null) {
             compound.put("BlockDataContainer", this.getAllBlockData());
         }
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
     }
 
     private List<MovingBlockData> buildDataFromTrackerTag() {

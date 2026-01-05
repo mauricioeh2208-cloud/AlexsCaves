@@ -5,6 +5,7 @@ import com.github.alexmodguy.alexscaves.client.model.GummyBearModel;
 import com.github.alexmodguy.alexscaves.client.model.GummyBearModel;
 import com.github.alexmodguy.alexscaves.client.model.SweetishFishModel;
 import com.github.alexmodguy.alexscaves.client.render.ACRenderTypes;
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexmodguy.alexscaves.client.render.entity.layer.GummyBearHeldMobLayer;
 import com.github.alexmodguy.alexscaves.client.render.entity.layer.LicowitchPossessionLayer;
 import com.github.alexmodguy.alexscaves.server.entity.living.GummyBearEntity;
@@ -99,7 +100,7 @@ public class GummyBearRenderer extends MobRenderer<GummyBearEntity, GummyBearMod
             if (!entitylivingbaseIn.isInvisible()) {
                 this.getParentModel().copyPropertiesTo(OUTSIDE_MODEL);
                 OUTSIDE_MODEL.setupAnim(entitylivingbaseIn, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
-                OUTSIDE_MODEL.renderToBuffer(matrixStackIn, bufferIn.getBuffer(sepia ? ACRenderTypes.getBookWidget(getOutsideTextureLocation(entitylivingbaseIn), true) : RenderType.entityTranslucent(getOutsideTextureLocation(entitylivingbaseIn))), packedLightIn, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), 1.0F, 1.0F, 1.0F, 1.0F);
+                OUTSIDE_MODEL.renderToBuffer(matrixStackIn, bufferIn.getBuffer(sepia ? ACRenderTypes.getBookWidget(getOutsideTextureLocation(entitylivingbaseIn), true) : RenderType.entityTranslucent(getOutsideTextureLocation(entitylivingbaseIn))), packedLightIn, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), -1);
             }
         }
     }

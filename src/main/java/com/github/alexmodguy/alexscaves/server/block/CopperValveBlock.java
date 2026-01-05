@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.ACBlockEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.CopperValveBlockEntity;
 import com.github.alexmodguy.alexscaves.server.misc.ACMath;
@@ -69,6 +70,11 @@ public class CopperValveBlock extends BaseEntityBlock implements SimpleWaterlogg
     protected CopperValveBlock() {
         super(Properties.of().mapColor(MapColor.COLOR_ORANGE).requiresCorrectToolForDrops().strength(3F, 12.0F).sound(SoundType.COPPER));
         this.registerDefaultState(this.defaultBlockState().setValue(FACING, Direction.UP).setValue(TURNED, Boolean.valueOf(false)));
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return MapCodec.unit(this);
     }
 
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {

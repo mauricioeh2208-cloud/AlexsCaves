@@ -88,12 +88,12 @@ public class NucleeperEntity extends Monster implements ActivatesSirens, Powerab
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(TRIGGERED, false);
-        this.entityData.define(CLOSE_TIME, 0);
-        this.entityData.define(EXPLODING, false);
-        this.entityData.define(CHARGED, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(TRIGGERED, false);
+        builder.define(CLOSE_TIME, 0);
+        builder.define(EXPLODING, false);
+        builder.define(CHARGED, false);
     }
 
     public int getCloseTime() {
@@ -152,9 +152,7 @@ public class NucleeperEntity extends Monster implements ActivatesSirens, Powerab
             this.level().playSound(player, this.getX(), this.getY(), this.getZ(), soundevent, this.getSoundSource(), 1.0F, this.random.nextFloat() * 0.4F + 0.8F);
             if (!this.level().isClientSide) {
                 this.setTriggered(true);
-                itemstack.hurtAndBreak(1, player, (p_32290_) -> {
-                    p_32290_.broadcastBreakEvent(hand);
-                });
+                itemstack.hurtAndBreak(1, player, hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
             }
 
             return InteractionResult.sidedSuccess(this.level().isClientSide);
@@ -279,8 +277,8 @@ public class NucleeperEntity extends Monster implements ActivatesSirens, Powerab
     }
 
     @Override
-    protected void dropCustomDeathLoot(DamageSource damageSource, int experience, boolean idk) {
-        super.dropCustomDeathLoot(damageSource, experience, idk);
+    protected void dropCustomDeathLoot(ServerLevel level, DamageSource damageSource, boolean recentlyHit) {
+        super.dropCustomDeathLoot(level, damageSource, recentlyHit);
         if (damageSource.getEntity() instanceof TremorzillaEntity && damageSource.is(ACDamageTypes.TREMORZILLA_BEAM)) {
             this.spawnAtLocation(ACItemRegistry.MUSIC_DISC_FUSION_FRAGMENT.get());
         }

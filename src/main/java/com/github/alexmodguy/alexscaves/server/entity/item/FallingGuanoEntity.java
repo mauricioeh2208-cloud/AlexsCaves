@@ -23,7 +23,6 @@ import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.PlayMessages;
 
 public class FallingGuanoEntity extends FallingBlockEntity {
 
@@ -31,11 +30,6 @@ public class FallingGuanoEntity extends FallingBlockEntity {
 
     public FallingGuanoEntity(EntityType entityType, Level level) {
         super(entityType, level);
-    }
-
-    public FallingGuanoEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.FALLING_GUANO.get(), level);
-        this.setBoundingBox(this.makeBoundingBox());
     }
 
     private FallingGuanoEntity(Level level, double x, double y, double z, BlockState state) {

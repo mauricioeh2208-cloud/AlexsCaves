@@ -6,6 +6,7 @@ import com.github.alexmodguy.alexscaves.server.block.blockentity.BeholderBlockEn
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.NbtUtils;
@@ -22,11 +23,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.world.ForgeChunkManager;
+import net.neoforged.neoforge.common.world.chunk.TicketController;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -40,8 +42,8 @@ public class OccultGemItem extends Item {
     }
 
     public static boolean isActive(ItemStack itemStack) {
-        CompoundTag compoundtag = itemStack.getTag();
-        return compoundtag != null && (compoundtag.contains("BeholderDimension") || compoundtag.contains("BeholderPos"));
+        CompoundTag compoundtag = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return !compoundtag.isEmpty() && (compoundtag.contains("BeholderDimension") || compoundtag.contains("BeholderPos"));
     }
 
     private static Optional<ResourceKey<Level>> getBeholderDimension(CompoundTag tag) {
@@ -55,8 +57,10 @@ public class OccultGemItem extends Item {
         if (flag && flag1) {
             Optional<ResourceKey<Level>> optional = getBeholderDimension(tag);
             if (optional.isPresent()) {
-                BlockPos blockpos = NbtUtils.readBlockPos(tag.getCompound("BeholderPos"));
-                return GlobalPos.of(optional.get(), blockpos);
+                Optional<BlockPos> blockposOpt = NbtUtils.readBlockPos(tag, "BeholderPos");
+                if (blockposOpt.isPresent()) {
+                    return GlobalPos.of(optional.get(), blockposOpt.get());
+                }
             }
         }
 
@@ -66,7 +70,7 @@ public class OccultGemItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
         if (isActive(itemstack)) {
-            CompoundTag tag = itemstack.getOrCreateTag();
+            CompoundTag tag = itemstack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
             GlobalPos globalPos = getBeholderPosition(tag);
             if (globalPos != null && globalPos.dimension() != null && globalPos.dimension().equals(level.dimension()) && !level.isClientSide && level instanceof ServerLevel serverLevel) {
                 ServerLevel dimensionLevel = serverLevel.getServer().getLevel(globalPos.dimension());
@@ -90,7 +94,10 @@ public class OccultGemItem extends Item {
         ChunkPos chunkPos = new ChunkPos(center);
         for (int i = -1; i <= 1; i++) {
             for (int j = -1; j <= 1; j++) {
-                ForgeChunkManager.forceChunk(serverLevel, AlexsCaves.MODID, ticket, chunkPos.x + i, chunkPos.z + j, load, true);
+                // Create a TicketController for this operation
+                net.neoforged.neoforge.common.world.chunk.TicketController ticketController = new net.neoforged.neoforge.common.world.chunk.TicketController(
+                    net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "occult_gem"));
+                ticketController.forceChunk(serverLevel, new BlockPos(chunkPos.x + i, 0, chunkPos.z + j), chunkPos.x + i, chunkPos.z + j, load, true);
             }
         }
     }
@@ -99,22 +106,26 @@ public class OccultGemItem extends Item {
     public void inventoryTick(ItemStack itemStack, Level level, Entity entity, int i, boolean b) {
         if (!level.isClientSide) {
             if (isActive(itemStack)) {
-                CompoundTag compoundtag = itemStack.getOrCreateTag();
+                CompoundTag compoundtag = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
                 if (compoundtag.contains("BeholderTracked") && !compoundtag.getBoolean("BeholderTracked")) {
                     return;
                 }
                 Optional<ResourceKey<Level>> optional = getBeholderDimension(compoundtag);
                 if (optional.isPresent() && optional.get() == level.dimension() && compoundtag.contains("BeholderPos")) {
-                    BlockPos blockpos = NbtUtils.readBlockPos(compoundtag.getCompound("BeholderPos"));
-                    boolean flag = false;
-                    if ((entity.tickCount + entity.getId()) % 20 == 0) {
-                        if (level.isLoaded(blockpos) && !level.getBlockState(blockpos).is(ACBlockRegistry.BEHOLDER.get())) {
-                            flag = true;
+                    Optional<BlockPos> blockposOpt = NbtUtils.readBlockPos(compoundtag, "BeholderPos");
+                    if (blockposOpt.isPresent()) {
+                        BlockPos blockpos = blockposOpt.get();
+                        boolean flag = false;
+                        if ((entity.tickCount + entity.getId()) % 20 == 0) {
+                            if (level.isLoaded(blockpos) && !level.getBlockState(blockpos).is(ACBlockRegistry.BEHOLDER.get())) {
+                                flag = true;
+                            }
                         }
-                    }
-                    if (!level.isInWorldBounds(blockpos) || flag) {
-                        compoundtag.remove("BeholderPos");
-                        compoundtag.remove("BeholderDimension");
+                        if (!level.isInWorldBounds(blockpos) || flag) {
+                            compoundtag.remove("BeholderPos");
+                            compoundtag.remove("BeholderDimension");
+                            itemStack.set(DataComponents.CUSTOM_DATA, CustomData.of(compoundtag));
+                        }
                     }
                 }
             }
@@ -132,16 +143,18 @@ public class OccultGemItem extends Item {
             ItemStack itemstack = context.getItemInHand();
             boolean flag = !player.getAbilities().instabuild && itemstack.getCount() == 1;
             if (flag) {
-                this.addBeholderTags(level.dimension(), blockpos, itemstack.getOrCreateTag());
+                CompoundTag existingTag = itemstack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+                this.addBeholderTags(level.dimension(), blockpos, existingTag);
+                itemstack.set(DataComponents.CUSTOM_DATA, CustomData.of(existingTag));
             } else {
                 ItemStack itemstack1 = new ItemStack(ACItemRegistry.OCCULT_GEM.get(), 1);
-                CompoundTag compoundtag = itemstack.hasTag() ? itemstack.getTag().copy() : new CompoundTag();
-                itemstack1.setTag(compoundtag);
+                CompoundTag compoundtag = itemstack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+                this.addBeholderTags(level.dimension(), blockpos, compoundtag);
+                itemstack1.set(DataComponents.CUSTOM_DATA, CustomData.of(compoundtag));
                 if (!player.getAbilities().instabuild) {
                     itemstack.shrink(1);
                 }
 
-                this.addBeholderTags(level.dimension(), blockpos, compoundtag);
                 if (!player.getInventory().add(itemstack1)) {
                     player.drop(itemstack1, false);
                 }
@@ -160,23 +173,27 @@ public class OccultGemItem extends Item {
     }
 
     public boolean isFoil(ItemStack stack) {
-        if (stack.getTag() != null && stack.getTag().contains("BeholderPos")) {
-            Optional<ResourceKey<Level>> optional = getBeholderDimension(stack.getTag());
-            BlockPos blockpos = NbtUtils.readBlockPos(stack.getTag().getCompound("BeholderPos"));
-            return optional.isPresent() && blockpos != null;
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        if (!tag.isEmpty() && tag.contains("BeholderPos")) {
+            Optional<ResourceKey<Level>> optional = getBeholderDimension(tag);
+            Optional<BlockPos> blockposOpt = NbtUtils.readBlockPos(tag, "BeholderPos");
+            return optional.isPresent() && blockposOpt.isPresent();
         }
         return super.isFoil(stack);
     }
 
-    public void appendHoverText(ItemStack stack, @Nullable Level worldIn, List<Component> tooltip, TooltipFlag flagIn) {
-        if (stack.getTag() != null && stack.getTag().contains("BeholderPos")) {
-            Optional<ResourceKey<Level>> optional = getBeholderDimension(stack.getTag());
-            BlockPos blockpos = NbtUtils.readBlockPos(stack.getTag().getCompound("BeholderPos"));
-            if (optional.isPresent() && blockpos != null) {
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        if (!tag.isEmpty() && tag.contains("BeholderPos")) {
+            Optional<ResourceKey<Level>> optional = getBeholderDimension(tag);
+            Optional<BlockPos> blockposOpt = NbtUtils.readBlockPos(tag, "BeholderPos");
+            if (optional.isPresent() && blockposOpt.isPresent()) {
+                BlockPos blockpos = blockposOpt.get();
                 Component untranslated = Component.translatable("item.alexscaves.occult_gem.desc", blockpos.getX(), blockpos.getY(), blockpos.getZ()).withStyle(ChatFormatting.GRAY);
                 tooltip.add(untranslated);
             }
         }
-        super.appendHoverText(stack, worldIn, tooltip, flagIn);
+        super.appendHoverText(stack, context, tooltip, flagIn);
     }
 }

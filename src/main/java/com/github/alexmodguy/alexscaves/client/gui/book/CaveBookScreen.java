@@ -12,12 +12,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
-import net.minecraftforge.client.ForgeRenderTypes;
 import org.joml.Vector3f;
 
 import javax.annotation.Nullable;
@@ -27,6 +27,7 @@ import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import net.neoforged.neoforge.common.NeoForge;
 
 public class CaveBookScreen extends Screen {
 
@@ -209,15 +210,13 @@ public class CaveBookScreen extends Screen {
         }
     }
 
-    @Override
-    public void renderBackground(GuiGraphics guiGraphics) {
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         guiGraphics.fillGradient(0, 0, this.width, this.height, -1000, -1072689136, -804253680);
-        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.ScreenEvent.BackgroundRendered(this, guiGraphics));
     }
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float fakePartialTickThatsZeroForSomeReason) {
-        float partialTick = Minecraft.getInstance().getPartialTick();
+        float partialTick = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(false);
         PoseStack poseStack = guiGraphics.pose();
         MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
         float ageInTicks = tickCount + partialTick;
@@ -244,7 +243,7 @@ public class CaveBookScreen extends Screen {
         poseStack.pushPose();
         BOOK_MODEL.setupAnim(null, openBookAmount, pageAngle, pageUp, -20 * (openBookAmount) - 10 * pageFlipBump, 0);
         BOOK_MODEL.mouseOver(mouseLeanX, mouseLeanY, ageInTicks, flip, canGoLeft(), canGoRight());
-        BOOK_MODEL.renderToBuffer(poseStack, bufferSource.getBuffer(ForgeRenderTypes.getUnlitTranslucent(BOOK_TEXTURE)), 240, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+        BOOK_MODEL.renderToBuffer(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(BOOK_TEXTURE)), 240, OverlayTexture.NO_OVERLAY, -1);
         renderBookContents(poseStack, mouseX, mouseY, partialTick);
         guiGraphics.flush();
         poseStack.popPose();
@@ -253,7 +252,7 @@ public class CaveBookScreen extends Screen {
             currentEntry.mouseOver(this, entryPageNumber, mouseLeanX, mouseLeanY);
         }
         super.render(guiGraphics, mouseX, mouseY, fakePartialTickThatsZeroForSomeReason);
-        this.renderBackground(guiGraphics);
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         if(unlockTooltip){
             List<Component> list = new ArrayList<>();
             list.add(Component.translatable("book.alexscaves.page_locked_0").withStyle(ChatFormatting.GRAY));

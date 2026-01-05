@@ -16,13 +16,13 @@ public class DarkenedAppleItem extends Item {
     }
 
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity livingEntity) {
-        MobEffectInstance mobEffectInstance = livingEntity.getEffect(ACEffectRegistry.DARKNESS_INCARNATE.get());
+        MobEffectInstance mobEffectInstance = livingEntity.getEffect(ACEffectRegistry.DARKNESS_INCARNATE);
         FoodProperties foodProperties = this.getFoodProperties(stack, livingEntity);
         if (mobEffectInstance != null && foodProperties != null) {
             int newDuration = mobEffectInstance.getDuration() + 600;
-            MobEffectInstance newEffect = new MobEffectInstance(ACEffectRegistry.DARKNESS_INCARNATE.get(), newDuration, mobEffectInstance.getAmplifier());
+            MobEffectInstance newEffect = new MobEffectInstance(ACEffectRegistry.DARKNESS_INCARNATE, newDuration, mobEffectInstance.getAmplifier());
             livingEntity.forceAddEffect(newEffect, null);
-            ACAdvancementTriggerRegistry.EAT_DARKENED_APPLE.triggerForEntity(livingEntity);
+            ACAdvancementTriggerRegistry.EAT_DARKENED_APPLE.get().triggerForEntity(livingEntity);
         }
         return super.finishUsingItem(stack, level, livingEntity);
     }

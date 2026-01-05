@@ -36,7 +36,7 @@ public class BurrowingArrowRenderer extends EntityRenderer<BurrowingArrowEntity>
         }
         VertexConsumer vertexconsumer = bufferSource.getBuffer(RenderType.entityCutoutNoCull(this.getTextureLocation(entity)));
         MODEL.setupAnim(entity, 0.0F, 0.0F, entity.tickCount + partialTicks, 0.0F, 0.0F);
-        MODEL.renderToBuffer(poseStack, vertexconsumer, lighting, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+        MODEL.renderToBuffer(poseStack, vertexconsumer, lighting, OverlayTexture.NO_OVERLAY, -1);
         poseStack.popPose();
         super.render(entity, entityYaw, partialTicks, poseStack, bufferSource, lighting);
     }

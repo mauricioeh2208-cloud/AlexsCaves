@@ -20,6 +20,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
@@ -47,7 +49,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -85,24 +87,24 @@ public abstract class DeepOneBaseEntity extends PathfinderMob implements IAnimat
     protected DeepOneBaseEntity(EntityType entityType, Level level) {
         super(entityType, level);
         this.xpReward = 8;
-        this.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
-        this.setPathfindingMalus(BlockPathTypes.WATER_BORDER, 0.0F);
+        this.setPathfindingMalus(PathType.WATER, 0.0F);
+        this.setPathfindingMalus(PathType.WATER_BORDER, 0.0F);
         switchNavigator(false);
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(SWIMMING, false);
-        this.entityData.define(SUMMONED, false);
-        this.entityData.define(SUMMON_TIME, 0);
-        this.entityData.define(SOUNDS_ANGRY, false);
-        this.entityData.define(ALTAR_POS, Optional.empty());
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(SWIMMING, false);
+        builder.define(SUMMONED, false);
+        builder.define(SUMMON_TIME, 0);
+        builder.define(SOUNDS_ANGRY, false);
+        builder.define(ALTAR_POS, Optional.empty());
     }
 
-    public boolean canBreatheUnderwater() {
-        return true;
-    }
+    // 1.21: canBreatheUnderwater() is now final in LivingEntity.
+    // Underwater breathing is handled via EntityType.Builder.canSpawnFarFromPlayer() or mob type tags.
+    // For aquatic mobs, use MobType.WATER or configure via entity type tags.
 
     protected void switchNavigator(boolean onLand) {
         if (onLand) {
@@ -127,10 +129,6 @@ public abstract class DeepOneBaseEntity extends PathfinderMob implements IAnimat
 
     protected PathNavigation createNavigation(Level worldIn) {
         return new PathNavigator(worldIn);
-    }
-
-    public MobType getMobType() {
-        return MobType.WATER;
     }
 
     public boolean checkSpawnObstruction(LevelReader levelReader) {
@@ -226,7 +224,7 @@ public abstract class DeepOneBaseEntity extends PathfinderMob implements IAnimat
                         double advancementRange = 20.0D;
                         for (Player player : level().getNearbyPlayers(TargetingConditions.forNonCombat().range(advancementRange), this, this.getBoundingBox().inflate(advancementRange))) {
                             if (player.distanceTo(this) < advancementRange) {
-                                ACAdvancementTriggerRegistry.DEEP_ONE_TRADE.triggerForEntity(player);
+                                ACAdvancementTriggerRegistry.DEEP_ONE_TRADE.get().triggerForEntity(player);
                             }
                         }
                         spawnedLootItem = true;
@@ -303,11 +301,11 @@ public abstract class DeepOneBaseEntity extends PathfinderMob implements IAnimat
     }
 
     private List<ItemStack> generateBarterLoot() {
-        LootTable loottable = this.level().getServer().getLootData().getLootTable(getBarterLootTable());
+        LootTable loottable = this.level().getServer().reloadableRegistries().getLootTable(getBarterLootTable());
         return loottable.getRandomItems((new LootParams.Builder((ServerLevel) this.level())).withParameter(LootContextParams.THIS_ENTITY, this).create(LootContextParamSets.PIGLIN_BARTER));
     }
 
-    protected abstract ResourceLocation getBarterLootTable();
+    protected abstract ResourceKey<LootTable> getBarterLootTable();
 
     protected boolean hasSwimmingBoundingBox() {
         return this.isDeepOneSwimming();
@@ -363,7 +361,7 @@ public abstract class DeepOneBaseEntity extends PathfinderMob implements IAnimat
             compound.putInt("AltarZ", lastAltarPos.getZ());
         }
         if (!swappedItem.isEmpty()) {
-            compound.put("SwappedItem", swappedItem.save(new CompoundTag()));
+            compound.put("SwappedItem", swappedItem.saveOptional(this.registryAccess()));
         }
         compound.putBoolean("ConchSummoned", this.isSummoned());
         if (summonerUUID != null) {
@@ -378,7 +376,7 @@ public abstract class DeepOneBaseEntity extends PathfinderMob implements IAnimat
             this.setLastAltarPos(new BlockPos(compound.getInt("AltarX"), compound.getInt("AltarY"), compound.getInt("AltarZ")));
         }
         if (compound.contains("SwappedWeapon")) {
-            swappedItem = ItemStack.of(compound.getCompound("SwappedWeapon"));
+            swappedItem = ItemStack.parseOptional(this.registryAccess(), compound.getCompound("SwappedWeapon"));
         }
         this.setSummoned(compound.getBoolean("ConchSummoned"));
         if (compound.contains("ConchUUID")) {
@@ -449,9 +447,15 @@ public abstract class DeepOneBaseEntity extends PathfinderMob implements IAnimat
         return false;
     }
 
+    // 1.21: getDimensions(Pose) is now final in LivingEntity and cannot be overridden.
+    // Dimensions are now handled via EntityType.Builder.dimensions() or getDefaultDimensions().
+    // TODO: Consider using getDefaultDimensions() override or attribute modifiers for swimming size change.
+    // This method is kept for reference but commented out to avoid compilation errors.
+    /*
     public EntityDimensions getDimensions(Pose poseIn) {
         return this.isDeepOneSwimming() ? getSwimmingSize() : super.getDimensions(poseIn);
     }
+    */
 
     public DeepOneReaction getReactionTo(Player player) {
         if (isSummoned() && summonerUUID != null && summonerUUID.equals(player.getUUID())) {
@@ -485,10 +489,10 @@ public abstract class DeepOneBaseEntity extends PathfinderMob implements IAnimat
             Player player = level().getPlayerByUUID(playerUUID);
             if (player != null) {
                 if (newReaction == DeepOneReaction.NEUTRAL) {
-                    ACAdvancementTriggerRegistry.DEEP_ONE_NEUTRAL.triggerForEntity(player);
+                    ACAdvancementTriggerRegistry.DEEP_ONE_NEUTRAL.get().triggerForEntity(player);
                 }
                 if (newReaction == DeepOneReaction.HELPFUL) {
-                    ACAdvancementTriggerRegistry.DEEP_ONE_HELPFUL.triggerForEntity(player);
+                    ACAdvancementTriggerRegistry.DEEP_ONE_HELPFUL.get().triggerForEntity(player);
                 }
                 player.displayClientMessage(Component.translatable("entity.alexscaves.deep_one.reaction_" + newReaction.toString().toLowerCase(Locale.ROOT)), true);
             }

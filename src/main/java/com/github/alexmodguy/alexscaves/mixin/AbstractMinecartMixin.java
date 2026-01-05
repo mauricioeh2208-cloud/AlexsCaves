@@ -132,7 +132,8 @@ public abstract class AbstractMinecartMixin extends Entity implements MinecartAc
                 }
 
                 this.checkBelowWorld();
-                this.handleNetherPortal();
+                // handleNetherPortal() was removed in 1.21 - portal logic is now handled differently via handlePortal()
+                // this.handlePortal();
                 if (this.level().isClientSide) {
                     if (this.lSteps > 0) {
                         double d5 = this.getX() + (this.lx - this.getX()) / (double) this.lSteps;

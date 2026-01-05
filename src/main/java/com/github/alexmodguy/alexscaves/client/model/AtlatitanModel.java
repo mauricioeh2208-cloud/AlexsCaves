@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.client.model;
 
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexmodguy.alexscaves.server.entity.living.AtlatitanEntity;
 import com.github.alexthe666.citadel.client.model.AdvancedModelBox;
 import com.google.common.collect.ImmutableList;
@@ -107,6 +108,7 @@ public class AtlatitanModel extends SauropodBaseModel<AtlatitanEntity> {
     }
 
     public void renderToBuffer(PoseStack matrixStackIn, VertexConsumer bufferIn, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
+        int color = ColorUtil.packColor(red, green, blue, alpha);
         if (this.young) {
             float f = 2F;
             head.setScale(f, f, f);
@@ -116,7 +118,7 @@ public class AtlatitanModel extends SauropodBaseModel<AtlatitanEntity> {
             matrixStackIn.scale(0.15F, 0.15F, 0.15F);
             matrixStackIn.translate(0.0D, 8.55F, 0D);
             parts().forEach((p_228292_8_) -> {
-                p_228292_8_.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
+                p_228292_8_.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, color);
             });
             matrixStackIn.popPose();
             head.setRotationPoint(0.8F, 8.0F, -75.0F);
@@ -124,7 +126,7 @@ public class AtlatitanModel extends SauropodBaseModel<AtlatitanEntity> {
         } else {
             matrixStackIn.pushPose();
             parts().forEach((p_228290_8_) -> {
-                p_228290_8_.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
+                p_228290_8_.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, color);
             });
             matrixStackIn.popPose();
         }

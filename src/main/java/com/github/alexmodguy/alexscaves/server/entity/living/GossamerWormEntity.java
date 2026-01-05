@@ -1,6 +1,8 @@
 package com.github.alexmodguy.alexscaves.server.entity.living;
 
 import com.github.alexmodguy.alexscaves.server.entity.ai.AnimalRandomlySwimGoal;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.CustomData;
 import com.github.alexmodguy.alexscaves.server.entity.ai.VerticalSwimmingMoveControl;
 import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
@@ -33,9 +35,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.entity.PartEntity;
+import net.neoforged.neoforge.entity.PartEntity;
 
 import javax.annotation.Nonnull;
 import java.util.EnumSet;
@@ -70,15 +72,15 @@ public class GossamerWormEntity extends WaterAnimal implements Bucketable {
         tail5Part = new GossamerWormPartEntity(this, tail4Part, 0.6F, 0.5F);
         allParts = new GossamerWormPartEntity[]{tail1Part, tail2Part, tail3Part, tail4Part, tail5Part};
         this.moveControl = new VerticalSwimmingMoveControl(this, 0.8F, 4);
-        this.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
+        this.setPathfindingMalus(PathType.WATER, 0.0F);
         this.fakeYRot = getYRot();
     }
 
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(FROM_BUCKET, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(FROM_BUCKET, false);
     }
 
     protected void registerGoals() {
@@ -91,7 +93,7 @@ public class GossamerWormEntity extends WaterAnimal implements Bucketable {
     }
 
     protected float getStandingEyeHeight(Pose pose, EntityDimensions dimensions) {
-        return 0.5F * dimensions.height;
+        return 0.5F * dimensions.height();
     }
 
 
@@ -247,11 +249,11 @@ public class GossamerWormEntity extends WaterAnimal implements Bucketable {
     }
 
     @javax.annotation.Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor worldIn, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn, @javax.annotation.Nullable CompoundTag dataTag) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor worldIn, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn) {
         if (reason == MobSpawnType.NATURAL) {
             doInitialPosing(worldIn);
         }
-        return super.finalizeSpawn(worldIn, difficultyIn, reason, spawnDataIn, dataTag);
+        return super.finalizeSpawn(worldIn, difficultyIn, reason, spawnDataIn);
     }
 
     public int getMaxSpawnClusterSize() {
@@ -282,12 +284,13 @@ public class GossamerWormEntity extends WaterAnimal implements Bucketable {
     @Override
     public void saveToBucketTag(@Nonnull ItemStack bucket) {
         if (this.hasCustomName()) {
-            bucket.setHoverName(this.getCustomName());
+            bucket.set(DataComponents.CUSTOM_NAME, this.getCustomName());
         }
         CompoundTag platTag = new CompoundTag();
         this.addAdditionalSaveData(platTag);
-        CompoundTag compound = bucket.getOrCreateTag();
+        CompoundTag compound = bucket.getOrDefault(DataComponents.BUCKET_ENTITY_DATA, CustomData.EMPTY).copyTag();
         compound.put("FishBucketTag", platTag);
+        bucket.set(DataComponents.BUCKET_ENTITY_DATA, CustomData.of(compound));
     }
 
 

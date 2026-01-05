@@ -11,6 +11,7 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 
 public class NuclearFurnaceMenu extends AbstractContainerMenu {
@@ -103,7 +104,7 @@ public class NuclearFurnaceMenu extends AbstractContainerMenu {
     }
 
     private boolean canSmelt(ItemStack stack) {
-        return this.level.getRecipeManager().getRecipeFor(NuclearFurnaceBlockEntity.getRecipeType(), new SimpleContainer(stack), this.level).isPresent();
+        return this.level.getRecipeManager().getRecipeFor(NuclearFurnaceBlockEntity.getRecipeType(), new SingleRecipeInput(stack), this.level).isPresent();
     }
 
     private boolean isFuel(ItemStack stack) {

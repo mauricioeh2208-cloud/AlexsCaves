@@ -25,8 +25,8 @@ public class DarknessIncarnateEffect extends MobEffect {
     }
 
 
-    public void applyEffectTick(LivingEntity entity, int amplifier) {
-        super.applyEffectTick(entity, amplifier);
+    @Override
+    public boolean applyEffectTick(LivingEntity entity, int amplifier) {
         toggleFlight(entity, true);
         if (entity.onGround()) {
             entity.setDeltaMovement(entity.getDeltaMovement().add(0, 0.1, 0));
@@ -34,31 +34,31 @@ public class DarknessIncarnateEffect extends MobEffect {
         if ((entity.tickCount + entity.getId() * 5) % 50 == 0 && entity.getRandom().nextInt(2) == 0) {
             entity.playSound(ACSoundRegistry.DARKNESS_INCARNATE_IDLE.get());
         }
+        return true;
     }
 
     public List<ItemStack> getCurativeItems() {
         return List.of();
     }
 
-    public void removeAttributeModifiers(LivingEntity living, AttributeMap attributeMap, int i) {
+    public void onEffectStarted(LivingEntity entity, int i) {
         lastDuration = -1;
         firstDuration = -1;
-        super.removeAttributeModifiers(living, attributeMap, i);
-        toggleFlight(living, false);
     }
 
     public int getActiveTime() {
         return firstDuration - lastDuration;
     }
 
-
-    public void addAttributeModifiers(LivingEntity entity, AttributeMap map, int i) {
+    @Override
+    public void removeAttributeModifiers(AttributeMap attributeMap) {
         lastDuration = -1;
         firstDuration = -1;
-        super.addAttributeModifiers(entity, map, i);
+        super.removeAttributeModifiers(attributeMap);
     }
 
-    public boolean isDurationEffectTick(int duration, int amplifier) {
+    @Override
+    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
         lastDuration = duration;
         if (duration <= 0) {
             lastDuration = -1;
@@ -100,13 +100,13 @@ public class DarknessIncarnateEffect extends MobEffect {
     }
 
     public static float getIntensity(LivingEntity player, float partialTicks, float scaleBy) {
-        MobEffectInstance instance = player.getEffect(ACEffectRegistry.DARKNESS_INCARNATE.get());
+        MobEffectInstance instance = player.getEffect(ACEffectRegistry.DARKNESS_INCARNATE);
         if (instance == null) {
             return 0.0F;
         } else if (instance.isInfiniteDuration()) {
             return scaleBy;
         } else {
-            DarknessIncarnateEffect effect = (DarknessIncarnateEffect) instance.getEffect();
+            DarknessIncarnateEffect effect = (DarknessIncarnateEffect) instance.getEffect().value();
             float j = effect.getActiveTime() + partialTicks;
             int duration = instance.getDuration();
             return Math.min(scaleBy, (Math.min(j, duration + partialTicks))) / scaleBy;

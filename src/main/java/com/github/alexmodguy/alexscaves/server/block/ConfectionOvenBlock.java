@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.ACBlockEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.ConfectionOvenBlockEntity;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.SirenLightBlockEntity;
@@ -31,6 +32,11 @@ public class ConfectionOvenBlock extends BaseEntityBlock {
     public ConfectionOvenBlock() {
         super(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_BROWN).strength(1.5F).lightLevel(blockState -> blockState.getValue(COOKSTATE) == 1 ? 10 : 0));
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(POWERED, Boolean.valueOf(false)).setValue(COOKSTATE, 0));
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return MapCodec.unit(this);
     }
 
     public static Vec3 getDispensePosition(BlockPos coords, Direction dir) {

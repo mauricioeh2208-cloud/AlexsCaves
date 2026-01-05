@@ -72,7 +72,7 @@ public class SeaPigRenderer extends MobRenderer<SeaPigEntity, SeaPigModel> imple
 
             }
             VertexConsumer ivertexbuilder1 = bufferIn.getBuffer(SeaPigRenderer.this.sepia ? ACRenderTypes.getBookWidget(TEXTURE, true) : RenderType.entityTranslucent(TEXTURE));
-            this.getParentModel().renderToBuffer(matrixStackIn, ivertexbuilder1, packedLightIn, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), 1.0F, 1.0F, 1.0F, 1.0F);
+            this.getParentModel().renderToBuffer(matrixStackIn, ivertexbuilder1, packedLightIn, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), -1);
         }
     }
 

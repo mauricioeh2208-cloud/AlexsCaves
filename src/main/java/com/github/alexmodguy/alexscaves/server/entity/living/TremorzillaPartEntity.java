@@ -13,12 +13,13 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.entity.PartEntity;
+import net.neoforged.neoforge.entity.PartEntity;
 
 public class TremorzillaPartEntity extends PartEntity<TremorzillaEntity> {
 
@@ -59,7 +60,8 @@ public class TremorzillaPartEntity extends PartEntity<TremorzillaEntity> {
     }
 
     public boolean isInvulnerableTo(DamageSource damageSource) {
-        return super.isInvulnerableTo(damageSource) || damageSource.is(ACDamageTypes.ACID) || damageSource.getEntity() != null && this.getParent().isPassengerOfSameVehicle(damageSource.getEntity());
+        TremorzillaEntity parent = this.getParent();
+        return super.isInvulnerableTo(damageSource) || damageSource.is(ACDamageTypes.ACID) || (damageSource.getEntity() != null && parent != null && parent.isPassengerOfSameVehicle(damageSource.getEntity()));
     }
 
     @Override
@@ -100,13 +102,12 @@ public class TremorzillaPartEntity extends PartEntity<TremorzillaEntity> {
         return this == entityIn || this.getParent() == entityIn;
     }
 
-    @Override
     public Packet<ClientGamePacketListener> getAddEntityPacket() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected void defineSynchedData() {
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
 
     }
 

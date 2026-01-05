@@ -5,6 +5,7 @@ import com.github.alexmodguy.alexscaves.client.particle.ACParticleRegistry;
 import com.github.alexmodguy.alexscaves.server.block.ACBlockRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -13,14 +14,15 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.minecraftforge.common.SoundActions;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidType;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.common.SoundActions;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidType;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
@@ -59,7 +61,8 @@ public class AcidFluidType extends FluidType {
         double d9 = entity.getY();
         float f4 = 0.8F;
         float f5 = 0.02F;
-        float f6 = (float) EnchantmentHelper.getDepthStrider(entity);
+        var depthStrider = entity.level().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.DEPTH_STRIDER);
+        float f6 = (float) EnchantmentHelper.getEnchantmentLevel(depthStrider, entity);
         double d0 = 0.08D;
         boolean flag = entity.getDeltaMovement().y <= 0.0D;
         if (f6 > 3.0F) {
@@ -79,7 +82,7 @@ public class AcidFluidType extends FluidType {
             f4 = 0.96F;
         }
 
-        f5 *= (float) entity.getAttribute(net.minecraftforge.common.ForgeMod.SWIM_SPEED.get()).getValue();
+        f5 *= (float) entity.getAttribute(net.neoforged.neoforge.common.NeoForgeMod.SWIM_SPEED).getValue();
         entity.moveRelative(f5, movementVector);
         entity.move(MoverType.SELF, entity.getDeltaMovement());
         Vec3 vec36 = entity.getDeltaMovement();

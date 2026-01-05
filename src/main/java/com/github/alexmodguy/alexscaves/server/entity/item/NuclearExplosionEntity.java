@@ -13,8 +13,6 @@ import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
 import com.github.alexmodguy.alexscaves.server.potion.ACEffectRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -31,15 +29,16 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.world.ForgeChunkManager;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
+import net.neoforged.neoforge.common.world.chunk.TicketController;
 
 import java.util.List;
 import java.util.Stack;
 
 public class NuclearExplosionEntity extends Entity {
+
+    private static final TicketController TICKET_CONTROLLER = new TicketController(ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "nuclear_explosion"));
 
     private boolean spawnedParticle = false;
     private Stack<BlockPos> destroyingChunks = new Stack<>();
@@ -52,16 +51,6 @@ public class NuclearExplosionEntity extends Entity {
 
     public NuclearExplosionEntity(EntityType<?> entityType, Level level) {
         super(entityType, level);
-    }
-
-    public NuclearExplosionEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.NUCLEAR_EXPLOSION.get(), level);
-        this.setBoundingBox(this.makeBoundingBox());
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
     }
 
     public void tick() {
@@ -127,7 +116,7 @@ public class NuclearExplosionEntity extends Entity {
                 }
                 entity.setDeltaMovement(vec3.scale(damage * 0.1F * playerFling));
                 if(!this.isIntentionalGameDesign()){
-                    entity.addEffect(new MobEffectInstance(ACEffectRegistry.IRRADIATED.get(), 48000, getSize() <= 1.5F ? 1 : 2, false, false, true));
+                    entity.addEffect(new MobEffectInstance(ACEffectRegistry.IRRADIATED, 48000, getSize() <= 1.5F ? 1 : 2, false, false, true));
                 }
             }
         }
@@ -153,7 +142,7 @@ public class NuclearExplosionEntity extends Entity {
             int dist = Math.max(getChunksAffected(), serverLevel.getServer().getPlayerList().getViewDistance() / 2);
             for (int i = -dist; i <= dist; i++) {
                 for (int j = -dist; j <= dist; j++) {
-                    ForgeChunkManager.forceChunk(serverLevel, AlexsCaves.MODID, this, chunkPos.x + i, chunkPos.z + j, load, load);
+                    TICKET_CONTROLLER.forceChunk(serverLevel, this, chunkPos.x + i, chunkPos.z + j, load, load);
                 }
             }
         }
@@ -176,7 +165,7 @@ public class NuclearExplosionEntity extends Entity {
             return;
         }
         if (dummyExplosion == null) {
-            dummyExplosion = new Explosion(level(), null, this.getX(), this.getY(), this.getZ(), 10.0F, List.of());
+            dummyExplosion = new Explosion(level(), null, this.getX(), this.getY(), this.getZ(), 10.0F, false, Explosion.BlockInteraction.KEEP);
         }
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
@@ -214,10 +203,10 @@ public class NuclearExplosionEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(SIZE, 1.0F);
-        this.entityData.define(NO_GRIEFING, false);
-        this.entityData.define(INTENTIONAL_GAME_DESIGN, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(SIZE, 1.0F);
+        builder.define(NO_GRIEFING, false);
+        builder.define(INTENTIONAL_GAME_DESIGN, false);
     }
 
     public float getSize() {

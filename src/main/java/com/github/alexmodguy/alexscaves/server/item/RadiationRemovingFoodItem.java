@@ -22,10 +22,10 @@ public class RadiationRemovingFoodItem extends Item {
     }
 
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity livingEntity) {
-        MobEffectInstance mobEffectInstance = livingEntity.getEffect(ACEffectRegistry.IRRADIATED.get());
+        MobEffectInstance mobEffectInstance = livingEntity.getEffect(ACEffectRegistry.IRRADIATED);
         FoodProperties foodProperties = this.getFoodProperties(stack, livingEntity);
         if (mobEffectInstance != null && foodProperties != null) {
-            float f = Math.min(livingEntity.getMaxHealth(), livingEntity.getHealth() + (float) Math.ceil(foodProperties.getNutrition() * 1.5F + 1));
+            float f = Math.min(livingEntity.getMaxHealth(), livingEntity.getHealth() + (float) Math.ceil(foodProperties.nutrition() * 1.5F + 1));
             livingEntity.setHealth(f);
         }
         return super.finishUsingItem(stack, level, livingEntity);

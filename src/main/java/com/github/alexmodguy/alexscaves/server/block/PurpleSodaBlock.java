@@ -18,14 +18,15 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 public class PurpleSodaBlock extends LiquidBlock {
 
-    public PurpleSodaBlock(RegistryObject<FlowingFluid> flowingFluid, BlockBehaviour.Properties properties) {
-        super(flowingFluid, properties);
+    public PurpleSodaBlock(DeferredHolder<Fluid, FlowingFluid> flowingFluid, BlockBehaviour.Properties properties) {
+        super(flowingFluid.get(), properties);
     }
 
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource randomSource) {
@@ -42,11 +43,13 @@ public class PurpleSodaBlock extends LiquidBlock {
     @Override
     public void entityInside(BlockState blockState, Level level, BlockPos pos, Entity entity) {
         entity.fallDistance = 0.0F;
-        if (entity instanceof LivingEntity && entity.moveDist > entity.nextStep && !(entity instanceof SweetishFishEntity)) {
-            entity.nextStep = entity.moveDist + 1F;
+        // TODO: nextStep is private in 1.21, need different approach for movement sound
+        if (entity instanceof LivingEntity living && !(entity instanceof SweetishFishEntity)) {
             Vec3 vec3 = entity.getDeltaMovement();
             float f1 = Math.min(1.0F, (float) vec3.length());
-            entity.playSound(ACSoundRegistry.PURPLE_SODA_SWIM.get(), f1, 1.0F + (level.random.nextFloat() - level.random.nextFloat()) * 0.4F);
+            if (f1 > 0.1F) {
+                entity.playSound(ACSoundRegistry.PURPLE_SODA_SWIM.get(), f1, 1.0F + (level.random.nextFloat() - level.random.nextFloat()) * 0.4F);
+            }
         }
     }
 

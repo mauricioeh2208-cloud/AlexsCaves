@@ -4,6 +4,7 @@ import com.github.alexmodguy.alexscaves.server.entity.ACEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.item.NuclearExplosionEntity;
 import com.github.alexmodguy.alexscaves.server.item.tooltip.SackOfSatingTooltip;
 import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -16,9 +17,9 @@ import net.minecraft.world.inventory.ClickAction;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
-import org.checkerframework.checker.units.qual.C;
 
 import java.util.Optional;
 
@@ -29,43 +30,47 @@ public class SackOfSatingItem extends Item {
     }
 
     public static int getHunger(ItemStack itemStack) {
-        CompoundTag compoundtag = itemStack.getTag();
-        return compoundtag != null ? compoundtag.getInt("HungerValue") : 0;
+        CompoundTag compoundtag = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return compoundtag.getInt("HungerValue");
     }
 
     public static boolean isChewing(ItemStack itemStack, long gameTimeIn) {
-        CompoundTag compoundtag = itemStack.getTag();
-        return compoundtag != null && compoundtag.contains("ChewTimestamp") && gameTimeIn - compoundtag.getLong("ChewTimestamp") < 30;
+        CompoundTag compoundtag = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return compoundtag.contains("ChewTimestamp") && gameTimeIn - compoundtag.getLong("ChewTimestamp") < 30;
     }
 
     public static boolean isExploding(ItemStack itemStack) {
-        CompoundTag compoundtag = itemStack.getTag();
-        return compoundtag != null && compoundtag.getBoolean("Exploding");
+        CompoundTag compoundtag = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return compoundtag.getBoolean("Exploding");
     }
 
     public static long getFeedTimestamp(ItemStack itemStack) {
-        CompoundTag compoundtag = itemStack.getTag();
-        return compoundtag != null && compoundtag.contains("FeedTimestamp") ?  compoundtag.getLong("FeedTimestamp") : -1;
+        CompoundTag compoundtag = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return compoundtag.contains("FeedTimestamp") ? compoundtag.getLong("FeedTimestamp") : -1;
     }
 
     public static void setHunger(ItemStack stack, int hunger) {
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         tag.putInt("HungerValue", hunger);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
     public static void setChewTimestamp(ItemStack stack, long timestamp) {
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         tag.putLong("ChewTimestamp", timestamp);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
     public static void setFeedTimestamp(ItemStack stack, long timestamp) {
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         tag.putLong("FeedTimestamp", timestamp);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
     public static void setExploding(ItemStack stack, boolean exploding) {
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         tag.putBoolean("Exploding", exploding);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
 
@@ -76,19 +81,19 @@ public class SackOfSatingItem extends Item {
 
     @Override
     public boolean overrideOtherStackedOnMe(ItemStack sackStack, ItemStack foodStack, Slot slot, ClickAction clickAction, Player player, SlotAccess slotAccess) {
-        if (clickAction != ClickAction.SECONDARY || sackStack.getTag() == null || foodStack.is(ACTagRegistry.RESTRICTED_FROM_SACK_OF_SATING)) {
+        if (clickAction != ClickAction.SECONDARY || foodStack.is(ACTagRegistry.RESTRICTED_FROM_SACK_OF_SATING)) {
             return false;
         } else {
-            if (!foodStack.isEmpty() && foodStack.getItem().isEdible()) {
+            if (!foodStack.isEmpty() && foodStack.has(DataComponents.FOOD)) {
                 if(foodStack.is(ACTagRegistry.EXPLODES_SACK_OF_SATING)){
                     setExploding(sackStack, true);
                 }
                 int wholeHunger = calculateWholeStackHungerValue(foodStack, player);
                 setHunger(sackStack, getHunger(sackStack) + wholeHunger);
-                if(foodStack.getItem() instanceof BowlFoodItem){
-                    ItemStack bowlStack = new ItemStack(Items.BOWL, foodStack.getCount());
-                    if(!player.addItem(bowlStack)){
-                        player.drop(bowlStack, false);
+                ItemStack containerItem = foodStack.getItem().getCraftingRemainingItem() != null ? new ItemStack(foodStack.getItem().getCraftingRemainingItem(), foodStack.getCount()) : ItemStack.EMPTY;
+                if(!containerItem.isEmpty() && containerItem.is(Items.BOWL)){
+                    if(!player.addItem(containerItem)){
+                        player.drop(containerItem, false);
                     }
                 }
                 if(foodStack.getItem() instanceof HoneyBottleItem || foodStack.getItem() instanceof DrinkableBottledItem){
@@ -107,9 +112,6 @@ public class SackOfSatingItem extends Item {
 
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int i, boolean held) {
         super.inventoryTick(stack, level, entity, i, held);
-        if(stack.getTag() == null){
-            stack.setTag(new CompoundTag());
-        }
         int hungerValue = getHunger(stack);
         long timestamp = getFeedTimestamp(stack);
         if(!level.isClientSide && hungerValue > 0 && entity instanceof Player player && !player.getAbilities().invulnerable && player.tickCount % 100 == 0 && player.canEat(false) && (timestamp == -1 || player.level().getGameTime() - timestamp > 40)){
@@ -138,7 +140,7 @@ public class SackOfSatingItem extends Item {
      public static int calculateWholeStackHungerValue(ItemStack foodStack, LivingEntity eater){
         FoodProperties foodProperties = foodStack.getFoodProperties(eater);
         if(foodProperties != null && !foodStack.is(ACTagRegistry.RESTRICTED_FROM_SACK_OF_SATING)){
-            return foodProperties.getNutrition() * foodStack.getCount();
+            return foodProperties.nutrition() * foodStack.getCount();
         }
         return 0;
     }

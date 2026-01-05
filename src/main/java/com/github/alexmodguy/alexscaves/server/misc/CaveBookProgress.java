@@ -11,6 +11,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.biome.Biome;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -45,9 +46,9 @@ public class CaveBookProgress {
         tag.put(PLAYER_CAVE_BOOK_PROGRESS_TAG, savedTag);
         CitadelEntityData.setCitadelTag(player, tag);
         if (!player.level().isClientSide) {
-            Citadel.sendMSGToAll(new PropertiesMessage("CitadelTagUpdate", tag, player.getId()));
+            PacketDistributor.sendToPlayersTrackingEntityAndSelf(player, new PropertiesMessage("CitadelTagUpdate", tag, player.getId()));
         } else {
-            Citadel.sendMSGToServer(new PropertiesMessage("CitadelTagUpdate", tag, player.getId()));
+            PacketDistributor.sendToServer(new PropertiesMessage("CitadelTagUpdate", tag, player.getId()));
         }
     }
 

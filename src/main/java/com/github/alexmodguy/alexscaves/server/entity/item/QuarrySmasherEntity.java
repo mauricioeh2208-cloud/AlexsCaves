@@ -11,8 +11,6 @@ import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -29,9 +27,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.entity.PartEntity;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
+import net.neoforged.neoforge.entity.PartEntity;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -82,21 +78,12 @@ public class QuarrySmasherEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(QUARRY_POS, Optional.empty());
-        this.entityData.define(TARGET_POS, Optional.empty());
-        this.entityData.define(INACTIVE, true);
-        this.entityData.define(SLAMMING, false);
-        this.entityData.define(PULLING_ITEMS_FOR, 0);
-    }
-
-    public QuarrySmasherEntity(PlayMessages.SpawnEntity spawnEntity, Level world) {
-        this(ACEntityRegistry.QUARRY_SMASHER.get(), world);
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(QUARRY_POS, Optional.empty());
+        builder.define(TARGET_POS, Optional.empty());
+        builder.define(INACTIVE, true);
+        builder.define(SLAMMING, false);
+        builder.define(PULLING_ITEMS_FOR, 0);
     }
 
     @Override
@@ -141,7 +128,7 @@ public class QuarrySmasherEntity extends Entity {
             for (Player player : level().getEntitiesOfClass(Player.class, this.getBoundingBox().inflate(advancementRange))) {
                 if (player.distanceTo(this) < advancementRange) {
                     flag = true;
-                    ACAdvancementTriggerRegistry.FINISHED_QUARRY.triggerForEntity(player);
+                    ACAdvancementTriggerRegistry.FINISHED_QUARRY.get().triggerForEntity(player);
                 }
             }
             triggerAdvancement = !flag;
@@ -240,7 +227,6 @@ public class QuarrySmasherEntity extends Entity {
         }
     }
 
-    @Override
     public void lerpTo(double x, double y, double z, float yr, float xr, int steps, boolean b) {
         this.lx = x;
         this.ly = y;

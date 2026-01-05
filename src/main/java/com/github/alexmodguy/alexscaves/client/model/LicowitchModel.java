@@ -13,7 +13,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.model.ArmedModel;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.client.IArmPoseTransformer;
+import net.neoforged.neoforge.client.IArmPoseTransformer;
 
 public class LicowitchModel extends AdvancedEntityModel<LicowitchEntity> implements ArmedModel {
     

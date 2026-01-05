@@ -57,7 +57,9 @@ import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
@@ -143,14 +145,14 @@ public class LicowitchEntity extends Monster implements IAnimatedEntity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(CROSSED_ARMS, true);
-        this.entityData.define(POSSESSED_UUID_0, Optional.empty());
-        this.entityData.define(POSSESSED_UUID_1, Optional.empty());
-        this.entityData.define(POSSESSED_UUID_2, Optional.empty());
-        this.entityData.define(CRUCIBLE_POS, Optional.empty());
-        this.entityData.define(TELEPORTING_TO_POS, Optional.empty());
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(CROSSED_ARMS, true);
+        builder.define(POSSESSED_UUID_0, Optional.empty());
+        builder.define(POSSESSED_UUID_1, Optional.empty());
+        builder.define(POSSESSED_UUID_2, Optional.empty());
+        builder.define(CRUCIBLE_POS, Optional.empty());
+        builder.define(TELEPORTING_TO_POS, Optional.empty());
     }
 
     public float getArmsUncrossedProgress(float partialTicks) {

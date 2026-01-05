@@ -64,11 +64,11 @@ public class BrainiacEntity extends Monster implements IAnimatedEntity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(HAS_BARREL, true);
-        this.entityData.define(TONGUE_TARGET_ID, -1);
-        this.entityData.define(TONGUE_SHOOT_TICK, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(HAS_BARREL, true);
+        builder.define(TONGUE_TARGET_ID, -1);
+        builder.define(TONGUE_SHOOT_TICK, 0);
     }
 
     protected void registerGoals() {
@@ -169,10 +169,6 @@ public class BrainiacEntity extends Monster implements IAnimatedEntity {
         AnimationHandler.INSTANCE.updateAnimations(this);
     }
 
-    public MobType getMobType() {
-        return MobType.UNDEAD;
-    }
-
     @Override
     public int getAnimationTick() {
         return animationTick;
@@ -250,7 +246,7 @@ public class BrainiacEntity extends Monster implements IAnimatedEntity {
 
     public void postAttackEffect(LivingEntity entity) {
         if (entity != null && entity.isAlive()) {
-            entity.addEffect(new MobEffectInstance(ACEffectRegistry.IRRADIATED.get(), 400));
+            entity.addEffect(new MobEffectInstance(ACEffectRegistry.IRRADIATED, 400));
         }
     }
 

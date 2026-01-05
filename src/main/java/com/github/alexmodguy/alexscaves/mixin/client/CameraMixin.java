@@ -53,7 +53,7 @@ public abstract class CameraMixin {
                 if (mirrored) {
                     this.setRotation(this.yRot + 180.0F, -this.xRot);
                 }
-                this.move(-this.getMaxZoom(4.0D), 0.0D, 0.0D);
+                this.move(-this.getMaxZoom( /* TODO: getMaxZoom() is private in 1.21 - use reflection */ 4.0D), 0.0D, 0.0D);
             }
         }
     }
@@ -65,7 +65,7 @@ public abstract class CameraMixin {
             at = @At(value = "HEAD")
     )
     public void ac_getFluidInCamera(CallbackInfoReturnable<FogType> cir) {
-        if (initialized && Minecraft.getInstance().player != null && Minecraft.getInstance().player.hasEffect(ACEffectRegistry.BUBBLED.get()) && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
+        if (initialized && Minecraft.getInstance().player != null && Minecraft.getInstance().player.hasEffect(ACEffectRegistry.BUBBLED) && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
             cir.setReturnValue(FogType.WATER);
         }
     }

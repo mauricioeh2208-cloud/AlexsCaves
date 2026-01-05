@@ -2,7 +2,7 @@ package com.github.alexmodguy.alexscaves.server.level.structure;
 
 import com.github.alexmodguy.alexscaves.server.level.biome.ACBiomeRegistry;
 import com.github.alexmodguy.alexscaves.server.level.structure.piece.OceanTrenchStructurePiece;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.levelgen.RandomState;
@@ -16,7 +16,7 @@ public class OceanTrenchStructure extends AbstractCaveGenerationStructure {
 
     private static final int BOWL_WIDTH_RADIUS = 150;
 
-    public static final Codec<OceanTrenchStructure> CODEC = simpleCodec((settings) -> new OceanTrenchStructure(settings));
+    public static final MapCodec<OceanTrenchStructure> CODEC = simpleCodec((settings) -> new OceanTrenchStructure(settings));
 
     public OceanTrenchStructure(StructureSettings settings) {
         super(settings, ACBiomeRegistry.ABYSSAL_CHASM);

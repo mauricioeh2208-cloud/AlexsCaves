@@ -6,8 +6,6 @@ import com.github.alexmodguy.alexscaves.server.entity.util.FrostmintFreezableAcc
 import com.github.alexmodguy.alexscaves.server.entity.util.TephraExplosion;
 import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -25,8 +23,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -41,31 +37,22 @@ public class FrostmintSpearEntity extends AbstractArrow {
     }
 
     public FrostmintSpearEntity(Level level, LivingEntity shooter, ItemStack itemStack) {
-        super(ACEntityRegistry.FROSTMINT_SPEAR.get(), shooter, level);
+        super(ACEntityRegistry.FROSTMINT_SPEAR.get(), shooter, level, new ItemStack(ACItemRegistry.FROSTMINT_SPEAR.get()), ItemStack.EMPTY);
     }
 
     public FrostmintSpearEntity(Level level, double x, double y, double z) {
-        super(ACEntityRegistry.FROSTMINT_SPEAR.get(), x, y, z, level);
-    }
-
-    public FrostmintSpearEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.FROSTMINT_SPEAR.get(), level);
-        this.setBoundingBox(this.makeBoundingBox());
+        super(ACEntityRegistry.FROSTMINT_SPEAR.get(), x, y, z, level, new ItemStack(ACItemRegistry.FROSTMINT_SPEAR.get()), ItemStack.EMPTY);
     }
 
     @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
-    }
-
-    protected ItemStack getPickupItem() {
+    protected ItemStack getDefaultPickupItem() {
         return new ItemStack(ACItemRegistry.FROSTMINT_SPEAR.get());
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(OWNER_ID, -1);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(OWNER_ID, -1);
     }
 
     @Nullable
@@ -94,9 +81,10 @@ public class FrostmintSpearEntity extends AbstractArrow {
     protected void onHitEntity(EntityHitResult hitResult) {
         Entity entity = hitResult.getEntity();
         float f = 6.0F;
-        if (entity instanceof LivingEntity livingentity) {
-            f += EnchantmentHelper.getDamageBonus(this.getPickupItem(), livingentity.getMobType());
-        }
+        // TODO 1.21: getDamageBonus and getMobType removed - use new data-driven enchantment system
+        // if (entity instanceof LivingEntity livingentity) {
+        //     f += EnchantmentHelper.getDamageBonus(this.getDefaultPickupItem(), livingentity.getMobType());
+        // }
 
         Entity entity1 = this.getOwner();
         DamageSource damagesource = this.damageSources().trident(this, (Entity) (entity1 == null ? this : entity1));
@@ -108,10 +96,11 @@ public class FrostmintSpearEntity extends AbstractArrow {
             }
 
             if (entity instanceof LivingEntity livingentity1) {
-                if (entity1 instanceof LivingEntity) {
-                    EnchantmentHelper.doPostHurtEffects(livingentity1, entity1);
-                    EnchantmentHelper.doPostDamageEffects((LivingEntity) entity1, livingentity1);
-                }
+                // TODO 1.21: doPostHurtEffects and doPostDamageEffects removed
+                // if (entity1 instanceof LivingEntity) {
+                //     EnchantmentHelper.doPostHurtEffects(livingentity1, entity1);
+                //     EnchantmentHelper.doPostDamageEffects((LivingEntity) entity1, livingentity1);
+                // }
 
                 this.doPostHurtEffects(livingentity1);
             }

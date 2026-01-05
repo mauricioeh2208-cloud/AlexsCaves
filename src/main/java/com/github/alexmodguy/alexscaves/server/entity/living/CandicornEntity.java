@@ -125,17 +125,17 @@ public class CandicornEntity extends TamableAnimal implements KeybindUsingMount,
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(RUNNING, false);
-        this.entityData.define(LEAPING, false);
-        this.entityData.define(CHARGING, false);
-        this.entityData.define(SADDLED, false);
-        this.entityData.define(COMMAND, 0);
-        this.entityData.define(VARIANT, 0);
-        this.entityData.define(CHARGE_YAW, 0F);
-        this.entityData.define(METER_AMOUNT, 1.0F);
-        this.entityData.define(POSSESSOR_LICOWITCH_ID, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(RUNNING, false);
+        builder.define(LEAPING, false);
+        builder.define(CHARGING, false);
+        builder.define(SADDLED, false);
+        builder.define(COMMAND, 0);
+        builder.define(VARIANT, 0);
+        builder.define(CHARGE_YAW, 0F);
+        builder.define(METER_AMOUNT, 1.0F);
+        builder.define(POSSESSOR_LICOWITCH_ID, 0);
     }
 
     protected void registerGoals() {
@@ -240,7 +240,7 @@ public class CandicornEntity extends TamableAnimal implements KeybindUsingMount,
     }
 
     @Override
-    public void equipSaddle(@Nullable SoundSource soundSource) {
+    public void equipSaddle(ItemStack saddle, @Nullable SoundSource soundSource) {
         this.setSaddled(true);
         if (soundSource != null) {
             this.level().playSound((Player)null, this, SoundEvents.PIG_SADDLE, soundSource, 0.5F, 1.0F);
@@ -550,9 +550,7 @@ public class CandicornEntity extends TamableAnimal implements KeybindUsingMount,
         if (!interactionresult.consumesAction() && !type.consumesAction()) {
             if (itemstack.is(Items.SHEARS) && this.isSaddled() && isTame() && isOwnedBy(player)) {
                 this.gameEvent(GameEvent.SHEAR, player);
-                itemstack.hurtAndBreak(1, player, (player1) -> {
-                    player1.broadcastBreakEvent(hand);
-                });
+                itemstack.hurtAndBreak(1, player, hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
                 this.level().playSound((Player) null, this, SoundEvents.SHEEP_SHEAR, SoundSource.PLAYERS, 1.0F, 1.0F);
                 this.setSaddled(false);
                 this.spawnAtLocation(Items.SADDLE);
@@ -640,7 +638,7 @@ public class CandicornEntity extends TamableAnimal implements KeybindUsingMount,
 
     @Override
     public boolean causeFallDamage(float f1, float f2, DamageSource damageSource) {
-        float[] ret = net.minecraftforge.common.ForgeHooks.onLivingFall(this, f1, f2);
+        float[] ret = net.neoforged.neoforge.common.CommonHooks.onLivingFall(this, f1, f2);
         if (ret == null) return false;
         f1 = ret[0];
         f2 = ret[1];
@@ -658,7 +656,7 @@ public class CandicornEntity extends TamableAnimal implements KeybindUsingMount,
     }
 
     private boolean causeInternalFallDamage(float f1, float f2, DamageSource damageSource) {
-        float[] ret = net.minecraftforge.common.ForgeHooks.onLivingFall(this, f1, f2);
+        float[] ret = net.neoforged.neoforge.common.CommonHooks.onLivingFall(this, f1, f2);
         if (ret == null) return false;
         f1 = ret[0];
         f2 = ret[1];
@@ -781,12 +779,12 @@ public class CandicornEntity extends TamableAnimal implements KeybindUsingMount,
     }
 
     @javax.annotation.Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn, @javax.annotation.Nullable CompoundTag dataTag) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn) {
         if (spawnDataIn == null) {
             spawnDataIn = new AgeableMob.AgeableMobGroupData(0.2F);
         }
         this.setVariant(random.nextInt(5));
-        return super.finalizeSpawn(level, difficultyIn, reason, spawnDataIn, dataTag);
+        return super.finalizeSpawn(level, difficultyIn, reason, spawnDataIn);
     }
 
     @Override
@@ -839,4 +837,7 @@ public class CandicornEntity extends TamableAnimal implements KeybindUsingMount,
         }
     }
 
+    public double getPassengersRidingOffset() {
+        return this.getBbHeight() * 0.75D;
+    }
 }

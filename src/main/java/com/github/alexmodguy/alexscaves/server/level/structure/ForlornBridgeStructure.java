@@ -3,7 +3,7 @@ package com.github.alexmodguy.alexscaves.server.level.structure;
 import com.github.alexmodguy.alexscaves.server.level.biome.ACBiomeRegistry;
 import com.github.alexmodguy.alexscaves.server.level.structure.piece.ForlornBridgeStructurePiece;
 import com.github.alexmodguy.alexscaves.server.misc.ACMath;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -25,7 +25,7 @@ public class ForlornBridgeStructure extends Structure {
     public static int BRIDGE_SECTION_LENGTH = 6;
     public static int BRIDGE_SECTION_WIDTH = 4;
 
-    public static final Codec<ForlornBridgeStructure> CODEC = simpleCodec((settings) -> new ForlornBridgeStructure(settings));
+    public static final MapCodec<ForlornBridgeStructure> CODEC = simpleCodec((settings) -> new ForlornBridgeStructure(settings));
 
     protected ForlornBridgeStructure(StructureSettings settings) {
         super(settings);

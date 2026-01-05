@@ -7,6 +7,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.NbtUtils;
@@ -23,12 +24,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.world.ForgeChunkManager;
+import net.neoforged.neoforge.common.world.chunk.TicketController;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -42,8 +44,8 @@ public class RemoteDetonatorItem extends Item {
     }
 
     public static boolean isActive(ItemStack itemStack) {
-        CompoundTag compoundtag = itemStack.getTag();
-        return compoundtag != null && (compoundtag.contains("BombDimension") || compoundtag.contains("BombPos"));
+        CompoundTag compoundtag = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return compoundtag.contains("BombDimension") || compoundtag.contains("BombPos");
     }
 
     private static Optional<ResourceKey<Level>> getBombDimension(CompoundTag tag) {
@@ -57,8 +59,10 @@ public class RemoteDetonatorItem extends Item {
         if (flag && flag1) {
             Optional<ResourceKey<Level>> optional = getBombDimension(tag);
             if (optional.isPresent()) {
-                BlockPos blockpos = NbtUtils.readBlockPos(tag.getCompound("BombPos"));
-                return GlobalPos.of(optional.get(), blockpos);
+                Optional<BlockPos> blockposOpt = NbtUtils.readBlockPos(tag, "BombPos");
+                if (blockposOpt.isPresent()) {
+                    return GlobalPos.of(optional.get(), blockposOpt.get());
+                }
             }
         }
 
@@ -68,7 +72,7 @@ public class RemoteDetonatorItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
         if (isActive(itemstack)) {
-            CompoundTag tag = itemstack.getOrCreateTag();
+            CompoundTag tag = itemstack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
             GlobalPos globalPos = getBombPosition(tag);
             if(globalPos != null && globalPos.dimension() != null && !level.isClientSide && level instanceof ServerLevel serverLevel){
                 ServerLevel dimensionLevel = serverLevel.getServer().getLevel(globalPos.dimension());
@@ -78,11 +82,11 @@ public class RemoteDetonatorItem extends Item {
                     if(blockState.is(ACTagRegistry.REMOTE_DETONATOR_ACTIVATES)){
                         blockState.onCaughtFire(dimensionLevel, globalPos.pos(), Direction.UP, player);
                         if(player.distanceToSqr(globalPos.pos().getCenter()) > 1000){
-                            ACAdvancementTriggerRegistry.REMOTE_DETONATION.triggerForEntity(player);
+                            ACAdvancementTriggerRegistry.REMOTE_DETONATION.get().triggerForEntity(player);
                         }
                         tag.remove("BombDimension");
                         tag.remove("BombPos");
-                        itemstack.setTag(tag);
+                        itemstack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
                         level.setBlockAndUpdate(globalPos.pos(), Blocks.AIR.defaultBlockState());
                     }
                 }
@@ -97,7 +101,10 @@ public class RemoteDetonatorItem extends Item {
         ChunkPos chunkPos = new ChunkPos(center);
         for(int i = -1; i <= 1; i++){
             for(int j = -1; j <= 1; j++){
-                ForgeChunkManager.forceChunk(serverLevel, AlexsCaves.MODID, ticket, chunkPos.x + i, chunkPos.z + j, load, true);
+                // Create a TicketController for this operation
+                net.neoforged.neoforge.common.world.chunk.TicketController ticketController = new net.neoforged.neoforge.common.world.chunk.TicketController(
+                    net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "remote_detonator"));
+                ticketController.forceChunk(serverLevel, new BlockPos(chunkPos.x + i, 0, chunkPos.z + j), chunkPos.x + i, chunkPos.z + j, load, true);
             }
         }
     }
@@ -106,13 +113,15 @@ public class RemoteDetonatorItem extends Item {
     public void inventoryTick(ItemStack itemStack, Level level, Entity entity, int i, boolean b) {
         if (!level.isClientSide) {
             if (isActive(itemStack)) {
-                CompoundTag compoundtag = itemStack.getOrCreateTag();
+                CompoundTag compoundtag = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
                 if (compoundtag.contains("BombTracked") && !compoundtag.getBoolean("BombTracked")) {
                     return;
                 }
                 Optional<ResourceKey<Level>> optional = getBombDimension(compoundtag);
                 if (optional.isPresent() && optional.get() == level.dimension() && compoundtag.contains("BombPos")) {
-                    BlockPos blockpos = NbtUtils.readBlockPos(compoundtag.getCompound("BombPos"));
+                    Optional<BlockPos> blockposOpt = NbtUtils.readBlockPos(compoundtag, "BombPos");
+                    if (blockposOpt.isEmpty()) return;
+                    BlockPos blockpos = blockposOpt.get();
                     boolean flag = false;
                     if((entity.tickCount + entity.getId()) % 20 == 0){
                         if(level.isLoaded(blockpos) && !level.getBlockState(blockpos).is(ACTagRegistry.REMOTE_DETONATOR_ACTIVATES)){
@@ -122,6 +131,7 @@ public class RemoteDetonatorItem extends Item {
                     if (!level.isInWorldBounds(blockpos) || flag) {
                         compoundtag.remove("BombPos");
                         compoundtag.remove("BombDimension");
+                        itemStack.set(DataComponents.CUSTOM_DATA, CustomData.of(compoundtag));
                     }
                 }
             }
@@ -139,13 +149,15 @@ public class RemoteDetonatorItem extends Item {
             ItemStack itemstack = context.getItemInHand();
             boolean flag = !player.getAbilities().instabuild && itemstack.getCount() == 1;
             if (flag) {
-                this.addBombTags(level.dimension(), blockpos, itemstack.getOrCreateTag());
+                CompoundTag tag = itemstack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+                this.addBombTags(level.dimension(), blockpos, tag);
+                itemstack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
             } else {
                 ItemStack itemstack1 = new ItemStack(ACItemRegistry.REMOTE_DETONATOR.get(), 1);
-                CompoundTag compoundtag = itemstack.hasTag() ? itemstack.getTag().copy() : new CompoundTag();
-                itemstack1.setTag(compoundtag);
-                itemstack.shrink(1);
+                CompoundTag compoundtag = itemstack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
                 this.addBombTags(level.dimension(), blockpos, compoundtag);
+                itemstack1.set(DataComponents.CUSTOM_DATA, CustomData.of(compoundtag));
+                itemstack.shrink(1);
                 if (!player.getInventory().add(itemstack1)) {
                     player.drop(itemstack1, false);
                 }
@@ -164,15 +176,18 @@ public class RemoteDetonatorItem extends Item {
     }
 
 
-    public void appendHoverText(ItemStack stack, @Nullable Level worldIn, List<Component> tooltip, TooltipFlag flagIn) {
-        if (stack.getTag() != null && stack.getTag().contains("BombPos")) {
-            Optional<ResourceKey<Level>> optional = getBombDimension(stack.getTag());
-            BlockPos blockpos = NbtUtils.readBlockPos(stack.getTag().getCompound("BombPos"));
-            if (optional.isPresent() && blockpos != null) {
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        if (tag.contains("BombPos")) {
+            Optional<ResourceKey<Level>> optional = getBombDimension(tag);
+            Optional<BlockPos> blockposOpt = NbtUtils.readBlockPos(tag, "BombPos");
+            if (optional.isPresent() && blockposOpt.isPresent()) {
+                BlockPos blockpos = blockposOpt.get();
                 Component untranslated = Component.translatable("item.alexscaves.remote_detonator.desc", blockpos.getX(), blockpos.getY(), blockpos.getZ()).withStyle(ChatFormatting.GRAY);
                 tooltip.add(untranslated);
             }
         }
-        super.appendHoverText(stack, worldIn, tooltip, flagIn);
+        super.appendHoverText(stack, context, tooltip, flagIn);
     }
 }

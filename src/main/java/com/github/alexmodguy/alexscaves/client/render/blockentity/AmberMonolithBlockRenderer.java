@@ -1,6 +1,7 @@
 package com.github.alexmodguy.alexscaves.client.render.blockentity;
 
 import com.github.alexmodguy.alexscaves.client.model.SauropodBaseModel;
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.AmberMonolithBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -12,6 +13,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
@@ -21,7 +23,6 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.client.ForgeRenderTypes;
 
 public class AmberMonolithBlockRenderer<T extends AmberMonolithBlockEntity> implements BlockEntityRenderer<T> {
 
@@ -84,7 +85,7 @@ public class AmberMonolithBlockRenderer<T extends AmberMonolithBlockEntity> impl
                 entityIn.yRotO = 0;
                 if (render instanceof LivingEntityRenderer<?, ?> renderer && renderer.getModel() != null) {
                     EntityModel model = renderer.getModel();
-                    VertexConsumer ivertexbuilder = bufferIn.getBuffer(ForgeRenderTypes.getUnlitTranslucent(render.getTextureLocation(entityIn)));
+                    VertexConsumer ivertexbuilder = bufferIn.getBuffer(RenderType.entityTranslucent(render.getTextureLocation(entityIn)));
                     matrixStack.pushPose();
                     boolean shouldSit = entityIn.isPassenger() && (entityIn.getVehicle() != null && entityIn.getVehicle().shouldRiderSit());
                     model.young = living.isBaby();
@@ -104,7 +105,7 @@ public class AmberMonolithBlockRenderer<T extends AmberMonolithBlockEntity> impl
                         sauropodBaseModel.straighten = false;
                     }
                     matrixStack.scale(living.getScale(), -living.getScale(), living.getScale());
-                    model.renderToBuffer(matrixStack, ivertexbuilder, 240, OverlayTexture.NO_OVERLAY, 0.3F, 0.16F, 0.2F, transparency);
+                    model.renderToBuffer(matrixStack, ivertexbuilder, 240, OverlayTexture.NO_OVERLAY, ColorUtil.packColor(0.3F, 0.16F, 0.2F, transparency));
                     matrixStack.popPose();
                     if (model instanceof HumanoidModel<?> humanoidModel) {
                         humanoidModel.crouching = prevCrouching;

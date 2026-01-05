@@ -1,13 +1,10 @@
 package com.github.alexmodguy.alexscaves.server.item;
 
 import com.github.alexmodguy.alexscaves.client.particle.ACParticleRegistry;
-import com.google.common.collect.Lists;
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.ChatFormatting;
 import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ItemParticleOption;
-import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
@@ -19,19 +16,16 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffectUtil;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
 
-import javax.annotation.Nullable;
 import java.awt.*;
 import java.util.List;
-import java.util.Map;
 
 public class JellyBeanItem extends PotionItem {
 
@@ -40,15 +34,21 @@ public class JellyBeanItem extends PotionItem {
     }
 
     public static int getBeanColor(ItemStack stack) {
-        if (stack.getTag() != null && stack.getTag().getBoolean("Rainbow")) {
+        CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
+        if (customData.copyTag().getBoolean("Rainbow")) {
             float hue = (System.currentTimeMillis() % 4000) / 4000f;
             int rainbow = Color.HSBtoRGB(hue, 1f, 0.8f);
             return rainbow;
         }
-        return PotionUtils.getColor(stack);
+        PotionContents potionContents = stack.get(DataComponents.POTION_CONTENTS);
+        if (potionContents != null) {
+            return potionContents.getColor();
+        }
+        return -1;
     }
 
-    public int getUseDuration(ItemStack itemStack) {
+    @Override
+    public int getUseDuration(ItemStack itemStack, LivingEntity entity) {
         return 16;
     }
 
@@ -85,54 +85,25 @@ public class JellyBeanItem extends PotionItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack itemStack, @Nullable Level level, List<Component> tooltip, TooltipFlag flags) {
-        List<MobEffectInstance> effectInstanceList = PotionUtils.getMobEffects(itemStack);
-        List<Pair<Attribute, AttributeModifier>> list = Lists.newArrayList();
+    public void appendHoverText(ItemStack itemStack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flags) {
+        PotionContents potionContents = itemStack.get(DataComponents.POTION_CONTENTS);
+        if (potionContents == null) {
+            return;
+        }
 
-        for (MobEffectInstance mobeffectinstance : effectInstanceList) {
+        for (MobEffectInstance mobeffectinstance : potionContents.getAllEffects()) {
             MutableComponent mutablecomponent = Component.translatable(mobeffectinstance.getDescriptionId());
-            MobEffect mobeffect = mobeffectinstance.getEffect();
-            Map<Attribute, AttributeModifier> map = mobeffect.getAttributeModifiers();
-            if (!map.isEmpty()) {
-                for (Map.Entry<Attribute, AttributeModifier> entry : map.entrySet()) {
-                    AttributeModifier attributemodifier = entry.getValue();
-                    AttributeModifier attributemodifier1 = new AttributeModifier(attributemodifier.getName(), mobeffect.getAttributeModifierValue(mobeffectinstance.getAmplifier(), attributemodifier), attributemodifier.getOperation());
-                    list.add(new Pair<>(entry.getKey(), attributemodifier1));
-                }
-            }
+            MobEffect mobeffect = mobeffectinstance.getEffect().value();
 
             if (mobeffectinstance.getAmplifier() > 0) {
                 mutablecomponent = Component.translatable("potion.withAmplifier", mutablecomponent, Component.translatable("potion.potency." + mobeffectinstance.getAmplifier()));
             }
 
             if (!mobeffectinstance.endsWithin(20)) {
-                mutablecomponent = Component.translatable("potion.withDuration", mutablecomponent, MobEffectUtil.formatDuration(mobeffectinstance, 1.0F));
+                mutablecomponent = Component.translatable("potion.withDuration", mutablecomponent, MobEffectUtil.formatDuration(mobeffectinstance, 1.0F, context.tickRate()));
             }
 
             tooltip.add(Component.translatable("item.alexscaves.jelly_bean.desc", mutablecomponent.withStyle(mobeffect.getCategory().getTooltipFormatting())).withStyle(ChatFormatting.GRAY));
-        }
-
-        if (!list.isEmpty()) {
-            tooltip.add(CommonComponents.EMPTY);
-            tooltip.add(Component.translatable("potion.whenDrank").withStyle(ChatFormatting.DARK_PURPLE));
-
-            for (Pair<Attribute, AttributeModifier> pair : list) {
-                AttributeModifier attributemodifier2 = pair.getSecond();
-                double d0 = attributemodifier2.getAmount();
-                double d1;
-                if (attributemodifier2.getOperation() != AttributeModifier.Operation.MULTIPLY_BASE && attributemodifier2.getOperation() != AttributeModifier.Operation.MULTIPLY_TOTAL) {
-                    d1 = attributemodifier2.getAmount();
-                } else {
-                    d1 = attributemodifier2.getAmount() * 100.0D;
-                }
-
-                if (d0 > 0.0D) {
-                    tooltip.add(Component.translatable("attribute.modifier.plus." + attributemodifier2.getOperation().toValue(), ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(d1), Component.translatable(pair.getFirst().getDescriptionId())).withStyle(ChatFormatting.BLUE));
-                } else if (d0 < 0.0D) {
-                    d1 *= -1.0D;
-                    tooltip.add(Component.translatable("attribute.modifier.take." + attributemodifier2.getOperation().toValue(), ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(d1), Component.translatable(pair.getFirst().getDescriptionId())).withStyle(ChatFormatting.RED));
-                }
-            }
         }
     }
 
@@ -143,11 +114,15 @@ public class JellyBeanItem extends PotionItem {
         }
 
         if (!level.isClientSide) {
-            for(MobEffectInstance mobeffectinstance : PotionUtils.getMobEffects(stack)) {
-                if (mobeffectinstance.getEffect().isInstantenous()) {
-                    mobeffectinstance.getEffect().applyInstantenousEffect(player, player, living, mobeffectinstance.getAmplifier(), 1.0D);
-                } else {
-                    living.addEffect(new MobEffectInstance(mobeffectinstance));
+            PotionContents potionContents = stack.get(DataComponents.POTION_CONTENTS);
+            if (potionContents != null) {
+                for (MobEffectInstance mobeffectinstance : potionContents.getAllEffects()) {
+                    MobEffect mobeffect = mobeffectinstance.getEffect().value();
+                    if (mobeffect.isInstantenous()) {
+                        mobeffect.applyInstantenousEffect(player, player, living, mobeffectinstance.getAmplifier(), 1.0D);
+                    } else {
+                        living.addEffect(new MobEffectInstance(mobeffectinstance));
+                    }
                 }
             }
         }

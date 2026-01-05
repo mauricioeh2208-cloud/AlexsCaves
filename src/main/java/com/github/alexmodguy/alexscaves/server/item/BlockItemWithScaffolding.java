@@ -12,15 +12,16 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 import javax.annotation.Nullable;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 public class BlockItemWithScaffolding extends BlockItemWithSupplier {
 
-    private final RegistryObject<Block> block;
+    private final DeferredHolder<Block, Block> block;
 
-    public BlockItemWithScaffolding(RegistryObject<Block> blockSupplier, Properties props) {
+    public BlockItemWithScaffolding(DeferredHolder<Block, Block> blockSupplier, Properties props) {
         super(blockSupplier, props);
         this.block = blockSupplier;
     }

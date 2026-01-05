@@ -30,7 +30,6 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.PlayMessages;
 
 public class FallingFrostmintEntity extends FallingBlockEntity {
 
@@ -38,11 +37,6 @@ public class FallingFrostmintEntity extends FallingBlockEntity {
 
     public FallingFrostmintEntity(EntityType entityType, Level level) {
         super(entityType, level);
-    }
-
-    public FallingFrostmintEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.FALLING_FROSTMINT.get(), level);
-        this.setBoundingBox(this.makeBoundingBox());
     }
 
     private FallingFrostmintEntity(Level level, double x, double y, double z, BlockState state) {
@@ -83,7 +77,7 @@ public class FallingFrostmintEntity extends FallingBlockEntity {
                 }
                 this.discard();
                 for (Player player : level().getEntitiesOfClass(Player.class, this.getBoundingBox().inflate(32))) {
-                    ACAdvancementTriggerRegistry.FROSTMINT_EXPLOSION.triggerForEntity(player);
+                    ACAdvancementTriggerRegistry.FROSTMINT_EXPLOSION.get().triggerForEntity(player);
                 }
                 return;
             }

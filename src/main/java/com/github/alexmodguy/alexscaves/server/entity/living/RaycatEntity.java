@@ -90,20 +90,16 @@ public class RaycatEntity extends TamableAnimal implements IComandableMob {
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(ABSORB_TARGET_ID, -1);
-        this.entityData.define(LAY_TIME, 0);
-        this.entityData.define(COMMAND, 0);
-        this.entityData.define(ABSORB_AMOUNT, 0F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(ABSORB_TARGET_ID, -1);
+        builder.define(LAY_TIME, 0);
+        builder.define(COMMAND, 0);
+        builder.define(ABSORB_AMOUNT, 0F);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes().add(Attributes.MOVEMENT_SPEED, 0.3D).add(Attributes.MAX_HEALTH, 24.0D).add(Attributes.ATTACK_DAMAGE, 1.0D);
-    }
-
-    public MobType getMobType() {
-        return MobType.UNDEAD;
     }
 
     public boolean isFood(ItemStack itemStack) {
@@ -128,7 +124,7 @@ public class RaycatEntity extends TamableAnimal implements IComandableMob {
             layProgress--;
         }
         Entity absorbTarget = getAbsorbTarget();
-        if (this.hasEffect(ACEffectRegistry.IRRADIATED.get()) && this.tickCount % 10 == 0) {
+        if (this.hasEffect(ACEffectRegistry.IRRADIATED) && this.tickCount % 10 == 0) {
             this.heal(1);
         }
         if (absorbCooldown > 0) {
@@ -138,11 +134,11 @@ public class RaycatEntity extends TamableAnimal implements IComandableMob {
             if (absorbTarget == null) {
                 if (!level().isClientSide) {
                     Entity closestIrradiated = null;
-                    if (owner != null && owner.distanceTo(this) < 20 && owner.hasEffect(ACEffectRegistry.IRRADIATED.get())) {
+                    if (owner != null && owner.distanceTo(this) < 20 && owner.hasEffect(ACEffectRegistry.IRRADIATED)) {
                         closestIrradiated = owner;
                     } else {
                         for (LivingEntity entity : this.level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(9D))) {
-                            if (!(entity instanceof RaycatEntity) && entity.hasEffect(ACEffectRegistry.IRRADIATED.get()) && (closestIrradiated == null || closestIrradiated.distanceTo(this) > entity.distanceTo(this))) {
+                            if (!(entity instanceof RaycatEntity) && entity.hasEffect(ACEffectRegistry.IRRADIATED) && (closestIrradiated == null || closestIrradiated.distanceTo(this) > entity.distanceTo(this))) {
                                 if (this.isTame() || !(entity instanceof Player)) {
                                     closestIrradiated = entity;
                                 }
@@ -159,18 +155,18 @@ public class RaycatEntity extends TamableAnimal implements IComandableMob {
                 } else {
                     this.setAbsorbAmount(Math.max(0, getAbsorbAmount() - 0.05F));
                     if (getAbsorbAmount() <= 0) {
-                        int currentRad = this.hasEffect(ACEffectRegistry.IRRADIATED.get()) ? this.getEffect(ACEffectRegistry.IRRADIATED.get()).getAmplifier() + 1 : 0;
+                        int currentRad = this.hasEffect(ACEffectRegistry.IRRADIATED) ? this.getEffect(ACEffectRegistry.IRRADIATED).getAmplifier() + 1 : 0;
                         this.heal(10);
-                        this.addEffect(new MobEffectInstance(ACEffectRegistry.IRRADIATED.get(), 200, currentRad));
+                        this.addEffect(new MobEffectInstance(ACEffectRegistry.IRRADIATED, 200, currentRad));
                         this.lookAt(absorbTarget, 30, 30);
                         if (absorbTarget instanceof LivingEntity living) {
-                            MobEffectInstance effectInstance = living.getEffect(ACEffectRegistry.IRRADIATED.get());
+                            MobEffectInstance effectInstance = living.getEffect(ACEffectRegistry.IRRADIATED);
                             if (effectInstance != null) {
                                 int timeLeft = effectInstance.getDuration();
                                 int level = effectInstance.getAmplifier();
-                                living.removeEffect(ACEffectRegistry.IRRADIATED.get());
+                                living.removeEffect(ACEffectRegistry.IRRADIATED);
                                 if (level > 0) {
-                                    living.addEffect(new MobEffectInstance(ACEffectRegistry.IRRADIATED.get(), timeLeft, level - 1));
+                                    living.addEffect(new MobEffectInstance(ACEffectRegistry.IRRADIATED, timeLeft, level - 1));
                                 }
                             }
                         }

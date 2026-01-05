@@ -2,6 +2,7 @@ package com.github.alexmodguy.alexscaves.client.render.blockentity;
 
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.client.model.TeslaBulbModel;
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexmodguy.alexscaves.client.render.ACRenderTypes;
 import com.github.alexmodguy.alexscaves.server.block.TeslaBulbBlock;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.TeslaBulbBlockEntity;
@@ -37,7 +38,7 @@ public class TelsaBulbBlockRenderer<T extends TeslaBulbBlockEntity> implements B
         float g = 1F;
         float b = 1F;
         MODEL.setupAnim(null, 0, teslaBulb.getExplodeProgress(partialTicks), teslaBulb.age + partialTicks, 0, 0);
-        MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(ACRenderTypes.getTeslaBulb(TEXTURE)), combinedLightIn, combinedOverlayIn, r, g, b, 1);
+        MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(ACRenderTypes.getTeslaBulb(TEXTURE)), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(r, g, b, 1.0F));
 
 
         poseStack.popPose();

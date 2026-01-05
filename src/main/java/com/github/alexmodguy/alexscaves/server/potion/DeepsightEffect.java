@@ -20,7 +20,8 @@ public class DeepsightEffect extends MobEffect {
         return firstDuration - lastDuration;
     }
 
-    public boolean isDurationEffectTick(int duration, int amplifier) {
+    @Override
+    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
         lastDuration = duration;
         if (duration <= 0) {
             lastDuration = -1;
@@ -32,27 +33,28 @@ public class DeepsightEffect extends MobEffect {
         return duration > 0;
     }
 
-    public void removeAttributeModifiers(LivingEntity entity, AttributeMap map, int i) {
+    @Override
+    public void removeAttributeModifiers(AttributeMap map) {
         lastDuration = -1;
         firstDuration = -1;
-        super.removeAttributeModifiers(entity, map, i);
+        super.removeAttributeModifiers(map);
     }
 
-    public void addAttributeModifiers(LivingEntity entity, AttributeMap map, int i) {
+    @Override
+    public void onEffectStarted(LivingEntity entity, int amplifier) {
         lastDuration = -1;
         firstDuration = -1;
-        super.addAttributeModifiers(entity, map, i);
     }
 
 
     public static float getIntensity(Player player, float partialTicks) {
-        MobEffectInstance instance = player.getEffect(ACEffectRegistry.DEEPSIGHT.get());
+        MobEffectInstance instance = player.getEffect(ACEffectRegistry.DEEPSIGHT);
         if (instance == null) {
             return 0.0F;
         } else if(instance.isInfiniteDuration()) {
             return 1.0F;
         } else {
-            DeepsightEffect deepsightEffect = (DeepsightEffect) instance.getEffect();
+            DeepsightEffect deepsightEffect = (DeepsightEffect) instance.getEffect().value();
             float j = deepsightEffect.getActiveTime() + partialTicks;
             int duration = instance.getDuration();
             return Math.min(20, (Math.min(j, duration + partialTicks))) * 0.05F;

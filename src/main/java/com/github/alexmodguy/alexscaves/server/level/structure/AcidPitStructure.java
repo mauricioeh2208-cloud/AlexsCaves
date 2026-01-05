@@ -2,7 +2,7 @@ package com.github.alexmodguy.alexscaves.server.level.structure;
 
 import com.github.alexmodguy.alexscaves.server.level.biome.ACBiomeRegistry;
 import com.github.alexmodguy.alexscaves.server.level.structure.piece.AcidPitStructurePiece;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
@@ -14,7 +14,7 @@ public class AcidPitStructure extends AbstractCaveGenerationStructure {
     private static final int BOWL_WIDTH_RADIUS = 90;
     private static final int BOWL_HEIGHT_RADIUS = 50;
 
-    public static final Codec<AcidPitStructure> CODEC = simpleCodec((settings) -> new AcidPitStructure(settings));
+    public static final MapCodec<AcidPitStructure> CODEC = simpleCodec((settings) -> new AcidPitStructure(settings));
 
     public AcidPitStructure(StructureSettings settings) {
         super(settings, ACBiomeRegistry.TOXIC_CAVES);

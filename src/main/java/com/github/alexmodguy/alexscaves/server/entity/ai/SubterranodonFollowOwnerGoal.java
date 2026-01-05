@@ -9,8 +9,7 @@ import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
-import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
+import net.minecraft.world.level.pathfinder.PathType;
 
 import java.util.EnumSet;
 
@@ -81,8 +80,8 @@ public class SubterranodonFollowOwnerGoal extends Goal {
      */
     public void start() {
         this.timeToRecalcPath = 0;
-        this.oldWaterCost = this.subterranodon.getPathfindingMalus(BlockPathTypes.WATER);
-        this.subterranodon.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
+        this.oldWaterCost = this.subterranodon.getPathfindingMalus(PathType.WATER);
+        this.subterranodon.setPathfindingMalus(PathType.WATER, 0.0F);
     }
 
     /**
@@ -91,7 +90,7 @@ public class SubterranodonFollowOwnerGoal extends Goal {
     public void stop() {
         this.owner = null;
         this.navigator.stop();
-        this.subterranodon.setPathfindingMalus(BlockPathTypes.WATER, this.oldWaterCost);
+        this.subterranodon.setPathfindingMalus(PathType.WATER, this.oldWaterCost);
     }
 
     /**
@@ -149,22 +148,21 @@ public class SubterranodonFollowOwnerGoal extends Goal {
     }
 
     private boolean isTeleportFriendlyBlock(BlockPos pos) {
-        if (this.world.getBlockState(pos).isAir()) {
-            BlockPos blockpos = pos.subtract(this.subterranodon.blockPosition());
-            return this.world.noCollision(this.subterranodon, this.subterranodon.getBoundingBox().move(blockpos));
-        }
-        BlockPathTypes pathnodetype = WalkNodeEvaluator.getBlockPathTypeStatic(this.world, pos.mutable());
-        if (pathnodetype != BlockPathTypes.WALKABLE) {
+        BlockState stateAtPos = this.world.getBlockState(pos);
+        // Position must be passable (air or non-solid)
+        if (stateAtPos.isSolid()) {
             return false;
-        } else {
-            BlockState blockstate = this.world.getBlockState(pos.below());
-            if (!this.teleportToLeaves && blockstate.getBlock() instanceof LeavesBlock) {
-                return false;
-            } else {
-                BlockPos blockpos = pos.subtract(this.subterranodon.blockPosition());
-                return this.world.noCollision(this.subterranodon, this.subterranodon.getBoundingBox().move(blockpos));
-            }
         }
+        BlockState blockstate = this.world.getBlockState(pos.below());
+        // Ground below must be solid for walking
+        if (!blockstate.isSolid()) {
+            return false;
+        }
+        if (!this.teleportToLeaves && blockstate.getBlock() instanceof LeavesBlock) {
+            return false;
+        }
+        BlockPos blockpos = pos.subtract(this.subterranodon.blockPosition());
+        return this.world.noCollision(this.subterranodon, this.subterranodon.getBoundingBox().move(blockpos));
     }
 
     private int getRandomNumber(int min, int max) {

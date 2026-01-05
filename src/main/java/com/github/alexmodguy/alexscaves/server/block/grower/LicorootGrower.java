@@ -5,14 +5,19 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.block.grower.AbstractTreeGrower;
+import net.minecraft.world.level.block.grower.TreeGrower;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 
-public class LicorootGrower extends AbstractTreeGrower {
+import java.util.Optional;
+
+public class LicorootGrower {
 
     public static final ResourceKey<ConfiguredFeature<?, ?>> LICOROOT_TREE = ResourceKey.create(Registries.CONFIGURED_FEATURE, ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "licoroot_tree"));
 
-    protected ResourceKey<ConfiguredFeature<?, ?>> getConfiguredFeature(RandomSource randomSource, boolean b) {
-        return LICOROOT_TREE;
-    }
+    public static final TreeGrower GROWER = new TreeGrower(
+            "licoroot",
+            Optional.empty(),
+            Optional.of(LICOROOT_TREE),
+            Optional.empty()
+    );
 }

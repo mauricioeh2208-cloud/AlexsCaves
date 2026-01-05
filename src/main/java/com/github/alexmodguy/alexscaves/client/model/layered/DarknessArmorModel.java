@@ -52,7 +52,7 @@ public class DarknessArmorModel  extends HumanoidModel {
     }
 
     public DarknessArmorModel withAnimations(LivingEntity entity) {
-        float partialTick = Minecraft.getInstance().getFrameTime();
+        float partialTick = Minecraft.getInstance().getTimer().getRealtimeDeltaTicks();
         float limbSwingAmount = entity.walkAnimation.speed(partialTick);
         float ageInTicks = entity.tickCount + partialTick;
         float stillAmount = 1F - limbSwingAmount;

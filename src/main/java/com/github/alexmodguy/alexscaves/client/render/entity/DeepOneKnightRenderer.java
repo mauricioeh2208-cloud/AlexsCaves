@@ -1,5 +1,7 @@
 package com.github.alexmodguy.alexscaves.client.render.entity;
 
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
+
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.client.model.DeepOneKnightModel;
 import com.github.alexmodguy.alexscaves.server.entity.living.DeepOneKnightEntity;
@@ -46,7 +48,7 @@ public class DeepOneKnightRenderer extends MobRenderer<DeepOneKnightEntity, Deep
             if (!entitylivingbaseIn.isInvisible() && !entitylivingbaseIn.isNoon()) {
                 VertexConsumer ivertexbuilder = bufferIn.getBuffer(RenderType.eyes(TEXTURE_GLOW));
                 float alpha = 1.0F;
-                this.getParentModel().renderToBuffer(matrixStackIn, ivertexbuilder, 240, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), 1.0F, 1.0F, 1.0F, alpha);
+                this.getParentModel().renderToBuffer(matrixStackIn, ivertexbuilder, 240, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), ColorUtil.packColor(1.0F, 1.0F, 1.0F, alpha));
             }
         }
     }

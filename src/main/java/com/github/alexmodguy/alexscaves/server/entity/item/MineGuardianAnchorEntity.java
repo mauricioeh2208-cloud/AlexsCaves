@@ -3,8 +3,6 @@ package com.github.alexmodguy.alexscaves.server.entity.item;
 import com.github.alexmodguy.alexscaves.server.entity.ACEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.living.MineGuardianEntity;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -14,9 +12,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.ForgeMod;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
+import net.neoforged.neoforge.common.NeoForgeMod;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -31,11 +27,6 @@ public class MineGuardianAnchorEntity extends Entity {
         super(entityType, level);
     }
 
-    public MineGuardianAnchorEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.MINE_GUARDIAN_ANCHOR.get(), level);
-        this.setBoundingBox(this.makeBoundingBox());
-    }
-
     public MineGuardianAnchorEntity(MineGuardianEntity mineGuardianEntity) {
         this(ACEntityRegistry.MINE_GUARDIAN_ANCHOR.get(), mineGuardianEntity.level());
         this.setGuardianUUID(mineGuardianEntity.getUUID());
@@ -44,14 +35,9 @@ public class MineGuardianAnchorEntity extends Entity {
     }
 
     @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
-    }
-
-    @Override
-    protected void defineSynchedData() {
-        this.entityData.define(GUARDIAN_UUID, Optional.empty());
-        this.entityData.define(GUARDIAN_ID, -1);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(GUARDIAN_UUID, Optional.empty());
+        builder.define(GUARDIAN_ID, -1);
     }
 
 
@@ -76,7 +62,7 @@ public class MineGuardianAnchorEntity extends Entity {
                 double distance = this.distanceTo(mineGuardian);
                 int i = mineGuardian.getMaxChainLength();
                 double distanceGoal = (mineGuardian.isInWaterOrBubble() ? i + Math.sin(tickCount * 0.1F + i * 0.5F) * 0.25F : 5) + (hasTarget ? 5 : 0);
-                double waterHeight = mineGuardian.getFluidTypeHeight(ForgeMod.WATER_TYPE.get());
+                double waterHeight = mineGuardian.getFluidTypeHeight(NeoForgeMod.WATER_TYPE.value());
                 double waterUp = Math.min(waterHeight, 1F) * 0.005F;
                 if (mineGuardian.isInWaterOrBubble() && !hasTarget) {
                     double f = this.getX() + (float) -Math.sin(tickCount * 0.025F + i) * 0.5F;

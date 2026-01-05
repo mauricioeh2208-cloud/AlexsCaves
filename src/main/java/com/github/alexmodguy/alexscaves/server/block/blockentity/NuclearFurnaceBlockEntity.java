@@ -17,11 +17,11 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceLocation;
@@ -30,8 +30,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.WorldlyContainer;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.AreaEffectCloud;
 import net.minecraft.world.entity.EntityType;
@@ -42,8 +42,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
@@ -52,11 +54,8 @@ import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.wrapper.SidedInvWrapper;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -82,10 +81,11 @@ public class NuclearFurnaceBlockEntity extends BaseContainerBlockEntity implemen
 
 
     protected NonNullList<ItemStack> items = NonNullList.withSize(5, ItemStack.EMPTY);
-    private final RecipeManager.CachedCheck<Container, ? extends AbstractCookingRecipe> quickCheck = RecipeManager.createCheck(getRecipeType());
+    @SuppressWarnings("unchecked")
+    private final RecipeManager.CachedCheck<SingleRecipeInput, AbstractCookingRecipe> quickCheck = (RecipeManager.CachedCheck<SingleRecipeInput, AbstractCookingRecipe>) (RecipeManager.CachedCheck<?, ?>) RecipeManager.createCheck(getRecipeType());
     private final Object2IntOpenHashMap<ResourceLocation> recipesUsed = new Object2IntOpenHashMap<>();
 
-    private AbstractCookingRecipe currentRecipe;
+    private RecipeHolder<? extends AbstractCookingRecipe> currentRecipe;
 
     protected final ContainerData dataAccess = new ContainerData() {
         public int get(int type) {
@@ -157,11 +157,11 @@ public class NuclearFurnaceBlockEntity extends BaseContainerBlockEntity implemen
             ItemStack rodStack = entity.items.get(1);
             ItemStack barrelStack = entity.items.get(2);
             if (!cookStack.isEmpty()) {
-                if (entity.currentRecipe == null || !entity.currentRecipe.getIngredients().get(0).test(cookStack)) {
+                if (entity.currentRecipe == null || !entity.currentRecipe.value().getIngredients().get(0).test(cookStack)) {
                     entity.currentRecipe = entity.getRecipeFor(cookStack).orElse(null);
                 } else {
-                    ItemStack cookResult = entity.currentRecipe.getResultItem(level.registryAccess());
-                    entity.maxCookTime = Math.max((int) Math.ceil(entity.currentRecipe.getCookingTime() * getSpeedReduction()), 5);
+                    ItemStack cookResult = entity.currentRecipe.value().getResultItem(level.registryAccess());
+                    entity.maxCookTime = Math.max((int) Math.ceil(entity.currentRecipe.value().getCookingTime() * getSpeedReduction()), 5);
                     if (entity.canFitInResultSlot(cookResult, 3)) {
                         if (entity.fissionTime <= 0) {
                             if (!rodStack.isEmpty() && rodStack.is(ACTagRegistry.NUCLEAR_FURNACE_RODS)) {
@@ -207,7 +207,7 @@ public class NuclearFurnaceBlockEntity extends BaseContainerBlockEntity implemen
                     float prevCriticality = entity.getCriticality();
                     entity.currentWaste -= getWastePerBarrel();
                     if(prevCriticality == 3 && entity.getCriticality() <= 2 && entity.lastInteractedWithPlayer != null){
-                        ACAdvancementTriggerRegistry.STOP_NUCLEAR_FURNACE_MELTDOWN.triggerForEntity(entity.lastInteractedWithPlayer);
+                        ACAdvancementTriggerRegistry.STOP_NUCLEAR_FURNACE_MELTDOWN.get().triggerForEntity(entity.lastInteractedWithPlayer);
                     }
                     if (ItemStack.isSameItem(entity.items.get(4), wasteDrum)) {
                         entity.items.get(4).grow(1);
@@ -264,8 +264,8 @@ public class NuclearFurnaceBlockEntity extends BaseContainerBlockEntity implemen
         } else {
             AreaEffectCloud areaeffectcloud = new AreaEffectCloud(level, vec3.x, vec3.y - 1F, vec3.z);
             areaeffectcloud.setParticle(ACParticleRegistry.GAMMAROACH.get());
-            areaeffectcloud.setFixedColor(0X77D60E);
-            areaeffectcloud.addEffect(new MobEffectInstance(ACEffectRegistry.IRRADIATED.get(), 9600, this.getCriticality()));
+            areaeffectcloud.setPotionContents(new PotionContents(java.util.Optional.empty(), java.util.Optional.of(0X77D60E), java.util.List.of()));
+            areaeffectcloud.addEffect(new MobEffectInstance(ACEffectRegistry.IRRADIATED, 9600, this.getCriticality()));
             areaeffectcloud.setRadius(8.0F);
             areaeffectcloud.setDuration(12000);
             areaeffectcloud.setWaitTime(3);
@@ -352,17 +352,14 @@ public class NuclearFurnaceBlockEntity extends BaseContainerBlockEntity implemen
     @OnlyIn(Dist.CLIENT)
     public AABB getRenderBoundingBox() {
         BlockPos pos = this.getBlockPos();
-        return new AABB(pos.offset(-1, -1, -1), pos.offset(2, 2, 2));
+        return new AABB(pos.getX() - 1, pos.getY() - 1, pos.getZ() - 1, pos.getX() + 2, pos.getY() + 2, pos.getZ() + 2);
     }
 
-    public void load(CompoundTag compoundTag) {
-        super.load(compoundTag);
+    @Override
+    protected void loadAdditional(CompoundTag compoundTag, HolderLookup.Provider registries) {
+        super.loadAdditional(compoundTag, registries);
         this.items.clear();
-        ContainerHelper.loadAllItems(compoundTag, this.items);
-        loadAdditional(compoundTag);
-    }
-
-    private void loadAdditional(CompoundTag compoundTag) {
+        ContainerHelper.loadAllItems(compoundTag, this.items, registries);
         currentWaste = compoundTag.getInt("Waste");
         cookTime = compoundTag.getInt("CookTime");
         maxCookTime = compoundTag.getInt("MaxCookTime");
@@ -374,9 +371,10 @@ public class NuclearFurnaceBlockEntity extends BaseContainerBlockEntity implemen
         }
     }
 
-    protected void saveAdditional(CompoundTag compoundTag) {
-        super.saveAdditional(compoundTag);
-        ContainerHelper.saveAllItems(compoundTag, this.items, true);
+    @Override
+    protected void saveAdditional(CompoundTag compoundTag, HolderLookup.Provider registries) {
+        super.saveAdditional(compoundTag, registries);
+        ContainerHelper.saveAllItems(compoundTag, this.items, true, registries);
         compoundTag.putInt("Waste", currentWaste);
         compoundTag.putInt("CookTime", cookTime);
         compoundTag.putInt("MaxCookTime", maxCookTime);
@@ -393,15 +391,14 @@ public class NuclearFurnaceBlockEntity extends BaseContainerBlockEntity implemen
         return ClientboundBlockEntityDataPacket.create(this);
     }
 
-    public CompoundTag getUpdateTag() {
-        return this.saveWithoutMetadata();
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return this.saveWithoutMetadata(registries);
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet) {
-        if (packet != null && packet.getTag() != null) {
-            this.loadAdditional(packet.getTag());
-        }
+    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider registries) {
+        this.loadAdditional(tag, registries);
     }
 
     public int getContainerSize() {
@@ -432,7 +429,7 @@ public class NuclearFurnaceBlockEntity extends BaseContainerBlockEntity implemen
 
     public void setItem(int slot, ItemStack itemStack) {
         ItemStack itemstack = this.items.get(slot);
-        boolean flag = !itemStack.isEmpty() && ItemStack.isSameItemSameTags(itemstack, itemStack);
+        boolean flag = !itemStack.isEmpty() && ItemStack.isSameItemSameComponents(itemstack, itemStack);
         this.items.set(slot, itemStack);
         if (itemStack.getCount() > this.getMaxStackSize()) {
             itemStack.setCount(this.getMaxStackSize());
@@ -451,12 +448,22 @@ public class NuclearFurnaceBlockEntity extends BaseContainerBlockEntity implemen
         return (slot != 0 || getRecipeFor(stack).isPresent()) && slot != 3 && slot != 4;
     }
 
-    private Optional<? extends AbstractCookingRecipe> getRecipeFor(ItemStack itemStack) {
-        return this.quickCheck.getRecipeFor(new SimpleContainer(itemStack), this.level);
+    private Optional<RecipeHolder<AbstractCookingRecipe>> getRecipeFor(ItemStack itemStack) {
+        return this.quickCheck.getRecipeFor(new SingleRecipeInput(itemStack), this.level);
     }
 
     public void clearContent() {
         this.items.clear();
+    }
+
+    @Override
+    protected NonNullList<ItemStack> getItems() {
+        return this.items;
+    }
+
+    @Override
+    protected void setItems(NonNullList<ItemStack> items) {
+        this.items = items;
     }
 
     public boolean isUndergoingFission() {
@@ -492,45 +499,34 @@ public class NuclearFurnaceBlockEntity extends BaseContainerBlockEntity implemen
         return this;
     }
 
-    private LazyOptional<? extends IItemHandler>[] handlers = SidedInvWrapper.create(this, Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST);
-
-    @Override
-    public <T> net.minecraftforge.common.util.LazyOptional<T> getCapability(net.minecraftforge.common.capabilities.Capability<T> capability, @javax.annotation.Nullable Direction facing) {
-        if (!this.remove && facing != null && capability == net.minecraftforge.common.capabilities.ForgeCapabilities.ITEM_HANDLER) {
-            return handlers[facing.ordinal()].cast();
-        }
-        return super.getCapability(capability, facing);
-    }
-
-
-    public void setRecipeUsed(@javax.annotation.Nullable Recipe<?> recipe) {
-        if (recipe != null) {
-            ResourceLocation resourcelocation = recipe.getId();
+    public void setRecipeUsed(@javax.annotation.Nullable RecipeHolder<?> recipeHolder) {
+        if (recipeHolder != null) {
+            ResourceLocation resourcelocation = recipeHolder.id();
             this.recipesUsed.addTo(resourcelocation, 1);
         }
 
     }
 
     public void awardUsedRecipesAndPopExperience(ServerPlayer serverPlayer) {
-        List<Recipe<?>> list = this.getRecipesToAwardAndPopExperience(serverPlayer.serverLevel(), serverPlayer.position());
+        List<RecipeHolder<?>> list = this.getRecipesToAwardAndPopExperience(serverPlayer.serverLevel(), serverPlayer.position());
         serverPlayer.awardRecipes(list);
 
-        for(Recipe<?> recipe : list) {
-            if (recipe != null) {
-                serverPlayer.triggerRecipeCrafted(recipe, this.items);
+        for(RecipeHolder<?> recipeHolder : list) {
+            if (recipeHolder != null) {
+                serverPlayer.triggerRecipeCrafted(recipeHolder, this.items);
             }
         }
 
         this.recipesUsed.clear();
     }
 
-    public List<Recipe<?>> getRecipesToAwardAndPopExperience(ServerLevel serverLevel, Vec3 vec3) {
-        List<Recipe<?>> list = Lists.newArrayList();
+    public List<RecipeHolder<?>> getRecipesToAwardAndPopExperience(ServerLevel serverLevel, Vec3 vec3) {
+        List<RecipeHolder<?>> list = Lists.newArrayList();
 
         for(Object2IntMap.Entry<ResourceLocation> entry : this.recipesUsed.object2IntEntrySet()) {
             serverLevel.getRecipeManager().byKey(entry.getKey()).ifPresent((p_155023_) -> {
                 list.add(p_155023_);
-                createExperience(serverLevel, vec3, entry.getIntValue(), ((AbstractCookingRecipe)p_155023_).getExperience());
+                createExperience(serverLevel, vec3, entry.getIntValue(), ((AbstractCookingRecipe)p_155023_.value()).getExperience());
             });
         }
 

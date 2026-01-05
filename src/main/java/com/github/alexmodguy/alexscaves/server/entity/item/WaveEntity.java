@@ -7,8 +7,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -20,8 +18,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
 
 import javax.annotation.Nullable;
 import java.util.UUID;
@@ -64,10 +60,6 @@ public class WaveEntity extends Entity {
         this.setOwner(shooter);
     }
 
-    public WaveEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.WAVE.get(), level);
-    }
-
     public void setOwner(@Nullable LivingEntity living) {
         this.owner = living;
         this.ownerUUID = living == null ? null : living.getUUID();
@@ -87,18 +79,13 @@ public class WaveEntity extends Entity {
 
 
     @Override
-    protected void defineSynchedData() {
-        this.getEntityData().define(SLAMMING, false);
-        this.getEntityData().define(LIFESPAN, 10);
-        this.getEntityData().define(WAITING_TICKS, 0);
-        this.getEntityData().define(Y_ROT, 0F);
-        this.getEntityData().define(WAVE_SCALE, 1F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(SLAMMING, false);
+        builder.define(LIFESPAN, 10);
+        builder.define(WAITING_TICKS, 0);
+        builder.define(Y_ROT, 0F);
+        builder.define(WAVE_SCALE, 1F);
 
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
     }
 
     public float getSlamAmount(float partialTicks) {
@@ -254,7 +241,6 @@ public class WaveEntity extends Entity {
         return super.getDimensions(pose).scale(this.getWaveScale());
     }
 
-    @Override
     public void lerpTo(double x, double y, double z, float yr, float xr, int steps, boolean b) {
         this.lx = x;
         this.ly = y;

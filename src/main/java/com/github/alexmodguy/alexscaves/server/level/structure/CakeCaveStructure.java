@@ -3,7 +3,7 @@ package com.github.alexmodguy.alexscaves.server.level.structure;
 import com.github.alexmodguy.alexscaves.server.level.biome.ACBiomeRegistry;
 import com.github.alexmodguy.alexscaves.server.level.structure.piece.CakeCaveStructurePiece;
 import com.github.alexmodguy.alexscaves.server.level.structure.piece.ForlornCanyonStructurePiece;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -18,7 +18,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 public class CakeCaveStructure extends AbstractCaveGenerationStructure {
-    public static final Codec<CakeCaveStructure> CODEC = simpleCodec((settings) -> new CakeCaveStructure(settings));
+    public static final MapCodec<CakeCaveStructure> CODEC = simpleCodec((settings) -> new CakeCaveStructure(settings));
 
     public CakeCaveStructure(StructureSettings settings) {
         super(settings, ACBiomeRegistry.CANDY_CAVITY);

@@ -25,9 +25,10 @@ import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.util.Map;
 
@@ -35,8 +36,8 @@ public class AcidBlock extends LiquidBlock {
 
     private static Map<Block, Block> CORRODES_INTERACTIONS;
 
-    public AcidBlock(RegistryObject<FlowingFluid> flowingFluid, BlockBehaviour.Properties properties) {
-        super(flowingFluid, properties);
+    public AcidBlock(DeferredHolder<Fluid, FlowingFluid> flowingFluid, BlockBehaviour.Properties properties) {
+        super(flowingFluid.get(), properties);
     }
 
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource randomSource) {
@@ -62,7 +63,7 @@ public class AcidBlock extends LiquidBlock {
                         if (item != null && item.isDamageableItem() && !(item.getItem() instanceof HazmatArmorItem)) {
                             armor = true;
                             if (living.getRandom().nextFloat() < 0.05F && !(entity instanceof Player player && player.isCreative())) {
-                                item.hurtAndBreak(1, living, e -> e.broadcastBreakEvent(slot));
+                                item.hurtAndBreak(1, living, slot);
                             }
                         }
                     }
@@ -70,7 +71,7 @@ public class AcidBlock extends LiquidBlock {
                 dmgMultiplier = 1.0F - (HazmatArmorItem.getWornAmount(living) / 4F);
             }
             if (armor) {
-                ACAdvancementTriggerRegistry.ENTER_ACID_WITH_ARMOR.triggerForEntity(entity);
+                ACAdvancementTriggerRegistry.ENTER_ACID_WITH_ARMOR.get().triggerForEntity(entity);
             }
             if (level.random.nextFloat() < dmgMultiplier) {
                 float golemAddition = entity.getType().is(ACTagRegistry.WEAK_TO_ACID) ? 10.0F : 0.0F;
@@ -80,11 +81,14 @@ public class AcidBlock extends LiquidBlock {
                 entity.playSound(ACSoundRegistry.ACID_BURN.get());
             }
         }
-        if (entity instanceof LivingEntity && entity.moveDist > entity.nextStep && !(entity instanceof RadgillEntity)) {
-            entity.nextStep = entity.moveDist + 1F;
+        // TODO: nextStep is private in 1.21, need different approach for movement sound
+        if (entity instanceof LivingEntity living && !(entity instanceof RadgillEntity)) {
+            // living.setNextStep(living.moveDist + 1F);
             Vec3 vec3 = entity.getDeltaMovement();
             float f1 = Math.min(1.0F, (float)vec3.length());
-            entity.playSound(ACSoundRegistry.ACID_SWIM.get(), f1, 1.0F + (level.random.nextFloat() - level.random.nextFloat()) * 0.4F);
+            if (f1 > 0.1F) {
+                entity.playSound(ACSoundRegistry.ACID_SWIM.get(), f1, 1.0F + (level.random.nextFloat() - level.random.nextFloat()) * 0.4F);
+            }
         }
     }
 
@@ -113,7 +117,7 @@ public class AcidBlock extends LiquidBlock {
                 Vec3 vec3 = offset.getCenter();
                 Player player = worldIn.getNearestPlayer(vec3.x, vec3.y, vec3.z, 8, false);
                 if (player != null) {
-                    ACAdvancementTriggerRegistry.ACID_CREATE_RUST.triggerForEntity(player);
+                    ACAdvancementTriggerRegistry.ACID_CREATE_RUST.get().triggerForEntity(player);
                 }
             }
         }

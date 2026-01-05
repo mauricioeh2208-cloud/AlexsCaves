@@ -2,6 +2,7 @@ package com.github.alexmodguy.alexscaves.client.render.blockentity;
 
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.client.model.GobthumperModel;
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.GobthumperBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
@@ -26,8 +27,8 @@ public class GobthumperBlockRenderer<T extends GobthumperBlockEntity> implements
         poseStack.translate(0.5F, 1.5F, 0.5F);
         poseStack.mulPose(Axis.XP.rotationDegrees(-180));
         MODEL.setupAnim(null, 0.0F, 0.0F, gobthumper.getThumpTime(partialTicks), 0, 0);
-        MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(RenderType.entityCutoutNoCull(TEXTURE)), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1);
-        MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(RenderType.entityTranslucent(TEXTURE_JELLY)), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1);
+        MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(RenderType.entityCutoutNoCull(TEXTURE)), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(1.0F, 1.0F, 1.0F, 1.0F));
+        MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(RenderType.entityTranslucent(TEXTURE_JELLY)), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(1.0F, 1.0F, 1.0F, 1.0F));
         poseStack.popPose();
 
     }

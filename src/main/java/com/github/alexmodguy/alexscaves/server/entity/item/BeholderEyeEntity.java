@@ -7,8 +7,6 @@ import com.github.alexmodguy.alexscaves.server.message.BeholderSyncMessage;
 import com.github.alexmodguy.alexscaves.server.message.PossessionKeyMessage;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -22,16 +20,17 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.world.ForgeChunkManager;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
+import net.neoforged.neoforge.common.world.chunk.TicketController;
 
 import java.util.BitSet;
 import java.util.Optional;
 import java.util.UUID;
 
 public class BeholderEyeEntity extends Entity implements PossessesCamera {
+
+    private static final TicketController TICKET_CONTROLLER = new TicketController(ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "beholder_eye"));
 
     private static final int LOAD_CHUNK_DISTANCE = 2;
     private static final EntityDataAccessor<Optional<UUID>> USING_PLAYER_ID = SynchedEntityData.defineId(BeholderEyeEntity.class, EntityDataSerializers.OPTIONAL_UUID);
@@ -51,15 +50,11 @@ public class BeholderEyeEntity extends Entity implements PossessesCamera {
         super(entityType, level);
     }
 
-    public BeholderEyeEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.BEHOLDER_EYE.get(), level);
-    }
-
     @Override
-    protected void defineSynchedData() {
-        this.getEntityData().define(USING_PLAYER_ID, Optional.empty());
-        this.getEntityData().define(X_ROT, 0F);
-        this.getEntityData().define(Y_ROT, 0F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(USING_PLAYER_ID, Optional.empty());
+        builder.define(X_ROT, 0F);
+        builder.define(Y_ROT, 0F);
     }
 
     public void tick() {
@@ -211,11 +206,6 @@ public class BeholderEyeEntity extends Entity implements PossessesCamera {
         this.entityData.set(X_ROT, f);
     }
 
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
-    }
-
     public void onPossessionKeyPacket(Entity keyPresser, int type) {
         Entity possessed = this.getUsingPlayer();
         if (possessed != null && possessed.equals(keyPresser)) {
@@ -227,13 +217,13 @@ public class BeholderEyeEntity extends Entity implements PossessesCamera {
         if (this.level() instanceof ServerLevel serverLevel) {
             if(this.getUsingPlayer() instanceof ServerPlayer serverPlayer){
                 ChunkPos playerChunkPos = new ChunkPos(serverPlayer.blockPosition());
-                ForgeChunkManager.forceChunk(serverLevel, AlexsCaves.MODID, this, playerChunkPos.x, playerChunkPos.z, load, load);
+                TICKET_CONTROLLER.forceChunk(serverLevel, this, playerChunkPos.x, playerChunkPos.z, load, load);
             }
             ChunkPos chunkPos = new ChunkPos(this.blockPosition());
             int dist = Math.max(LOAD_CHUNK_DISTANCE, serverLevel.getServer().getPlayerList().getViewDistance() / 2);
             for (int i = -dist; i <= dist; i++) {
                 for (int j = -dist; j <= dist; j++) {
-                    ForgeChunkManager.forceChunk(serverLevel, AlexsCaves.MODID, this, chunkPos.x + i, chunkPos.z + j, load, load);
+                    TICKET_CONTROLLER.forceChunk(serverLevel, this, chunkPos.x + i, chunkPos.z + j, load, load);
                     if (load && this.getUsingPlayer() instanceof ServerPlayer serverPlayer) {
                         serverPlayer.connection.send(new ClientboundLevelChunkWithLightPacket(level().getChunk(chunkPos.x + i, chunkPos.z + j), level().getLightEngine(), (BitSet)null, (BitSet)null));
                     }

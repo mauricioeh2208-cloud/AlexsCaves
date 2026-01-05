@@ -6,7 +6,6 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.AttributeMap;
 
 public class MagnetizedEffect extends MobEffect {
 
@@ -14,27 +13,30 @@ public class MagnetizedEffect extends MobEffect {
         super(MobEffectCategory.NEUTRAL, 0X53556C);
     }
 
-    public void applyEffectTick(LivingEntity entity, int tick) {
+    @Override
+    public boolean applyEffectTick(LivingEntity entity, int tick) {
         if (!entity.level().isClientSide && entity.tickCount % 20 == 0) {
-            MobEffectInstance instance = entity.getEffect(this);
+            MobEffectInstance instance = entity.getEffect(ACEffectRegistry.MAGNETIZING);
             if (instance != null) {
                 AlexsCaves.sendMSGToAll(new UpdateEffectVisualityEntityMessage(entity.getId(), entity.getId(), 2, instance.getDuration()));
             }
         }
+        return true;
     }
 
-    public boolean isDurationEffectTick(int duration, int amplifier) {
+    @Override
+    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
         return duration > 0;
     }
 
-    public void addAttributeModifiers(LivingEntity entity, AttributeMap map, int i) {
+    @Override
+    public void onEffectStarted(LivingEntity entity, int amplifier) {
         if (!entity.level().isClientSide) {
-            MobEffectInstance instance = entity.getEffect(this);
+            MobEffectInstance instance = entity.getEffect(ACEffectRegistry.MAGNETIZING);
             if (instance != null) {
                 AlexsCaves.sendMSGToAll(new UpdateEffectVisualityEntityMessage(entity.getId(), entity.getId(), 2, instance.getDuration()));
             }
         }
-        super.addAttributeModifiers(entity, map, i);
     }
 
 }

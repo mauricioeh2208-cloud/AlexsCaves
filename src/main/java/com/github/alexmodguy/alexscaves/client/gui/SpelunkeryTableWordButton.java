@@ -36,7 +36,7 @@ public class SpelunkeryTableWordButton extends AbstractWidget {
         if (!parent.hasTablet()) {
             return;
         }
-        float revealWordsAmount = parent.getRevealWordsAmount(Minecraft.getInstance().getFrameTime());
+        float revealWordsAmount = parent.getRevealWordsAmount(Minecraft.getInstance().getTimer().getRealtimeDeltaTicks());
         int textColor = active ? 4210752 : 0XBFBFBF;
         int revealTextColor = parent.isTargetWord(this) ? parent.getHighlightColor() : 0XBFBFBF;
         int alpha = (int) ((1F - revealWordsAmount) * 255);
@@ -95,7 +95,7 @@ public class SpelunkeryTableWordButton extends AbstractWidget {
         if (!this.active) {
             guiGraphics.pose().pushPose();
             guiGraphics.enableScissor((int) magnifyingXMin, (int) magnifyingYMin, (int) magnifyingXMax, (int) magnifyingYMax);
-            float age = (float) (Math.sin((tickCount + Minecraft.getInstance().getFrameTime()) * 0.2F) + 1F) * 0.5F;
+            float age = (float) (Math.sin((tickCount + Minecraft.getInstance().getTimer().getRealtimeDeltaTicks()) * 0.2F) + 1F) * 0.5F;
             int alpha = (int) (Mth.clamp(age, 0.1F, 1F) * 255);
             int r = (int) (textColor >> 16 & 255);
             int g = (int) (textColor >> 8 & 255);

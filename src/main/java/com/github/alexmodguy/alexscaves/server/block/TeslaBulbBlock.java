@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.ACBlockEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.TeslaBulbBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -29,8 +30,14 @@ import org.jetbrains.annotations.Nullable;
 
 public class TeslaBulbBlock extends BaseEntityBlock implements SimpleWaterloggedBlock {
 
+    public static final MapCodec<TeslaBulbBlock> CODEC = simpleCodec((properties) -> new TeslaBulbBlock());
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     public static final BooleanProperty DOWN = BooleanProperty.create("down");
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
+    }
     public static final VoxelShape SHAPE_DOWN = Block.box(3, 1, 3, 11, 15, 11);
     public static final VoxelShape SHAPE_UP = Block.box(3, 1, 3, 11, 15, 11);
 

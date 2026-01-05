@@ -3,7 +3,7 @@ package com.github.alexmodguy.alexscaves.server.level.structure;
 import com.github.alexmodguy.alexscaves.server.level.biome.ACBiomeRegistry;
 import com.github.alexmodguy.alexscaves.server.level.structure.piece.VolcanoStructurePiece;
 import com.github.alexmodguy.alexscaves.server.misc.ACMath;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.world.level.ChunkPos;
@@ -23,7 +23,7 @@ public class VolcanoStructure extends Structure {
 
     public static final int VOLCANO_Y_CENTER = -34;
 
-    public static final Codec<VolcanoStructure> CODEC = simpleCodec((settings) -> new VolcanoStructure(settings));
+    public static final MapCodec<VolcanoStructure> CODEC = simpleCodec((settings) -> new VolcanoStructure(settings));
 
     protected VolcanoStructure(StructureSettings settings) {
         super(settings);

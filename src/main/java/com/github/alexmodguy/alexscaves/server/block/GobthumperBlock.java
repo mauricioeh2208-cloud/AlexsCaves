@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.ACBlockEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.BeholderBlockEntity;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.GobthumperBlockEntity;
@@ -31,9 +32,15 @@ import org.jetbrains.annotations.Nullable;
 
 public class GobthumperBlock extends BaseEntityBlock implements SimpleWaterloggedBlock {
 
+    public static final MapCodec<GobthumperBlock> CODEC = simpleCodec((properties) -> new GobthumperBlock());
     private static final VoxelShape SHAPE = ACMath.buildShape(Block.box(7, 0, 7, 9, 3, 9), Block.box(6, 3, 6, 10, 11, 10));
 
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
+    }
 
     protected GobthumperBlock() {
         super(Properties.of().mapColor(MapColor.COLOR_PINK).strength(1F, 12.0F).sound(ACSoundTypes.SQUISHY_CANDY));

@@ -1,6 +1,8 @@
 package com.github.alexmodguy.alexscaves.server.entity.living;
 
 import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.CustomData;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
 import net.minecraft.core.BlockPos;
@@ -8,6 +10,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
@@ -56,7 +60,8 @@ public class SeaPigEntity extends WaterAnimal implements Bucketable {
 
     private float squishProgress;
     private float prevSquishProgress;
-    public static final ResourceLocation DIGESTION_LOOT_TABLE = ResourceLocation.fromNamespaceAndPath("alexscaves", "gameplay/sea_pig_digestion");
+    public static final ResourceKey<LootTable> DIGESTION_LOOT_TABLE = ResourceKey.create(Registries.LOOT_TABLE, 
+        ResourceLocation.fromNamespaceAndPath("alexscaves", "gameplay/sea_pig_digestion"));
 
     public SeaPigEntity(EntityType entityType, Level level) {
         super(entityType, level);
@@ -65,9 +70,9 @@ public class SeaPigEntity extends WaterAnimal implements Bucketable {
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(FROM_BUCKET, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(FROM_BUCKET, false);
     }
 
     protected PathNavigation createNavigation(Level worldIn) {
@@ -172,17 +177,17 @@ public class SeaPigEntity extends WaterAnimal implements Bucketable {
     }
 
     @javax.annotation.Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor worldIn, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn, @javax.annotation.Nullable CompoundTag dataTag) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor worldIn, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn) {
         if (reason == MobSpawnType.NATURAL) {
             doInitialPosing(worldIn);
         }
-        return super.finalizeSpawn(worldIn, difficultyIn, reason, spawnDataIn, dataTag);
+        return super.finalizeSpawn(worldIn, difficultyIn, reason, spawnDataIn);
     }
 
 
     private void digestItem() {
         if (!level().isClientSide) {
-            LootTable loottable = level().getServer().getLootData().getLootTable(DIGESTION_LOOT_TABLE);
+            LootTable loottable = level().getServer().reloadableRegistries().getLootTable(DIGESTION_LOOT_TABLE);
             List<ItemStack> items = loottable.getRandomItems((new LootParams.Builder((ServerLevel) this.level())).withParameter(LootContextParams.THIS_ENTITY, this).create(LootContextParamSets.PIGLIN_BARTER));
             items.forEach(this::spawnAtLocation);
         }
@@ -236,12 +241,13 @@ public class SeaPigEntity extends WaterAnimal implements Bucketable {
     @Override
     public void saveToBucketTag(@Nonnull ItemStack bucket) {
         if (this.hasCustomName()) {
-            bucket.setHoverName(this.getCustomName());
+            bucket.set(DataComponents.CUSTOM_NAME, this.getCustomName());
         }
         CompoundTag platTag = new CompoundTag();
         this.addAdditionalSaveData(platTag);
-        CompoundTag compound = bucket.getOrCreateTag();
+        CompoundTag compound = bucket.getOrDefault(DataComponents.BUCKET_ENTITY_DATA, CustomData.EMPTY).copyTag();
         compound.put("FishBucketTag", platTag);
+        bucket.set(DataComponents.BUCKET_ENTITY_DATA, CustomData.of(compound));
     }
 
 

@@ -129,21 +129,21 @@ public class GingerbreadManEntity extends Monster implements IAnimatedEntity, ID
         this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, Husk.class, true, false));
     }
 
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DANCING, false);
-        this.entityData.define(SITTING, false);
-        this.entityData.define(VARIANT, 0);
-        this.entityData.define(CARRYING_ITEM, false);
-        this.entityData.define(FLEEING_FROM_UUID, Optional.empty());
-        this.entityData.define(POSSESSOR_LICOWITCH_ID, -1);
-        this.entityData.define(BARREL_POS, Optional.empty());
-        this.entityData.define(TEAM_COLOR, -1);
-        this.entityData.define(OVEN_SPAWNED, false);
-        this.entityData.define(LOST_LEFT_ARM, false);
-        this.entityData.define(LOST_RIGHT_ARM, false);
-        this.entityData.define(LOST_RIGHT_LEG, false);
-        this.entityData.define(LOST_LEFT_LEG, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DANCING, false);
+        builder.define(SITTING, false);
+        builder.define(VARIANT, 0);
+        builder.define(CARRYING_ITEM, false);
+        builder.define(FLEEING_FROM_UUID, Optional.empty());
+        builder.define(POSSESSOR_LICOWITCH_ID, -1);
+        builder.define(BARREL_POS, Optional.empty());
+        builder.define(TEAM_COLOR, -1);
+        builder.define(OVEN_SPAWNED, false);
+        builder.define(LOST_LEFT_ARM, false);
+        builder.define(LOST_RIGHT_ARM, false);
+        builder.define(LOST_RIGHT_LEG, false);
+        builder.define(LOST_LEFT_LEG, false);
     }
 
     public float getWalkTargetValue(BlockPos pos, LevelReader levelReader) {
@@ -402,7 +402,6 @@ public class GingerbreadManEntity extends Monster implements IAnimatedEntity, ID
         currentAnimation = animation;
     }
 
-    @Override
     public void lerpTo(double x, double y, double z, float yr, float xr, int steps, boolean b) {
         this.lx = x;
         this.ly = y;
@@ -428,9 +427,9 @@ public class GingerbreadManEntity extends Monster implements IAnimatedEntity, ID
 
 
     @javax.annotation.Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn, @javax.annotation.Nullable CompoundTag dataTag) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn) {
         this.setVariant(random.nextInt(MAX_VARIANTS + 1));
-        return super.finalizeSpawn(level, difficultyIn, reason, spawnDataIn, dataTag);
+        return super.finalizeSpawn(level, difficultyIn, reason, spawnDataIn);
     }
 
     public void addAdditionalSaveData(CompoundTag compound) {
@@ -542,9 +541,10 @@ public class GingerbreadManEntity extends Monster implements IAnimatedEntity, ID
         }
     }
 
-    protected void dropExperience() {
+    @Override
+    protected void dropExperience(@org.jetbrains.annotations.Nullable Entity attacker) {
         if(!this.isOvenSpawned()){
-            super.dropExperience();
+            super.dropExperience(attacker);
         }
     }
 

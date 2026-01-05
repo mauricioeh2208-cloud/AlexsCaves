@@ -43,8 +43,14 @@ public class QuarryBlockEntity extends BlockEntity {
             entity.checkTimer = 20 + level.random.nextInt(20);
             if (entity.searchForTorches(level, blockPos, state.getValue(QuarryBlock.FACING))) {
                 entity.hasMiningArea = true;
-                AABB aabb1 = new AABB(entity.bottomLeftTorch, entity.bottomRightTorch);
-                AABB aabb2 = new AABB(entity.topLeftTorch, entity.topRightTorch);
+                AABB aabb1 = new AABB(
+                    entity.bottomLeftTorch.getX(), entity.bottomLeftTorch.getY(), entity.bottomLeftTorch.getZ(),
+                    entity.bottomRightTorch.getX(), entity.bottomRightTorch.getY(), entity.bottomRightTorch.getZ()
+                );
+                AABB aabb2 = new AABB(
+                    entity.topLeftTorch.getX(), entity.topLeftTorch.getY(), entity.topLeftTorch.getZ(),
+                    entity.topRightTorch.getX(), entity.topRightTorch.getY(), entity.topRightTorch.getZ()
+                );
                 entity.miningBox = aabb1.minmax(aabb2);
                 if (!level.isClientSide) {
                     entity.lastMineablePos = entity.findMinableBlock(level, blockPos.getY() + 3).orElse(null);

@@ -15,6 +15,7 @@ import com.github.alexthe666.citadel.animation.AnimationHandler;
 import com.github.alexthe666.citadel.animation.IAnimatedEntity;
 import com.github.alexthe666.citadel.server.entity.collision.ICustomCollisions;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -167,14 +168,14 @@ public class VallumraptorEntity extends DinosaurEntity implements IAnimatedEntit
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(PUZZLED_HEAD_ROT, 0F);
-        this.entityData.define(LEAPING, false);
-        this.entityData.define(ELDER, false);
-        this.entityData.define(RUNNING, false);
-        this.entityData.define(RELAXED_FOR, 0);
-        this.entityData.define(HIDING_FOR, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(PUZZLED_HEAD_ROT, 0F);
+        builder.define(LEAPING, false);
+        builder.define(ELDER, false);
+        builder.define(RUNNING, false);
+        builder.define(RELAXED_FOR, 0);
+        builder.define(HIDING_FOR, 0);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -455,7 +456,7 @@ public class VallumraptorEntity extends DinosaurEntity implements IAnimatedEntit
     }
 
     @javax.annotation.Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn, @javax.annotation.Nullable CompoundTag dataTag) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn) {
         if (spawnDataIn instanceof AgeableMob.AgeableMobGroupData) {
             AgeableMob.AgeableMobGroupData data = (AgeableMob.AgeableMobGroupData) spawnDataIn;
             if (data.getGroupSize() == 0) {
@@ -464,7 +465,7 @@ public class VallumraptorEntity extends DinosaurEntity implements IAnimatedEntit
         } else {
             this.setElder(this.getRandom().nextInt(2) == 0);
         }
-        return super.finalizeSpawn(level, difficultyIn, reason, spawnDataIn, dataTag);
+        return super.finalizeSpawn(level, difficultyIn, reason, spawnDataIn);
     }
 
     public void calculateEntityAnimation(boolean flying) {
@@ -562,14 +563,13 @@ public class VallumraptorEntity extends DinosaurEntity implements IAnimatedEntit
         return !(blockState.getBlock() instanceof DoorBlock && blockState.getValue(DoorBlock.OPEN)) && super.isColliding(pos, blockState);
     }
 
-    @Override
     public Vec3 collide(Vec3 vec3) {
         return ICustomCollisions.getAllowedMovementForEntity(this, vec3);
     }
 
     @Override
     public boolean canTargetItem(ItemStack stack) {
-        return (stack.is(ACTagRegistry.VALLUMRAPTOR_STEALS) || stack.getItem().isEdible() && stack.getItem().getFoodProperties(stack, this).isMeat()) && !stack.is(ACBlockRegistry.VALLUMRAPTOR_EGG.get().asItem());
+        return (stack.is(ACTagRegistry.VALLUMRAPTOR_STEALS) || stack.has(DataComponents.FOOD) && stack.is(ACTagRegistry.RAW_MEATS)) && !stack.is(ACBlockRegistry.VALLUMRAPTOR_EGG.get().asItem());
     }
 
     public double getMaxDistToItem() {

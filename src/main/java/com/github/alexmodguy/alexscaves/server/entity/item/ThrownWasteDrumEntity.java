@@ -7,8 +7,6 @@ import com.github.alexmodguy.alexscaves.server.entity.living.BrainiacEntity;
 import com.github.alexmodguy.alexscaves.server.misc.ACDamageTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -20,8 +18,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
 
 public class ThrownWasteDrumEntity extends Entity {
 
@@ -32,16 +28,6 @@ public class ThrownWasteDrumEntity extends Entity {
 
     public ThrownWasteDrumEntity(EntityType<?> entityType, Level level) {
         super(entityType, level);
-    }
-
-    public ThrownWasteDrumEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.THROWN_WASTE_DRUM.get(), level);
-        this.setBoundingBox(this.makeBoundingBox());
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
     }
 
     public void tick() {
@@ -89,8 +75,8 @@ public class ThrownWasteDrumEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(ON_GROUND_FOR, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(ON_GROUND_FOR, 0);
     }
 
     public int getOnGroundFor() {

@@ -41,7 +41,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.entity.PartEntity;
+import net.neoforged.neoforge.entity.PartEntity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -115,12 +115,12 @@ public class MagnetronEntity extends Monster {
 
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(BLOCKSTATES, new CompoundTag());
-        this.entityData.define(BLOCK_POSES, new CompoundTag());
-        this.entityData.define(FORMED, false);
-        this.entityData.define(ATTACK_POSE, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(BLOCKSTATES, new CompoundTag());
+        builder.define(BLOCK_POSES, new CompoundTag());
+        builder.define(FORMED, false);
+        builder.define(ATTACK_POSE, 0);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -457,7 +457,7 @@ public class MagnetronEntity extends Monster {
             ListTag listTag = data.getList("BlockPos", 10);
             for (int i = 0; i < listTag.size(); ++i) {
                 CompoundTag innerTag = listTag.getCompound(i);
-                list.add(NbtUtils.readBlockPos(innerTag));
+                NbtUtils.readBlockPos(innerTag, "pos").ifPresent(list::add);
             }
         }
         return list;
@@ -467,7 +467,9 @@ public class MagnetronEntity extends Monster {
         CompoundTag tag = new CompoundTag();
         ListTag listTag = new ListTag();
         for (BlockPos pos : list) {
-            listTag.add(NbtUtils.writeBlockPos(pos));
+            CompoundTag posTag = new CompoundTag();
+            posTag.put("pos", NbtUtils.writeBlockPos(pos));
+            listTag.add(posTag);
         }
         tag.put("BlockPos", listTag);
         this.entityData.set(BLOCK_POSES, tag);
@@ -604,7 +606,7 @@ public class MagnetronEntity extends Monster {
     }
 
     protected float getStandingEyeHeight(Pose pose, EntityDimensions dimensions) {
-        return 0.55F * dimensions.height;
+        return 0.55F * dimensions.height();
     }
 
     public void spawnGroundEffects() {
@@ -631,7 +633,7 @@ public class MagnetronEntity extends Monster {
     }
 
     public boolean canBeAffected(MobEffectInstance effectInstance) {
-        return super.canBeAffected(effectInstance) && effectInstance.getEffect() != ACEffectRegistry.MAGNETIZING.get();
+        return super.canBeAffected(effectInstance) && effectInstance.getEffect() != ACEffectRegistry.MAGNETIZING;
     }
 
     protected SoundEvent getAmbientSound() {

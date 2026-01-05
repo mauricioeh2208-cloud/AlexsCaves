@@ -1,6 +1,5 @@
 package com.github.alexmodguy.alexscaves.client.particle;
 
-import com.github.alexthe666.citadel.repack.jcodec.scale.ColorUtil;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
 import net.minecraft.core.particles.SimpleParticleType;

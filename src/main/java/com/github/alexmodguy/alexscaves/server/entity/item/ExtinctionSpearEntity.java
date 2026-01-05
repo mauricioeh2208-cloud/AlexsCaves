@@ -3,13 +3,12 @@ package com.github.alexmodguy.alexscaves.server.entity.item;
 import com.github.alexmodguy.alexscaves.client.particle.ACParticleRegistry;
 import com.github.alexmodguy.alexscaves.server.enchantment.ACEnchantmentRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.ACEntityRegistry;
+import net.minecraft.core.registries.Registries;
 import com.github.alexmodguy.alexscaves.server.entity.util.TephraExplosion;
 import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACDamageTypes;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -28,8 +27,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
 
 import javax.annotation.Nullable;
 
@@ -43,32 +40,22 @@ public class ExtinctionSpearEntity extends AbstractArrow {
     }
 
     public ExtinctionSpearEntity(Level level, LivingEntity shooter, ItemStack itemStack) {
-        super(ACEntityRegistry.EXTINCTION_SPEAR.get(), shooter, level);
+        super(ACEntityRegistry.EXTINCTION_SPEAR.get(), shooter, level, itemStack.copy(), ItemStack.EMPTY);
         this.spearItem = itemStack.copy();
     }
 
     public ExtinctionSpearEntity(Level level, double x, double y, double z) {
-        super(ACEntityRegistry.EXTINCTION_SPEAR.get(), x, y, z, level);
-    }
-
-    public ExtinctionSpearEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.EXTINCTION_SPEAR.get(), level);
-        this.setBoundingBox(this.makeBoundingBox());
+        super(ACEntityRegistry.EXTINCTION_SPEAR.get(), x, y, z, level, new ItemStack(ACItemRegistry.EXTINCTION_SPEAR.get()), ItemStack.EMPTY);
     }
 
     @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(WIGGLING, false);
     }
-
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(WIGGLING, false);
-    }
-
-    protected ItemStack getPickupItem() {
+    protected ItemStack getDefaultPickupItem() {
         return spearItem;
     }
 
@@ -83,7 +70,7 @@ public class ExtinctionSpearEntity extends AbstractArrow {
         if ((this.inGround || this.isNoPhysics()) && entity != null) {
             if (!this.isAcceptibleReturnOwner()) {
                 if (!this.level().isClientSide && this.pickup == AbstractArrow.Pickup.ALLOWED) {
-                    this.spawnAtLocation(this.getPickupItem(), 0.1F);
+                    this.spawnAtLocation(this.getDefaultPickupItem(), 0.1F);
                 }
 
                 this.discard();
@@ -144,25 +131,27 @@ public class ExtinctionSpearEntity extends AbstractArrow {
     protected void onHitEntity(EntityHitResult hitResult) {
         Entity entity = hitResult.getEntity();
         float f = 10.0F;
-        if (entity instanceof LivingEntity livingentity) {
-            f += EnchantmentHelper.getDamageBonus(this.getPickupItem(), livingentity.getMobType());
-        }
+        // TODO 1.21: getDamageBonus and getMobType removed - use new data-driven enchantment system
+        // if (entity instanceof LivingEntity livingentity) {
+        //     f += EnchantmentHelper.getDamageBonus(this.getDefaultPickupItem(), livingentity.getMobType());
+        // }
 
         Entity entity1 = this.getOwner();
         DamageSource damagesource = ACDamageTypes.causeSpiritDinosaurDamage(level().registryAccess(), (Entity) (entity1 == null ? this : entity1));
         this.dealtDamage = true;
         SoundEvent soundevent = ACSoundRegistry.EXTINCTION_SPEAR_HIT.get();
-        entity.setSecondsOnFire(5);
+        entity.igniteForSeconds(5);
         if (entity.hurt(damagesource, f)) {
             if (entity.getType() == EntityType.ENDERMAN) {
                 return;
             }
             if (entity instanceof LivingEntity) {
                 LivingEntity livingentity1 = (LivingEntity) entity;
-                if (entity1 instanceof LivingEntity) {
-                    EnchantmentHelper.doPostHurtEffects(livingentity1, entity1);
-                    EnchantmentHelper.doPostDamageEffects((LivingEntity) entity1, livingentity1);
-                }
+                // TODO 1.21: doPostHurtEffects and doPostDamageEffects removed
+                // if (entity1 instanceof LivingEntity) {
+                //     EnchantmentHelper.doPostHurtEffects(livingentity1, entity1);
+                //     EnchantmentHelper.doPostDamageEffects((LivingEntity) entity1, livingentity1);
+                // }
 
                 this.doPostHurtEffects(livingentity1);
             }
@@ -173,7 +162,7 @@ public class ExtinctionSpearEntity extends AbstractArrow {
                 dinosaurSpirit.setPlayerUUID(entity1.getUUID());
                 dinosaurSpirit.setAttackingEntityId(entity.getId());
                 dinosaurSpirit.lookAt(EntityAnchorArgument.Anchor.EYES, entity1.getEyePosition());
-                dinosaurSpirit.setEnchantmentLevel(spearItem.getEnchantmentLevel(ACEnchantmentRegistry.PLUMMETING_FLIGHT.get()));
+                dinosaurSpirit.setEnchantmentLevel(spearItem.getEnchantmentLevel(this.level().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(ACEnchantmentRegistry.PLUMMETING_FLIGHT)));
                 this.playSound(ACSoundRegistry.EXTINCTION_SPEAR_SUMMON.get(), 1.0F, 1.0F);
                 level().addFreshEntity(dinosaurSpirit);
             }

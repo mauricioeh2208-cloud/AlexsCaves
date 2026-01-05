@@ -7,14 +7,17 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
 import javax.annotation.Nullable;
 
 public class PrimordialArmorItem extends ArmorItem {
 
-    public PrimordialArmorItem(ArmorMaterial armorMaterial, Type slot) {
-        super(armorMaterial, slot, new Properties());
+    private final ACArmorMaterial acMaterial;
+
+    public PrimordialArmorItem(ACArmorMaterial armorMaterial, Type slot) {
+        super(armorMaterial.getHolder(), slot, new Properties().durability(armorMaterial.getDurabilityForType(slot)));
+        this.acMaterial = armorMaterial;
     }
 
     @Override

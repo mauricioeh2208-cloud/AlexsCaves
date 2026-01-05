@@ -140,16 +140,13 @@ public class DinosaurChopBlock extends Block implements SimpleWaterloggedBlock {
         return super.updateShape(state, direction, state1, levelAccessor, blockPos, blockPos1);
     }
 
-    public InteractionResult use(BlockState blockState, Level level, BlockPos blockPos, Player player, InteractionHand hand, BlockHitResult blockHitResult) {
-        ItemStack itemstack = player.getItemInHand(hand);
+    @Override
+    protected InteractionResult useWithoutItem(BlockState blockState, Level level, BlockPos blockPos, Player player, BlockHitResult blockHitResult) {
         if (level.isClientSide) {
             if (eat(level, blockPos, blockState, player).consumesAction()) {
                 return InteractionResult.SUCCESS;
             }
-
-            if (itemstack.isEmpty()) {
-                return InteractionResult.CONSUME;
-            }
+            return InteractionResult.CONSUME;
         }
         return eat(level, blockPos, blockState, player);
     }

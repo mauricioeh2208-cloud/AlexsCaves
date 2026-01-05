@@ -72,7 +72,8 @@ public class NuclearFurnaceBlock extends BaseEntityBlock {
         return super.updateShape(state, direction, state1, levelAccessor, blockPos, blockPos1);
     }
 
-    public InteractionResult use(BlockState state, Level level, BlockPos blockPos, Player player, InteractionHand hand, BlockHitResult result) {
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos blockPos, Player player, BlockHitResult result) {
         if(!player.isShiftKeyDown()){
             if (level.isClientSide) {
                 return InteractionResult.SUCCESS;
@@ -86,7 +87,7 @@ public class NuclearFurnaceBlock extends BaseEntityBlock {
                 return InteractionResult.CONSUME;
             }
         }
-        return InteractionResult.PASS;
+        return super.useWithoutItem(state, level, blockPos, player, result);
     }
 
     public void playerDestroy(Level level, Player player, BlockPos blockPos, BlockState state, @javax.annotation.Nullable BlockEntity entity, ItemStack itemStack) {

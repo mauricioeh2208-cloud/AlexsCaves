@@ -128,7 +128,8 @@ public class GingerbreadDoorBlock extends Block {
         }
     }
 
-    public InteractionResult use(BlockState blockState, Level level, BlockPos blockPos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    @Override
+    protected InteractionResult useWithoutItem(BlockState blockState, Level level, BlockPos blockPos, Player player, BlockHitResult hitResult) {
         blockState = blockState.cycle(OPEN);
         level.setBlock(blockPos, blockState, 10);
         this.playSound(player, level, blockPos, blockState.getValue(OPEN));

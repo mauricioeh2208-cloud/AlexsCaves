@@ -10,6 +10,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -108,8 +109,8 @@ public class AbyssalAltarBlock extends BaseEntityBlock implements SimpleWaterlog
     }
 
 
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
-        ItemStack heldItem = player.getItemInHand(handIn);
+    @Override
+    public ItemInteractionResult useItemOn(ItemStack heldItem, BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
         if (worldIn.getBlockEntity(pos) instanceof AbyssalAltarBlockEntity altarBlockEntity && !player.isShiftKeyDown()) {
             ItemStack copy = heldItem.copy();
             copy.setCount(1);
@@ -119,8 +120,22 @@ public class AbyssalAltarBlock extends BaseEntityBlock implements SimpleWaterlog
                 if (!player.isCreative()) {
                     heldItem.shrink(1);
                 }
-                return InteractionResult.SUCCESS;
+                return ItemInteractionResult.SUCCESS;
             } else {
+                if (altarBlockEntity.queueItemDrop(altarBlockEntity.getItem(0).copy())) {
+                    altarBlockEntity.onEntityInteract(player, true);
+                    altarBlockEntity.setItem(0, ItemStack.EMPTY);
+                }
+                return ItemInteractionResult.SUCCESS;
+            }
+        }
+        return super.useItemOn(heldItem, state, worldIn, pos, player, handIn, hit);
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
+        if (worldIn.getBlockEntity(pos) instanceof AbyssalAltarBlockEntity altarBlockEntity && !player.isShiftKeyDown()) {
+            if (!altarBlockEntity.getItem(0).isEmpty()) {
                 if (altarBlockEntity.queueItemDrop(altarBlockEntity.getItem(0).copy())) {
                     altarBlockEntity.onEntityInteract(player, true);
                     altarBlockEntity.setItem(0, ItemStack.EMPTY);
@@ -128,7 +143,7 @@ public class AbyssalAltarBlock extends BaseEntityBlock implements SimpleWaterlog
                 return InteractionResult.SUCCESS;
             }
         }
-        return InteractionResult.PASS;
+        return super.useWithoutItem(state, worldIn, pos, player, hit);
     }
 
     @javax.annotation.Nullable

@@ -1,0 +1,24 @@
+{
+  "display": {
+    "icon": {
+      "id": "citadel:icon_item",
+      "components": {
+        "minecraft:custom_data": {
+          "IconLocation": "alexscaves:textures/misc/advancement/icon/summon_luxtructosaurus.png"
+        }
+      }
+    },
+    "title": {
+      "translate": "advancements.alexscaves.summon_luxtructosaurus.title"
+    },
+    "description": {
+      "translate": "advancements.alexscaves.summon_luxtructosaurus.desc"
+    }
+  },
+  "parent": "alexscaves:alexscaves/ominous_catalyst",
+  "criteria": {
+    "summon_luxtructosaurus": {
+      "trigger": "alexscaves:summon_luxtructosaurus"
+    }
+  }
+}

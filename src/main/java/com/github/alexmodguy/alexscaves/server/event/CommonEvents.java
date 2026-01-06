@@ -235,8 +235,7 @@ public class CommonEvents {
     public void livingAttack(LivingIncomingDamageEvent event) {
         if (event.getSource().getDirectEntity() instanceof AbstractArrow arrow && event.getEntity().isBlocking() && event.getEntity().getUseItem().is(ACItemRegistry.RESISTOR_SHIELD.get())) {
             ItemStack shield = event.getEntity().getUseItem();
-            // TODO: 1.21 enchantment check - needs holder lookup
-            // if (shield.getEnchantmentLevel(holder) > 0 && arrow.getType() != ACEntityRegistry.SEEKING_ARROW.get()) {
+            // Check for arrow inducting enchantment using 1.21 data-driven system
             if (hasEnchantment(shield, event.getEntity().level(), ACEnchantmentRegistry.ARROW_INDUCTING) && arrow.getType() != ACEntityRegistry.SEEKING_ARROW.get()) {
                 SeekingArrowEntity seekingArrowEntity = new SeekingArrowEntity(event.getEntity().level(), event.getEntity());
                 seekingArrowEntity.copyPosition(arrow);

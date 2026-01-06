@@ -16,6 +16,9 @@ description='''${mod_description}'''
 [[mixins]]
 config = "${mod_id}.mixins.json"
 
+# Custom enum extensions for custom item rarities
+enumExtensions="META-INF/enumextensions.json"
+
 [[dependencies.${mod_id}]]
     modId="neoforge"
     type="required"

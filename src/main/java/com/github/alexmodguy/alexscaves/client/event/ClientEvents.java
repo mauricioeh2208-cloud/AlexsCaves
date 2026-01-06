@@ -74,9 +74,7 @@ import net.neoforged.neoforge.client.event.*;
 import net.minecraft.client.gui.Gui;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.common.NeoForge;
-// TODO: TickEvent removed - use specific tick events:
-// ClientTickEvent: net.neoforged.neoforge.client.event.ClientTickEvent
-// ServerTickEvent/LevelTickEvent/EntityTickEvent: net.neoforged.neoforge.event.tick.*
+// NeoForge 1.21 tick events are now in net.neoforged.neoforge.event.tick.*
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -486,8 +484,7 @@ public class ClientEvents {
         if (player.getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof SpearItem && player.isUsingItem()
                 && player.getUseItemRemainingTicks() > 0) {
             float f7 = (player.getItemInHand(InteractionHand.MAIN_HAND).getUseDuration(player)
-                    /* TODO: getUseDuration() now requires LivingEntity parameter */ - ((float) player
-                            .getUseItemRemainingTicks() - f + 1.0F))
+                    - ((float) player.getUseItemRemainingTicks() - f + 1.0F))
                     / 10.0F;
             if (player.getMainArm() == HumanoidArm.RIGHT) {
                 rightHandSpearUseProgress = Math.max(rightHandSpearUseProgress, f7);
@@ -498,8 +495,7 @@ public class ClientEvents {
         if (player.getItemInHand(InteractionHand.OFF_HAND).getItem() instanceof SpearItem && player.isUsingItem()
                 && player.getUseItemRemainingTicks() > 0) {
             float f7 = (player.getItemInHand(InteractionHand.OFF_HAND).getUseDuration(player)
-                    /* TODO: getUseDuration() now requires LivingEntity parameter */ - ((float) player
-                            .getUseItemRemainingTicks() - f + 1.0F))
+                    - ((float) player.getUseItemRemainingTicks() - f + 1.0F))
                     / 10.0F;
             if (player.getMainArm() == HumanoidArm.RIGHT) {
                 leftHandSpearUseProgress = Math.max(leftHandSpearUseProgress, f7);
@@ -1123,116 +1119,114 @@ public class ClientEvents {
 
     @SubscribeEvent
     public void onClientTick(ClientTickEvent.Post event) {
-        if (true) { // TODO: Remove this if block - now using .Post event variant
-            Entity cameraEntity = Minecraft.getInstance().cameraEntity;
-            float partialTicks = AlexsCaves.PROXY.getPartialTicks();
-            if (ClientProxy.shaderLoadAttemptCooldown > 0) {
-                ClientProxy.shaderLoadAttemptCooldown--;
+        Entity cameraEntity = Minecraft.getInstance().cameraEntity;
+        float partialTicks = AlexsCaves.PROXY.getPartialTicks();
+        if (ClientProxy.shaderLoadAttemptCooldown > 0) {
+            ClientProxy.shaderLoadAttemptCooldown--;
+        }
+        ClientProxy.prevPrimordialBossActiveAmount = ClientProxy.primordialBossActiveAmount;
+        ClientProxy.prevNukeFlashAmount = ClientProxy.nukeFlashAmount;
+        if (cameraEntity != null) {
+            ClientProxy.acSkyOverrideAmount = ACBiomeRegistry.calculateBiomeSkyOverride(cameraEntity);
+            if (ClientProxy.acSkyOverrideAmount > 0) {
+                ClientProxy.acSkyOverrideColor = BiomeSampler.sampleBiomesVec3(Minecraft.getInstance().level,
+                        Minecraft.getInstance().cameraEntity.position(),
+                        biomeHolder -> Vec3.fromRGB24(biomeHolder.value().getSkyColor()));
             }
-            ClientProxy.prevPrimordialBossActiveAmount = ClientProxy.primordialBossActiveAmount;
-            ClientProxy.prevNukeFlashAmount = ClientProxy.nukeFlashAmount;
-            if (cameraEntity != null) {
-                ClientProxy.acSkyOverrideAmount = ACBiomeRegistry.calculateBiomeSkyOverride(cameraEntity);
-                if (ClientProxy.acSkyOverrideAmount > 0) {
-                    ClientProxy.acSkyOverrideColor = BiomeSampler.sampleBiomesVec3(Minecraft.getInstance().level,
-                            Minecraft.getInstance().cameraEntity.position(),
-                            biomeHolder -> Vec3.fromRGB24(biomeHolder.value().getSkyColor()));
-                }
-                ClientProxy.lastBiomeLightColorPrev = ClientProxy.lastBiomeLightColor;
-                ClientProxy.lastBiomeLightColor = calculateBiomeLightColor(cameraEntity);
-                ClientProxy.lastBiomeAmbientLightAmountPrev = ClientProxy.lastBiomeAmbientLightAmount;
-                ClientProxy.lastBiomeAmbientLightAmount = calculateBiomeAmbientLight(cameraEntity);
-                lastSampledFogNearness = calculateBiomeFogNearness(cameraEntity);
-                lastSampledWaterFogFarness = calculateBiomeWaterFogFarness(cameraEntity);
-                if (cameraEntity.level() instanceof ClientLevel) { // fixes crash with beholder
-                    lastSampledFogColor = calculateBiomeFogColor(cameraEntity);
-                    lastSampledWaterFogColor = calculateBiomeWaterFogColor(cameraEntity);
-                }
+            ClientProxy.lastBiomeLightColorPrev = ClientProxy.lastBiomeLightColor;
+            ClientProxy.lastBiomeLightColor = calculateBiomeLightColor(cameraEntity);
+            ClientProxy.lastBiomeAmbientLightAmountPrev = ClientProxy.lastBiomeAmbientLightAmount;
+            ClientProxy.lastBiomeAmbientLightAmount = calculateBiomeAmbientLight(cameraEntity);
+            lastSampledFogNearness = calculateBiomeFogNearness(cameraEntity);
+            lastSampledWaterFogFarness = calculateBiomeWaterFogFarness(cameraEntity);
+            if (cameraEntity.level() instanceof ClientLevel) { // fixes crash with beholder
+                lastSampledFogColor = calculateBiomeFogColor(cameraEntity);
+                lastSampledWaterFogColor = calculateBiomeWaterFogColor(cameraEntity);
             }
-            if (ClientProxy.renderNukeSkyDarkFor > 0) {
-                ClientProxy.renderNukeSkyDarkFor--;
+        }
+        if (ClientProxy.renderNukeSkyDarkFor > 0) {
+            ClientProxy.renderNukeSkyDarkFor--;
+        }
+        if (ClientProxy.muteNonNukeSoundsFor > 0) {
+            ClientProxy.muteNonNukeSoundsFor--;
+            if (ClientProxy.masterVolumeNukeModifier < 1.0F) {
+                ClientProxy.masterVolumeNukeModifier += 0.1F;
             }
-            if (ClientProxy.muteNonNukeSoundsFor > 0) {
-                ClientProxy.muteNonNukeSoundsFor--;
-                if (ClientProxy.masterVolumeNukeModifier < 1.0F) {
-                    ClientProxy.masterVolumeNukeModifier += 0.1F;
-                }
-            } else if (ClientProxy.masterVolumeNukeModifier > 0.0F) {
-                ClientProxy.masterVolumeNukeModifier -= 0.1F;
+        } else if (ClientProxy.masterVolumeNukeModifier > 0.0F) {
+            ClientProxy.masterVolumeNukeModifier -= 0.1F;
+        }
+        if (ClientProxy.lastBossLevel != Minecraft.getInstance().level) {
+            ClientProxy.primordialBossActive = false;
+            ClientProxy.primordialBossActiveAmount = 0;
+            ClientProxy.lastBossLevel = Minecraft.getInstance().level;
+        }
+        if (ClientProxy.primordialBossActive) {
+            if (ClientProxy.primordialBossActiveAmount < 1.0F) {
+                ClientProxy.primordialBossActiveAmount += 0.025F;
             }
-            if (ClientProxy.lastBossLevel != Minecraft.getInstance().level) {
-                ClientProxy.primordialBossActive = false;
-                ClientProxy.primordialBossActiveAmount = 0;
-                ClientProxy.lastBossLevel = Minecraft.getInstance().level;
+        } else {
+            if (ClientProxy.primordialBossActiveAmount > 0.0F) {
+                ClientProxy.primordialBossActiveAmount -= 0.025F;
             }
-            if (ClientProxy.primordialBossActive) {
-                if (ClientProxy.primordialBossActiveAmount < 1.0F) {
-                    ClientProxy.primordialBossActiveAmount += 0.025F;
-                }
+        }
+        if (ClientProxy.renderNukeFlashFor > 0) {
+            if (ClientProxy.nukeFlashAmount < 1F) {
+                ClientProxy.nukeFlashAmount = Math.min(ClientProxy.nukeFlashAmount + 0.4F, 1F);
+            }
+            ClientProxy.renderNukeFlashFor--;
+        } else if (ClientProxy.nukeFlashAmount > 0F) {
+            ClientProxy.nukeFlashAmount = Math.max(ClientProxy.nukeFlashAmount - 0.05F, 0F);
+        }
+        ClientProxy.prevPossessionStrengthAmount = ClientProxy.possessionStrengthAmount;
+        if (Minecraft.getInstance().getCameraEntity() instanceof PossessesCamera watcherEntity) {
+            if (watcherEntity.instant()) {
+                ClientProxy.possessionStrengthAmount = watcherEntity.getPossessionStrength(partialTicks);
             } else {
-                if (ClientProxy.primordialBossActiveAmount > 0.0F) {
-                    ClientProxy.primordialBossActiveAmount -= 0.025F;
-                }
-            }
-            if (ClientProxy.renderNukeFlashFor > 0) {
-                if (ClientProxy.nukeFlashAmount < 1F) {
-                    ClientProxy.nukeFlashAmount = Math.min(ClientProxy.nukeFlashAmount + 0.4F, 1F);
-                }
-                ClientProxy.renderNukeFlashFor--;
-            } else if (ClientProxy.nukeFlashAmount > 0F) {
-                ClientProxy.nukeFlashAmount = Math.max(ClientProxy.nukeFlashAmount - 0.05F, 0F);
-            }
-            ClientProxy.prevPossessionStrengthAmount = ClientProxy.possessionStrengthAmount;
-            if (Minecraft.getInstance().getCameraEntity() instanceof PossessesCamera watcherEntity) {
-                if (watcherEntity.instant()) {
-                    ClientProxy.possessionStrengthAmount = watcherEntity.getPossessionStrength(partialTicks);
+                if (ClientProxy.possessionStrengthAmount < watcherEntity.getPossessionStrength(partialTicks)) {
+                    ClientProxy.possessionStrengthAmount = Math.min(ClientProxy.possessionStrengthAmount + 0.2F,
+                            watcherEntity.getPossessionStrength(partialTicks));
                 } else {
-                    if (ClientProxy.possessionStrengthAmount < watcherEntity.getPossessionStrength(partialTicks)) {
-                        ClientProxy.possessionStrengthAmount = Math.min(ClientProxy.possessionStrengthAmount + 0.2F,
-                                watcherEntity.getPossessionStrength(partialTicks));
-                    } else {
-                        ClientProxy.possessionStrengthAmount = Math.max(ClientProxy.possessionStrengthAmount - 0.2F,
-                                watcherEntity.getPossessionStrength(partialTicks));
-                    }
-                }
-                if (watcherEntity instanceof BeholderEyeEntity beholderEye) {
-                    beholderEye.setOldRots();
-                    beholderEye.setEyeYRot(Minecraft.getInstance().player.getYHeadRot());
-                    beholderEye.setEyeXRot(Minecraft.getInstance().player.getXRot());
-                    if (AlexsCaves.PROXY.isKeyDown(4)) {
-                        AlexsCaves.PROXY.resetRenderViewEntity(Minecraft.getInstance().player);
-                    }
-                }
-            } else if (ClientProxy.possessionStrengthAmount > 0F) {
-                ClientProxy.possessionStrengthAmount = Math.max(ClientProxy.possessionStrengthAmount - 0.05F, 0F);
-            }
-            if (Minecraft.getInstance().screen instanceof AdvancementsScreen advancementsScreen) {
-                AdvancementTab selectedTab = ((AdvancementsScreenAccessor) advancementsScreen).getSelectedTab();
-                if (selectedTab != null) {
-                    AdvancementHolder holder = ((AdvancementTabAccessor) selectedTab).getRootAdvancement();
-                    if (ACAdvancementTabs.isAlexsCavesWidget(holder)) {
-                        ACAdvancementTabs.tick();
-                    }
+                    ClientProxy.possessionStrengthAmount = Math.max(ClientProxy.possessionStrengthAmount - 0.2F,
+                            watcherEntity.getPossessionStrength(partialTicks));
                 }
             }
-            if (ClientProxy.primordialBossActive && Minecraft.getInstance().level != null
-                    && !Minecraft.getInstance().isPaused()) {
-                ClientLevel level = Minecraft.getInstance().level;
-                BlockPos cameraBlockPos = Minecraft.getInstance().getCameraEntity().blockPosition();
-                BlockPos.MutableBlockPos trySpawnParticleBlockPos = new BlockPos.MutableBlockPos();
-                int dist = 16;
-                for (int particles = 0; particles < 100; ++particles) {
-                    int i = cameraBlockPos.getX() + level.random.nextInt(dist) - level.random.nextInt(dist);
-                    int j = cameraBlockPos.getY() + level.random.nextInt(dist) - level.random.nextInt(dist);
-                    int k = cameraBlockPos.getZ() + level.random.nextInt(dist) - level.random.nextInt(dist);
-                    trySpawnParticleBlockPos.set(i, j, k);
-                    BlockState blockstate = level.getBlockState(trySpawnParticleBlockPos);
-                    if (!blockstate.isCollisionShapeFullBlock(level, trySpawnParticleBlockPos)) {
-                        level.addParticle(ParticleTypes.ASH,
-                                (double) trySpawnParticleBlockPos.getX() + level.random.nextDouble(),
-                                (double) trySpawnParticleBlockPos.getY() + level.random.nextDouble(),
-                                (double) trySpawnParticleBlockPos.getZ() + level.random.nextDouble(), 0.0D, 0.0D, 0.0D);
-                    }
+            if (watcherEntity instanceof BeholderEyeEntity beholderEye) {
+                beholderEye.setOldRots();
+                beholderEye.setEyeYRot(Minecraft.getInstance().player.getYHeadRot());
+                beholderEye.setEyeXRot(Minecraft.getInstance().player.getXRot());
+                if (AlexsCaves.PROXY.isKeyDown(4)) {
+                    AlexsCaves.PROXY.resetRenderViewEntity(Minecraft.getInstance().player);
+                }
+            }
+        } else if (ClientProxy.possessionStrengthAmount > 0F) {
+            ClientProxy.possessionStrengthAmount = Math.max(ClientProxy.possessionStrengthAmount - 0.05F, 0F);
+        }
+        if (Minecraft.getInstance().screen instanceof AdvancementsScreen advancementsScreen) {
+            AdvancementTab selectedTab = ((AdvancementsScreenAccessor) advancementsScreen).getSelectedTab();
+            if (selectedTab != null) {
+                AdvancementHolder holder = ((AdvancementTabAccessor) selectedTab).getRootAdvancement();
+                if (ACAdvancementTabs.isAlexsCavesWidget(holder)) {
+                    ACAdvancementTabs.tick();
+                }
+            }
+        }
+        if (ClientProxy.primordialBossActive && Minecraft.getInstance().level != null
+                && !Minecraft.getInstance().isPaused()) {
+            ClientLevel level = Minecraft.getInstance().level;
+            BlockPos cameraBlockPos = Minecraft.getInstance().getCameraEntity().blockPosition();
+            BlockPos.MutableBlockPos trySpawnParticleBlockPos = new BlockPos.MutableBlockPos();
+            int dist = 16;
+            for (int particles = 0; particles < 100; ++particles) {
+                int i = cameraBlockPos.getX() + level.random.nextInt(dist) - level.random.nextInt(dist);
+                int j = cameraBlockPos.getY() + level.random.nextInt(dist) - level.random.nextInt(dist);
+                int k = cameraBlockPos.getZ() + level.random.nextInt(dist) - level.random.nextInt(dist);
+                trySpawnParticleBlockPos.set(i, j, k);
+                BlockState blockstate = level.getBlockState(trySpawnParticleBlockPos);
+                if (!blockstate.isCollisionShapeFullBlock(level, trySpawnParticleBlockPos)) {
+                    level.addParticle(ParticleTypes.ASH,
+                            (double) trySpawnParticleBlockPos.getX() + level.random.nextDouble(),
+                            (double) trySpawnParticleBlockPos.getY() + level.random.nextDouble(),
+                            (double) trySpawnParticleBlockPos.getZ() + level.random.nextDouble(), 0.0D, 0.0D, 0.0D);
                 }
             }
         }

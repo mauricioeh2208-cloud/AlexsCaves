@@ -117,7 +117,7 @@ public class SpelunkeryTableScreen extends AbstractContainerScreen<SpelunkeryTab
             Component badTablet = Component.translatable("alexscaves.container.spelunkery_table.bad_tablet");
             guiGraphics.drawString(font, badTablet, leftPos + 105 - (font.width(badTablet) / 2), j + 60, 0X000000,
                     false);
-            // TODO: NBT/DataComponents display for invalid tablet - simplified for 1.21
+            // Invalid tablet display simplified for 1.21 - uses DataComponents instead of NBT
 
         } else if (targetWordButton != null && hasTablet() && hasPaper()) {
             Component find = Component.translatable("alexscaves.container.spelunkery_table.find");

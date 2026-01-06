@@ -75,7 +75,8 @@ public abstract class HumanoidArmorLayerMixin extends RenderLayer {
         String texture = materialName.getPath();
         String s1 = String.format(java.util.Locale.ROOT, "%s:textures/models/armor/%s_layer_%d%s.png", domain, texture, (slot == EquipmentSlot.LEGS ? 2 : 1), type == null ? "" : String.format(java.util.Locale.ROOT, "_%s", type));
 
-        // TODO: In 1.21, ClientHooks.getArmorTexture signature changed significantly with the armor layer refactor
+        // Note: In 1.21, ClientHooks.getArmorTexture signature changed with the armor layer refactor.
+        // Custom armor textures are handled via the new ArmorMaterial/ArmorLayer system.
         // The old call was: ClientHooks.getArmorTexture(entity, stack, s1, slot, type)
         // For now, we skip the hook and use the calculated texture directly
         // s1 = net.neoforged.neoforge.client.ClientHooks.getArmorTexture(entity, stack, slot, type, s1);

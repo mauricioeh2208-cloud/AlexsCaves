@@ -447,15 +447,10 @@ public abstract class DeepOneBaseEntity extends PathfinderMob implements IAnimat
         return false;
     }
 
-    // 1.21: getDimensions(Pose) is now final in LivingEntity and cannot be overridden.
-    // Dimensions are now handled via EntityType.Builder.dimensions() or getDefaultDimensions().
-    // TODO: Consider using getDefaultDimensions() override or attribute modifiers for swimming size change.
-    // This method is kept for reference but commented out to avoid compilation errors.
-    /*
-    public EntityDimensions getDimensions(Pose poseIn) {
-        return this.isDeepOneSwimming() ? getSwimmingSize() : super.getDimensions(poseIn);
+    @Override
+    public EntityDimensions getDefaultDimensions(Pose poseIn) {
+        return this.isDeepOneSwimming() ? getSwimmingSize() : super.getDefaultDimensions(poseIn);
     }
-    */
 
     public DeepOneReaction getReactionTo(Player player) {
         if (isSummoned() && summonerUUID != null && summonerUUID.equals(player.getUUID())) {

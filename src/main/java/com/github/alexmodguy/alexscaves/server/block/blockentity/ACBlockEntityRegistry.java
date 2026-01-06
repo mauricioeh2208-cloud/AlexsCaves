@@ -38,26 +38,23 @@ public class ACBlockEntityRegistry {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GingerbarrelBlockEntity>> GINGERBARREL = DEF_REG.register("gingerbarrel", () -> BlockEntityType.Builder.of(GingerbarrelBlockEntity::new, ACBlockRegistry.GINGERBARREL.get()).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ConfectionOvenBlockEntity>> CONFECTION_OVEN = DEF_REG.register("confection_oven", () -> BlockEntityType.Builder.of(ConfectionOvenBlockEntity::new, ACBlockRegistry.CONFECTION_OVEN.get()).build(null));
 
-    // TODO: BlockEntityType.SIGN.validBlocks and BlockEntityType.HANGING_SIGN.validBlocks are now private in 1.21.
-    // Options to fix this:
-    // 1. Use Access Transformer to make validBlocks accessible
-    // 2. Use reflection (not recommended for production)
-    // 3. Register custom sign block entity types instead of expanding vanilla ones
-    // For now, this method is disabled until a proper solution is implemented.
+    // Custom sign blocks are added to vanilla BlockEntityType.SIGN and BlockEntityType.HANGING_SIGN
+    // using access transformers to make validBlocks accessible (public-f in accesstransformer.cfg)
     public static void expandVanillaDefinitions() {
-        // ImmutableSet.Builder<Block> validSignBlocks = new ImmutableSet.Builder<>();
-        // validSignBlocks.addAll(BlockEntityType.SIGN.validBlocks);
-        // validSignBlocks.add(ACBlockRegistry.PEWEN_SIGN.get());
-        // validSignBlocks.add(ACBlockRegistry.PEWEN_WALL_SIGN.get());
-        // validSignBlocks.add(ACBlockRegistry.THORNWOOD_SIGN.get());
-        // validSignBlocks.add(ACBlockRegistry.THORNWOOD_WALL_SIGN.get());
-        // BlockEntityType.SIGN.validBlocks = validSignBlocks.build();
-        // ImmutableSet.Builder<Block> validHangingSignBlocks = new ImmutableSet.Builder<>();
-        // validHangingSignBlocks.addAll(BlockEntityType.HANGING_SIGN.validBlocks);
-        // validHangingSignBlocks.add(ACBlockRegistry.PEWEN_HANGING_SIGN.get());
-        // validHangingSignBlocks.add(ACBlockRegistry.PEWEN_WALL_HANGING_SIGN.get());
-        // validHangingSignBlocks.add(ACBlockRegistry.THORNWOOD_HANGING_SIGN.get());
-        // validHangingSignBlocks.add(ACBlockRegistry.THORNWOOD_WALL_HANGING_SIGN.get());
-        // BlockEntityType.HANGING_SIGN.validBlocks = validHangingSignBlocks.build();
+        ImmutableSet.Builder<Block> validSignBlocks = new ImmutableSet.Builder<>();
+        validSignBlocks.addAll(BlockEntityType.SIGN.validBlocks);
+        validSignBlocks.add(ACBlockRegistry.PEWEN_SIGN.get());
+        validSignBlocks.add(ACBlockRegistry.PEWEN_WALL_SIGN.get());
+        validSignBlocks.add(ACBlockRegistry.THORNWOOD_SIGN.get());
+        validSignBlocks.add(ACBlockRegistry.THORNWOOD_WALL_SIGN.get());
+        BlockEntityType.SIGN.validBlocks = validSignBlocks.build();
+        
+        ImmutableSet.Builder<Block> validHangingSignBlocks = new ImmutableSet.Builder<>();
+        validHangingSignBlocks.addAll(BlockEntityType.HANGING_SIGN.validBlocks);
+        validHangingSignBlocks.add(ACBlockRegistry.PEWEN_HANGING_SIGN.get());
+        validHangingSignBlocks.add(ACBlockRegistry.PEWEN_WALL_HANGING_SIGN.get());
+        validHangingSignBlocks.add(ACBlockRegistry.THORNWOOD_HANGING_SIGN.get());
+        validHangingSignBlocks.add(ACBlockRegistry.THORNWOOD_WALL_HANGING_SIGN.get());
+        BlockEntityType.HANGING_SIGN.validBlocks = validHangingSignBlocks.build();
     }
 }

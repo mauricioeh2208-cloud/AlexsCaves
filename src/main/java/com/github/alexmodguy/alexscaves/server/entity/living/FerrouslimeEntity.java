@@ -230,15 +230,10 @@ public class FerrouslimeEntity extends Monster {
         }
     }
 
-    // 1.21: getDimensions(Pose) is now final in LivingEntity and cannot be overridden.
-    // Dimensions are now handled via EntityType.Builder.dimensions() or getDefaultDimensions().
-    // TODO: Consider using getDefaultDimensions() override for dynamic sizing based on slime size.
-    // This method is kept for reference but commented out to avoid compilation errors.
-    /*
-    public EntityDimensions getDimensions(Pose p_33597_) {
-        return super.getDimensions(p_33597_).scale(getSlimeSize(1.0F));
+    @Override
+    public EntityDimensions getDefaultDimensions(Pose poseIn) {
+        return super.getDefaultDimensions(poseIn).scale(getSlimeSize(1.0F));
     }
-    */
 
     public float getSlimeSize(float partialTicks) {
         float smoothHeadCount = getHeadCount() - 1 + getMergeProgress(partialTicks);

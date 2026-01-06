@@ -1,0 +1,40 @@
+{
+  "entries": [
+    {
+      "enum": "net/minecraft/world/item/Rarity",
+      "name": "ALEXSCAVES_DEMONIC",
+      "constructor": "(ILjava/lang/String;Ljava/util/function/UnaryOperator;)V",
+      "parameters": {
+        "class": "com/github/alexmodguy/alexscaves/server/item/ACRarityEnumParams",
+        "field": "RARITY_DEMONIC_PROXY"
+      }
+    },
+    {
+      "enum": "net/minecraft/world/item/Rarity",
+      "name": "ALEXSCAVES_NUCLEAR",
+      "constructor": "(ILjava/lang/String;Ljava/util/function/UnaryOperator;)V",
+      "parameters": {
+        "class": "com/github/alexmodguy/alexscaves/server/item/ACRarityEnumParams",
+        "field": "RARITY_NUCLEAR_PROXY"
+      }
+    },
+    {
+      "enum": "net/minecraft/world/item/Rarity",
+      "name": "ALEXSCAVES_SWEET",
+      "constructor": "(ILjava/lang/String;Ljava/util/function/UnaryOperator;)V",
+      "parameters": {
+        "class": "com/github/alexmodguy/alexscaves/server/item/ACRarityEnumParams",
+        "field": "RARITY_SWEET_PROXY"
+      }
+    },
+    {
+      "enum": "net/minecraft/world/item/Rarity",
+      "name": "ALEXSCAVES_RAINBOW",
+      "constructor": "(ILjava/lang/String;Ljava/util/function/UnaryOperator;)V",
+      "parameters": {
+        "class": "com/github/alexmodguy/alexscaves/server/item/ACRarityEnumParams",
+        "field": "RARITY_RAINBOW_PROXY"
+      }
+    }
+  ]
+}

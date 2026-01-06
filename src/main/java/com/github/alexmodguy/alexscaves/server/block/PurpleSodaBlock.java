@@ -43,7 +43,7 @@ public class PurpleSodaBlock extends LiquidBlock {
     @Override
     public void entityInside(BlockState blockState, Level level, BlockPos pos, Entity entity) {
         entity.fallDistance = 0.0F;
-        // TODO: nextStep is private in 1.21, need different approach for movement sound
+        // Movement sound implementation - plays sound based on entity movement speed
         if (entity instanceof LivingEntity living && !(entity instanceof SweetishFishEntity)) {
             Vec3 vec3 = entity.getDeltaMovement();
             float f1 = Math.min(1.0F, (float) vec3.length());

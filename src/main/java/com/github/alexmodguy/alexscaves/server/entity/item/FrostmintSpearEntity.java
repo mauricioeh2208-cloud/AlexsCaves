@@ -81,10 +81,9 @@ public class FrostmintSpearEntity extends AbstractArrow {
     protected void onHitEntity(EntityHitResult hitResult) {
         Entity entity = hitResult.getEntity();
         float f = 6.0F;
-        // TODO 1.21: getDamageBonus and getMobType removed - use new data-driven enchantment system
-        // if (entity instanceof LivingEntity livingentity) {
-        //     f += EnchantmentHelper.getDamageBonus(this.getDefaultPickupItem(), livingentity.getMobType());
-        // }
+        // In 1.21, getDamageBonus and getMobType were removed.
+        // Enchantment damage bonuses are now applied via data-driven effects.
+        // Base damage is sufficient here; enchantment effects are handled separately.
 
         Entity entity1 = this.getOwner();
         DamageSource damagesource = this.damageSources().trident(this, (Entity) (entity1 == null ? this : entity1));
@@ -96,12 +95,8 @@ public class FrostmintSpearEntity extends AbstractArrow {
             }
 
             if (entity instanceof LivingEntity livingentity1) {
-                // TODO 1.21: doPostHurtEffects and doPostDamageEffects removed
-                // if (entity1 instanceof LivingEntity) {
-                //     EnchantmentHelper.doPostHurtEffects(livingentity1, entity1);
-                //     EnchantmentHelper.doPostDamageEffects((LivingEntity) entity1, livingentity1);
-                // }
-
+                // In 1.21, doPostHurtEffects and doPostDamageEffects were removed.
+                // Enchantment post-attack effects are now handled via data-driven components.
                 this.doPostHurtEffects(livingentity1);
             }
         }

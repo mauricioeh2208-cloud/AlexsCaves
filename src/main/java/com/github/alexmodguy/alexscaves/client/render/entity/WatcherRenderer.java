@@ -113,7 +113,7 @@ public class WatcherRenderer extends MobRenderer<WatcherEntity, WatcherModel> {
             VertexConsumer vertexconsumer = bufferSource.getBuffer(rendertype);
             int i = getOverlayCoords(entity, this.getWhiteOverlayProgress(entity, partialTicks));
             float transparency = getWatcherTransparency(entity, partialTicks);
-            this.model.renderToBuffer(poseStack, vertexconsumer, light, i, ColorUtil.packColor(1.0F, 1.0F, 1.0F, flag1 ? 0.15F * transparency : transparency)) /* TODO: Create ColorUtil.packColor(r,g,b,a) returning ARGB int, or use FastColor.ARGB32.setColor(a,r,g,b) */;
+            this.model.renderToBuffer(poseStack, vertexconsumer, light, i, ColorUtil.packColor(1.0F, 1.0F, 1.0F, flag1 ? 0.15F * transparency : transparency));
         }
 
         if (!entity.isSpectator()) {

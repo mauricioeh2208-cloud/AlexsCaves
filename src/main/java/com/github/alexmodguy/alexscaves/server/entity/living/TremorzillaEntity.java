@@ -1300,8 +1300,10 @@ public class TremorzillaEntity extends DinosaurEntity implements KeybindUsingMou
         return false;
     }
 
-    // Note: getDimensions was removed as it's final in NeoForge 1.21
-    // Swimming size change would need to be handled via a different mechanism
+    @Override
+    public EntityDimensions getDefaultDimensions(Pose poseIn) {
+        return this.isTremorzillaSwimming() ? SWIMMING_SIZE.scale(this.getScale()) : super.getDefaultDimensions(poseIn);
+    }
 
     public boolean isTremorzillaSwimming() {
         return this.entityData.get(SWIMMING);

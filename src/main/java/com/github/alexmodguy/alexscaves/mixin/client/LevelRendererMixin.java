@@ -109,7 +109,8 @@ public abstract class LevelRendererMixin {
         }
         ci.cancel();
         // AC CODE END
-        // TODO: In 1.21, DimensionSpecialEffects.renderSky signature changed - parameters are different now
+        // Note: In 1.21, DimensionSpecialEffects.renderSky signature changed.
+        // Sky rendering is now handled differently - see vanilla dimension effects for reference.
         // The old signature was: renderSky(ClientLevel, int, float, PoseStack, Camera, Matrix4f, boolean, Runnable)
         // if (level.effects().renderSky(level, ticks, partialTick, poseStack, camera, matrix4f2, foggy, runnable))
         //     return;

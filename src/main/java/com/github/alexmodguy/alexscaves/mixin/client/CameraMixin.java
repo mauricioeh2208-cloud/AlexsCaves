@@ -53,7 +53,7 @@ public abstract class CameraMixin {
                 if (mirrored) {
                     this.setRotation(this.yRot + 180.0F, -this.xRot);
                 }
-                this.move(-this.getMaxZoom( /* TODO: getMaxZoom() is private in 1.21 - use reflection */ 4.0D), 0.0D, 0.0D);
+                this.move(-this.getMaxZoom(4.0D), 0.0D, 0.0D);
             }
         }
     }

@@ -151,6 +151,12 @@ public class ClientProxy extends CommonProxy {
         modEventBus.addListener(this::onItemColors);
         modEventBus.addListener(this::onBlockColors);
         modEventBus.addListener(this::onRegisterTooltips);
+        modEventBus.addListener(this::onRegisterMenuScreens);
+    }
+
+    public void onRegisterMenuScreens(net.neoforged.neoforge.client.event.RegisterMenuScreensEvent event) {
+        event.register(ACMenuRegistry.SPELUNKERY_TABLE_MENU.get(), SpelunkeryTableScreen::new);
+        event.register(ACMenuRegistry.NUCLEAR_FURNACE_MENU.get(), NuclearFurnaceScreen::new);
     }
 
     @SuppressWarnings("removal")
@@ -330,16 +336,7 @@ public class ClientProxy extends CommonProxy {
         PostEffectRegistry.registerEffect(IRRADIATED_SHADER);
         PostEffectRegistry.registerEffect(HOLOGRAM_SHADER);
         PostEffectRegistry.registerEffect(PURPLE_WITCH_SHADER);
-        // TODO: MenuScreens.register is now private - use RegisterMenuScreensEvent
-        // /* TODO: MenuScreens.register is private in 1.21 - use
-        // RegisterMenuScreensEvent */
-        // MenuScreens.register(ACMenuRegistry.SPELUNKERY_TABLE_MENU.get(),
-        // SpelunkeryTableScreen::new);
-        // TODO: MenuScreens.register is now private - use RegisterMenuScreensEvent
-        // /* TODO: MenuScreens.register is private in 1.21 - use
-        // RegisterMenuScreensEvent */
-        // MenuScreens.register(ACMenuRegistry.NUCLEAR_FURNACE_MENU.get(),
-        // NuclearFurnaceScreen::new);
+        // Menu screens are now registered via RegisterMenuScreensEvent in commonInit
         hasACSplashText = random.nextInt(300) == 0;
         ItemBlockRenderTypes.setRenderLayer(ACFluidRegistry.ACID_FLUID_SOURCE.get(), RenderType.cutoutMipped());
         ItemBlockRenderTypes.setRenderLayer(ACFluidRegistry.ACID_FLUID_FLOWING.get(), RenderType.cutoutMipped());

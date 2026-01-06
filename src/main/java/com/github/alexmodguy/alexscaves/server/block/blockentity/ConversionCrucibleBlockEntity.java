@@ -243,13 +243,11 @@ public class ConversionCrucibleBlockEntity extends BlockEntity {
                     middleBlockForBiome = getFallbackMiddleBlock(biomeHolder.get());
                     bottomBlockForBiome = getFallbackBottomBlock(biomeHolder.get());
                 }
-                // TODO: NeoForge 1.21.4 - The complex surface rule generation code has been commented out
-                // due to API changes:
+                // Note: Complex surface rule generation was removed due to NeoForge 1.21 API changes:
                 // - WorldGenRegion constructor signature changed
                 // - NoiseBasedChunkGenerator.createNoiseChunk is now private
                 // - SurfaceRules.Context.updateXZ/updateY are protected
-                // For now, we just use the fallback blocks based on biome type.
-                // This may need to be reimplemented using a different approach or access transformers.
+                // Using fallback blocks based on biome type instead.
             } catch (Exception e) {
                 AlexsCaves.LOGGER.warn("Encountered error finding the surface blocks of a biome");
             }

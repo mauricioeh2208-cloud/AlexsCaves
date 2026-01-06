@@ -6,8 +6,10 @@ package com.github.alexmodguy.alexscaves.server.enchantment;
  * This class is kept for reference but enchantment behavior
  * must be implemented via effects in JSON definitions.
  * 
- * TODO: Implement enchantment behavior via data-driven effects or
- * by checking enchantment levels in item/entity code manually.
+ * Custom enchantment behaviors should be implemented via:
+ * - Data-driven effects in enchantment JSON files
+ * - Event handlers that check for enchantment presence
+ * - Direct checks in weapon code using ACEnchantmentRegistry keys
  * 
  * @deprecated Enchantment is final in 1.21. Use ResourceKey references from ACEnchantmentRegistry instead.
  */

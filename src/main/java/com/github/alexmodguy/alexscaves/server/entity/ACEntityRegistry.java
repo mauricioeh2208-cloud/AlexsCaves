@@ -22,7 +22,8 @@ public class ACEntityRegistry {
 
 
     public static final DeferredRegister<EntityType<?>> DEF_REG = DeferredRegister.create(Registries.ENTITY_TYPE, AlexsCaves.MODID);
-    // TODO: MobCategory.create() removed in 1.21, using existing categories instead
+    // Note: MobCategory.create() was removed in 1.21. Using existing vanilla categories instead.
+    // Custom mob categories are no longer supported - entities use CREATURE, MONSTER, etc.
     public static final MobCategory CAVE_CREATURE = MobCategory.CREATURE;
     public static final MobCategory DEEP_SEA_CREATURE = MobCategory.WATER_CREATURE;
     public static final DeferredHolder<EntityType<?>, EntityType<AlexsCavesBoatEntity>> BOAT = DEF_REG.register("boat", () -> (EntityType) EntityType.Builder.of(AlexsCavesBoatEntity::new, MobCategory.MISC).sized(1.375F, 0.5625F).clientTrackingRange(10).build("ac_boat"));
@@ -159,8 +160,8 @@ public class ACEntityRegistry {
 
     @SubscribeEvent
     public static void spawnPlacements(RegisterSpawnPlacementsEvent event) {
-        // TODO: Custom spawn placement types (inAcid, inSoda) removed in 1.21 - SpawnPlacements.Type.create() no longer exists
-        // Using IN_WATER as fallback; the actual fluid check is handled in the spawn predicate (checkRadgillSpawnRules, checkSweetishFishSpawnRules)
+        // Note: Custom spawn placement types (inAcid, inSoda) are no longer supported in 1.21.
+        // Using IN_WATER as fallback; actual fluid checks are handled in spawn predicates.
         event.register(TELETOR.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, TeletorEntity::checkMonsterSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);
         event.register(MAGNETRON.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, MagnetronEntity::checkMonsterSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);
         event.register(BOUNDROID.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, BoundroidEntity::checkMonsterSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);

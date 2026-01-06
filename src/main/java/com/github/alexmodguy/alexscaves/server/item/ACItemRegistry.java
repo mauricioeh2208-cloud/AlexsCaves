@@ -50,12 +50,14 @@ import net.minecraft.world.entity.Mob;
 
 public class ACItemRegistry {
     private static Map<DeferredHolder<Item, ? extends Item>, ResourceKey<Biome>> creativeTabSpawnEggMap = new LinkedHashMap<>();
-    // TODO: Custom rarities require NeoForge extensible enum setup. Using standard rarities for now.
-    // To implement custom rarities, create enumextender.json and use EnumProxy pattern.
-    public static final Rarity RARITY_DEMONIC = Rarity.EPIC; // Was: dark red color
-    public static final Rarity RARITY_NUCLEAR = Rarity.UNCOMMON; // Was: green color
-    public static final Rarity RARITY_SWEET = Rarity.RARE; // Was: pink color (0xFF8ACD)
-    public static final Rarity RARITY_RAINBOW = Rarity.EPIC; // Was: rainbow color animation
+    
+    // Custom item rarities - uses NeoForge extensible enum system
+    // Defined in ACRarityEnumParams and registered via META-INF/enumextensions.json
+    public static final Rarity RARITY_DEMONIC = ACRarityEnumParams.RARITY_DEMONIC_PROXY.getValue(); // Dark red color
+    public static final Rarity RARITY_NUCLEAR = ACRarityEnumParams.RARITY_NUCLEAR_PROXY.getValue(); // Green color
+    public static final Rarity RARITY_SWEET = ACRarityEnumParams.RARITY_SWEET_PROXY.getValue(); // Pink color (0xFF8ACD)
+    public static final Rarity RARITY_RAINBOW = ACRarityEnumParams.RARITY_RAINBOW_PROXY.getValue(); // Rainbow color animation
+    
     public static final ACArmorMaterial PRIMORDIAL_ARMOR_MATERIAL = new ACArmorMaterial("primordial", 20, new int[]{3, 4, 3, 2}, 25, SoundEvents.ARMOR_EQUIP_LEATHER, 0F);
     public static final ACArmorMaterial HAZMAT_SUIT_ARMOR_MATERIAL = new ACArmorMaterial("hazmat_suit", 20, new int[]{2, 4, 5, 2}, 25, SoundEvents.ARMOR_EQUIP_IRON, 0.5F);
     public static final ACArmorMaterial DIVING_SUIT_ARMOR_MATERIAL = new ACArmorMaterial("diving_suit", 20, new int[]{2, 6, 5, 2}, 25, SoundEvents.ARMOR_EQUIP_IRON, 0.0F);

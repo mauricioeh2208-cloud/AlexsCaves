@@ -1,11 +1,7 @@
 package com.github.alexmodguy.alexscaves.server.config;
 
-import com.github.alexmodguy.alexscaves.server.level.biome.ACBiomeRarity;
 import com.github.alexmodguy.alexscaves.server.level.biome.ACBiomeRegistry;
-import com.github.alexmodguy.alexscaves.server.misc.VoronoiGenerator;
 import com.github.alexthe666.citadel.Citadel;
-// TODO: EventReplaceBiome was removed in Citadel 1.21 - biome generation needs to be refactored
-// import com.github.alexthe666.citadel.server.event.EventReplaceBiome;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -52,25 +48,6 @@ public class BiomeGenerationConfig {
         BIOMES.put(ACBiomeRegistry.FORLORN_HOLLOWS, getConfigData("forlorn_hollows", FORLORN_HOLLOWS_CONDITION));
         BIOMES.put(ACBiomeRegistry.CANDY_CAVITY, getConfigData("candy_cavity", CANDY_CAVITY_CONDITION));
     }
-
-    // TODO: EventReplaceBiome was removed in Citadel 1.21 - this method needs to be refactored
-    // The biome replacement system needs a new implementation approach for 1.21
-    /*
-    @Nullable
-    @Deprecated(forRemoval = true, since="1.21")
-    public static ResourceKey<Biome> getBiomeForEvent(EventReplaceBiome event) {
-        VoronoiGenerator.VoronoiInfo voronoiInfo = ACBiomeRarity.getRareBiomeInfoForQuad(event.getWorldSeed(), event.getX(), event.getZ());
-        if(voronoiInfo != null){
-            int foundRarityOffset = ACBiomeRarity.getRareBiomeOffsetId(voronoiInfo);
-            for (Map.Entry<ResourceKey<Biome>, BiomeGenerationNoiseCondition> condition : BIOMES.entrySet()) {
-                if (foundRarityOffset == condition.getValue().getRarityOffset() && condition.getValue().test(event, voronoiInfo)) {
-                    return condition.getKey();
-                }
-            }
-        }
-        return null;
-    }
-    */
 
     public static int getBiomeCount() {
         return BIOMES.size();

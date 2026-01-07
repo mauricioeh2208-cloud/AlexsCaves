@@ -17,7 +17,7 @@
       "conditions": {
         "items": [
           {
-            "blocks": "#alexscaves:gelatins"
+            "items": "#alexscaves:gelatins"
           }
         ]
       }

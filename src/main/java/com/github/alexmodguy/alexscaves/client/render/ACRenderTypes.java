@@ -142,7 +142,7 @@ public class ACRenderTypes extends RenderType {
     }
 
     public static RenderType getRadiationGlow(ResourceLocation locationIn) {
-        return create("radiation_glow", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
+        return create("radiation_glow", DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
                 .setShaderState(RENDERTYPE_IRRADIATED_SHADER)
                 .setCullState(NO_CULL)
                 .setTextureState(new RenderStateShard.TextureStateShard(locationIn, false, false))
@@ -153,7 +153,7 @@ public class ACRenderTypes extends RenderType {
     }
 
     public static RenderType getBlueRadiationGlow(ResourceLocation locationIn) {
-        return create("blue_radiation_glow", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
+        return create("blue_radiation_glow", DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
                 .setShaderState(RENDERTYPE_BLUE_IRRADIATED_SHADER)
                 .setCullState(NO_CULL)
                 .setTextureState(new RenderStateShard.TextureStateShard(locationIn, false, false))

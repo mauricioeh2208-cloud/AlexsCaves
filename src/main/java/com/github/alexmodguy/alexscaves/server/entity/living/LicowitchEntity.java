@@ -74,7 +74,7 @@ public class LicowitchEntity extends Monster implements IAnimatedEntity {
     private static final EntityDataAccessor<Optional<UUID>> POSSESSED_UUID_1 = SynchedEntityData.defineId(LicowitchEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     private static final EntityDataAccessor<Optional<UUID>> POSSESSED_UUID_2 = SynchedEntityData.defineId(LicowitchEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     private static final EntityDataAccessor<Optional<BlockPos>> CRUCIBLE_POS = SynchedEntityData.defineId(LicowitchEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
-    private static EntityDataAccessor<Optional<Vec3>> TELEPORTING_TO_POS = SynchedEntityData.defineId(TremorzillaEntity.class, ACEntityDataRegistry.OPTIONAL_VEC_3.get());
+    private static final EntityDataAccessor<Optional<Vec3>> TELEPORTING_TO_POS = SynchedEntityData.defineId(LicowitchEntity.class, ACEntityDataRegistry.OPTIONAL_VEC_3.get());
     public static final Animation ANIMATION_SWING_LEFT = Animation.create(20);
     public static final Animation ANIMATION_SWING_RIGHT = Animation.create(20);
     public static final Animation ANIMATION_EAT = Animation.create(100);

@@ -537,12 +537,12 @@ public class ClientProxy extends CommonProxy {
             e.registerShader(
                     new ShaderInstance(e.getResourceProvider(),
                             ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "rendertype_irradiated"),
-                            DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP),
+                            DefaultVertexFormat.POSITION_TEX_COLOR),
                     ACInternalShaders::setRenderTypeIrradiatedShader);
             e.registerShader(
                     new ShaderInstance(e.getResourceProvider(),
                             ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "rendertype_blue_irradiated"),
-                            DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP),
+                            DefaultVertexFormat.POSITION_TEX_COLOR),
                     ACInternalShaders::setRenderTypeBlueIrradiatedShader);
             e.registerShader(new ShaderInstance(e.getResourceProvider(),
                     ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "rendertype_bubbled"),

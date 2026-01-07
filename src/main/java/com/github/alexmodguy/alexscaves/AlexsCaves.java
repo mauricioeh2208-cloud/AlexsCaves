@@ -195,6 +195,10 @@ public class AlexsCaves {
 
     private void registerTicketControllers(RegisterTicketControllersEvent event) {
         event.register(TICKET_CONTROLLER);
+        event.register(com.github.alexmodguy.alexscaves.server.entity.item.NuclearExplosionEntity.TICKET_CONTROLLER);
+        event.register(com.github.alexmodguy.alexscaves.server.entity.item.BeholderEyeEntity.TICKET_CONTROLLER);
+        event.register(com.github.alexmodguy.alexscaves.server.item.OccultGemItem.TICKET_CONTROLLER);
+        event.register(com.github.alexmodguy.alexscaves.server.item.RemoteDetonatorItem.TICKET_CONTROLLER);
     }
 
     private void clientSetup(final FMLClientSetupEvent event) {

@@ -38,7 +38,7 @@ import java.util.Stack;
 
 public class NuclearExplosionEntity extends Entity {
 
-    private static final TicketController TICKET_CONTROLLER = new TicketController(ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "nuclear_explosion"));
+    public static final TicketController TICKET_CONTROLLER = new TicketController(ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "nuclear_explosion"));
 
     private boolean spawnedParticle = false;
     private Stack<BlockPos> destroyingChunks = new Stack<>();

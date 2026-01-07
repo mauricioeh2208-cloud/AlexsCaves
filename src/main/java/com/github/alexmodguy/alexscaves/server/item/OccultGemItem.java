@@ -29,6 +29,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.world.chunk.TicketController;
+import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -36,6 +37,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class OccultGemItem extends Item {
+
+    public static final TicketController TICKET_CONTROLLER = new TicketController(
+            ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "occult_gem"));
 
     public OccultGemItem() {
         super(new Properties());
@@ -94,10 +98,7 @@ public class OccultGemItem extends Item {
         ChunkPos chunkPos = new ChunkPos(center);
         for (int i = -1; i <= 1; i++) {
             for (int j = -1; j <= 1; j++) {
-                // Create a TicketController for this operation
-                net.neoforged.neoforge.common.world.chunk.TicketController ticketController = new net.neoforged.neoforge.common.world.chunk.TicketController(
-                    net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "occult_gem"));
-                ticketController.forceChunk(serverLevel, new BlockPos(chunkPos.x + i, 0, chunkPos.z + j), chunkPos.x + i, chunkPos.z + j, load, true);
+                TICKET_CONTROLLER.forceChunk(serverLevel, center, chunkPos.x + i, chunkPos.z + j, load, true);
             }
         }
     }

@@ -20,6 +20,7 @@
     "ItemEntityMixin",
     "JigsawStructureMixin",
     "KelpFeatureMixin",
+    "LakeFeatureMixin",
     "LivingEntityMixin",
     "MobMixin",
     "MonsterMixin",

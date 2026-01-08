@@ -231,7 +231,7 @@ public class BrainiacEntity extends Monster implements IAnimatedEntity {
 
     protected void dropEquipment() {
         super.dropEquipment();
-        // 新版本中舐脑魔不再掉落废料桶
+        // Brainiac no longer drops waste drum in the new version
     }
 
     private boolean shouldDropBlocks() {

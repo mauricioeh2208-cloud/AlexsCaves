@@ -231,9 +231,7 @@ public class BrainiacEntity extends Monster implements IAnimatedEntity {
 
     protected void dropEquipment() {
         super.dropEquipment();
-        if (this.hasBarrel() && shouldDropBlocks()) {
-            this.spawnAtLocation(new ItemStack(ACBlockRegistry.WASTE_DRUM.get()));
-        }
+        // 新版本中舐脑魔不再掉落废料桶
     }
 
     private boolean shouldDropBlocks() {

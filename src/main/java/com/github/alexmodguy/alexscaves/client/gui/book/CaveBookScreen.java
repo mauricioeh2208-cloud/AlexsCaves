@@ -36,10 +36,10 @@ public class CaveBookScreen extends Screen {
     public static final float MOUSE_LEAN_THRESHOLD = 0.75F;
     public static final int PAGE_SIZE_IN_LINES = 15;
 
-    public static final int TEXT_COLOR = 0X826A41;
+    public static final int TEXT_COLOR = 0X5A4830;
     public static final int TEXT_LINK_COLOR = 0X111111;
     public static final int TEXT_LINK_HOVER_COLOR = 0X0094FF;
-    public static final int TEXT_LINK_LOCKED_COLOR = 0XD3C9AB;
+    public static final int TEXT_LINK_LOCKED_COLOR = 0XA09078;
     private final CaveBookProgress caveBookProgress;
     public boolean unlockTooltip;
     private boolean incrementingPage;

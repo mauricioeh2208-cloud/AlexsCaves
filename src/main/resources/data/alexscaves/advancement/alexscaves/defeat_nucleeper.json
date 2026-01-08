@@ -3,9 +3,7 @@
     "icon": {
       "id": "citadel:icon_item",
       "components": {
-        "minecraft:custom_data": {
-          "IconLocation": "alexscaves:textures/misc/advancement/icon/defeat_nucleeper.png"
-        }
+        "citadel:icon_location": "alexscaves:textures/misc/advancement/icon/defeat_nucleeper.png"
       }
     },
     "title": {

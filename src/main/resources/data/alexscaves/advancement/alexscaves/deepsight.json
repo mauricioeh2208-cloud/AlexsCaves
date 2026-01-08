@@ -3,9 +3,7 @@
     "icon": {
       "id": "citadel:effect_item",
       "components": {
-        "minecraft:custom_data": {
-          "DisplayEffect": "alexscaves:deepsight"
-        }
+        "citadel:display_effect": "alexscaves:deepsight"
       }
     },
     "title": {

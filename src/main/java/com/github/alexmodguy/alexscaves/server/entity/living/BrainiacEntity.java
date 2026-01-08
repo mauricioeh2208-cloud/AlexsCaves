@@ -231,7 +231,9 @@ public class BrainiacEntity extends Monster implements IAnimatedEntity {
 
     protected void dropEquipment() {
         super.dropEquipment();
-        // Brainiac no longer drops waste drum in the new version
+        if (this.hasBarrel() && shouldDropBlocks()) {
+            this.spawnAtLocation(new ItemStack(ACBlockRegistry.WASTE_DRUM.get()));
+        }
     }
 
     private boolean shouldDropBlocks() {

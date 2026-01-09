@@ -47,29 +47,30 @@ public class UpdateItemTagMessage implements CustomPacketPayload {
     }
 
     public static void handle(UpdateItemTagMessage message, IPayloadContext context) {
-        // Packet handling is automatic in NeoForge;
-        Player playerSided = context.player();
-        if (context.flow().isClientbound() == context.flow().isClientbound()) {
-            playerSided = AlexsCaves.PROXY.getClientSidePlayer();
-        }
-        if(playerSided != null){
+        context.enqueueWork(() -> {
+            Player playerSided = context.player();
+            // For client-bound packets, use the client-side player
+            if (context.flow().isClientbound()) {
+                playerSided = AlexsCaves.PROXY.getClientSidePlayer();
+            }
+            if (playerSided != null) {
+                Entity holder = playerSided.level().getEntity(message.entityId);
 
-            Entity holder = playerSided.level().getEntity(message.entityId);
-
-            if (holder instanceof LivingEntity living) {
-                ItemStack stackFrom = message.itemStackFrom;
-                ItemStack to = null;
-                if(living.getItemInHand(InteractionHand.MAIN_HAND).is(stackFrom.getItem())){
-                    to = living.getItemInHand(InteractionHand.MAIN_HAND);
-                }else if(living.getItemInHand(InteractionHand.OFF_HAND).is(stackFrom.getItem())){
-                    to = living.getItemInHand(InteractionHand.OFF_HAND);
-                }
-                if(to != null && to.getItem() instanceof UpdatesStackTags updatesStackTags){
-                    CompoundTag tag = stackFrom.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-                    updatesStackTags.updateTagFromServer(holder, to, tag);
+                if (holder instanceof LivingEntity living) {
+                    ItemStack stackFrom = message.itemStackFrom;
+                    ItemStack to = null;
+                    if (living.getItemInHand(InteractionHand.MAIN_HAND).is(stackFrom.getItem())) {
+                        to = living.getItemInHand(InteractionHand.MAIN_HAND);
+                    } else if (living.getItemInHand(InteractionHand.OFF_HAND).is(stackFrom.getItem())) {
+                        to = living.getItemInHand(InteractionHand.OFF_HAND);
+                    }
+                    if (to != null && to.getItem() instanceof UpdatesStackTags updatesStackTags) {
+                        CompoundTag tag = stackFrom.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+                        updatesStackTags.updateTagFromServer(holder, to, tag);
+                    }
                 }
             }
-        }
+        });
     }
 
 }

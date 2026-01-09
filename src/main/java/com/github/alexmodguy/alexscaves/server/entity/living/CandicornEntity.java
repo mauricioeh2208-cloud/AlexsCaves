@@ -135,7 +135,7 @@ public class CandicornEntity extends TamableAnimal implements KeybindUsingMount,
         builder.define(VARIANT, 0);
         builder.define(CHARGE_YAW, 0F);
         builder.define(METER_AMOUNT, 1.0F);
-        builder.define(POSSESSOR_LICOWITCH_ID, 0);
+        builder.define(POSSESSOR_LICOWITCH_ID, -1);
     }
 
     protected void registerGoals() {

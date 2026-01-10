@@ -70,14 +70,18 @@ public class HologramProjectorBlock extends BaseEntityBlock implements SimpleWat
             CompoundTag entityTag = null;
             EntityType entityType = null;
             boolean flag = false;
-            CustomData entityData = heldItem.get(DataComponents.ENTITY_DATA);
-            if (entityData != null && !entityData.isEmpty()) {
-                CompoundTag entity = entityData.copyTag();
-                Optional<EntityType<?>> optional = EntityType.by(entity);
-                if (optional.isPresent()) {
-                    entityType = optional.get();
-                    entityTag = entity;
-                    flag = true;
+            // In 1.21, Holocoder stores entity data in CUSTOM_DATA with "BoundEntityTag" key
+            CustomData customData = heldItem.get(DataComponents.CUSTOM_DATA);
+            if (customData != null && !customData.isEmpty()) {
+                CompoundTag tag = customData.copyTag();
+                if (tag.contains("BoundEntityTag")) {
+                    CompoundTag entity = tag.getCompound("BoundEntityTag");
+                    Optional<EntityType<?>> optional = EntityType.by(entity);
+                    if (optional.isPresent()) {
+                        entityType = optional.get();
+                        entityTag = entity;
+                        flag = true;
+                    }
                 }
             }
             if (!flag) {

@@ -197,15 +197,19 @@ public class ACRenderTypes extends RenderType {
     }
 
     public static RenderType getHologram(ResourceLocation locationIn) {
-        return create("hologram", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
-                .setShaderState(RENDERTYPE_BEACON_BEAM_SHADER)
+        // In 1.21, use NEW_ENTITY format since model.renderToBuffer() outputs NEW_ENTITY vertices
+        // Use RENDERTYPE_ENTITY_TRANSLUCENT_SHADER which is compatible with NEW_ENTITY format
+        return create("hologram", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, true, true, RenderType.CompositeState.builder()
+                .setShaderState(RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
                 .setCullState(NO_CULL)
                 .setTextureState(new RenderStateShard.TextureStateShard(locationIn, false, false))
                 .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+                .setLightmapState(LIGHTMAP)
+                .setOverlayState(OVERLAY)
                 .setWriteMaskState(COLOR_DEPTH_WRITE)
                 .setDepthTestState(LEQUAL_DEPTH_TEST)
                 .setOutputState(HOLOGRAM_OUTPUT)
-                .createCompositeState(false));
+                .createCompositeState(true));
     }
 
 

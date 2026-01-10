@@ -22,6 +22,7 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.DefaultPlayerSkin;
+import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -150,6 +151,10 @@ public class HologramProjectorBlockRenderer<T extends HologramProjectorBlockEnti
         return playerInfo == null ? DefaultPlayerSkin.get(uuid).model().id() : playerInfo.getSkin().model().id();
     }
 
+    private static PlayerSkin.Model getPlayerSkinModel(PlayerInfo playerInfo, UUID uuid) {
+        return playerInfo == null ? DefaultPlayerSkin.get(uuid).model() : playerInfo.getSkin().model();
+    }
+
 
     private static ResourceLocation getPlayerSkinTextureLocation(PlayerInfo playerInfo, UUID uuid) {
         return playerInfo == null ? DefaultPlayerSkin.get(uuid).texture() : playerInfo.getSkin().texture();
@@ -158,17 +163,19 @@ public class HologramProjectorBlockRenderer<T extends HologramProjectorBlockEnti
     private static void renderPlayerHologram(UUID lastPlayerUUID, float partialTicks, PoseStack poseStack, MultiBufferSource bufferIn, int i) {
         PostEffectRegistry.renderEffectForNextTick(ClientProxy.HOLOGRAM_SHADER);
         PlayerInfo playerInfo = getPlayerInfo(lastPlayerUUID);
-        String modelName = getPlayerModelName(playerInfo, lastPlayerUUID);
+        // In 1.21, getSkinMap() uses PlayerSkin.Model enum as key, not String
+        PlayerSkin.Model skinModel = getPlayerSkinModel(playerInfo, lastPlayerUUID);
         EntityRenderDispatcher manager = Minecraft.getInstance().getEntityRenderDispatcher();
-        EntityRenderer<? extends Player> renderer = manager.getSkinMap().get(modelName);
+        EntityRenderer<? extends Player> renderer = manager.getSkinMap().get(skinModel);
         if(playerModel == null || slimPlayerModel == null){
             playerModel = new PlayerModel(Minecraft.getInstance().getEntityModels().bakeLayer(ModelLayers.PLAYER), false);
             slimPlayerModel = new PlayerModel(Minecraft.getInstance().getEntityModels().bakeLayer(ModelLayers.PLAYER_SLIM), true);
         }
-        PlayerModel model = modelName.equals("slim") ? slimPlayerModel : playerModel;
+        PlayerModel model = skinModel == PlayerSkin.Model.SLIM ? slimPlayerModel : playerModel;
         model.young = false;
         if (renderer instanceof LivingEntityRenderer livingEntityRenderer) {
-            VertexConsumer ivertexbuilder = bufferIn.getBuffer(ACRenderTypes.getHologram(getPlayerSkinTextureLocation(playerInfo, lastPlayerUUID)));
+            ResourceLocation skinTexture = getPlayerSkinTextureLocation(playerInfo, lastPlayerUUID);
+            VertexConsumer ivertexbuilder = bufferIn.getBuffer(ACRenderTypes.getHologram(skinTexture));
             poseStack.pushPose();
             poseStack.scale(-1F, -1F, 1F);
             model.renderToBuffer(poseStack, ivertexbuilder, 240, OverlayTexture.NO_OVERLAY, -1);

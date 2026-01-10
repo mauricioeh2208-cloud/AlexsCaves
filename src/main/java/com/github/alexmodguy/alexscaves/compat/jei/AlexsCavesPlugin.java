@@ -87,5 +87,6 @@ public class AlexsCavesPlugin implements IModPlugin {
     public void registerItemSubtypes(ISubtypeRegistration registration) {
         registration.registerSubtypeInterpreter(ACItemRegistry.CAVE_TABLET.get(), CaveTabletSubtypeInterpreter.INSTANCE);
         registration.registerSubtypeInterpreter(ACItemRegistry.CAVE_CODEX.get(), CaveTabletSubtypeInterpreter.INSTANCE);
+        registration.registerSubtypeInterpreter(ACItemRegistry.JELLY_BEAN.get(), JellyBeanSubtypeInterpreter.INSTANCE);
     }
 }

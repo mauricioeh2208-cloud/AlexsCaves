@@ -31,17 +31,9 @@
     [],
     [],
     [],
-    [
-      "minecraft:monster_room",
-      "minecraft:monster_room_deep"
-    ],
-    [
-      "alexscaves:subterranodon_roost"
-    ],
-    [
-      "alexscaves:primordial_caves_lake",
-      "alexscaves:caveman_house"
-    ],
+    ["minecraft:monster_room", "minecraft:monster_room_deep"],
+    ["alexscaves:subterranodon_roost"],
+    ["alexscaves:primordial_caves_lake", "alexscaves:caveman_house"],
     [
       "alexscaves:ambersol",
       "alexscaves:primordial_forest_rock",
@@ -80,11 +72,8 @@
       "alexscaves:primordial_caves_grass",
       "alexscaves:flytrap"
     ],
-    [
-    ],
-    [
-      "alexscaves:amber_monolith"
-    ],
+    [],
+    ["alexscaves:amber_monolith"],
     [
       "alexscaves:pewen_tree",
       "alexscaves:ancient_tree",
@@ -100,9 +89,7 @@
       "minecraft:patch_sugar_cane",
       "minecraft:patch_pumpkin"
     ],
-    [
-      "minecraft:freeze_top_layer"
-    ]
+    ["minecraft:freeze_top_layer"]
   ],
   "precipitation": "rain",
   "spawn_costs": {},
@@ -110,7 +97,14 @@
   "spawners": {
     "ambient": [],
     "axolotls": [],
-    "creature": [],
+    "creature": [
+      {
+        "type": "minecraft:frog",
+        "maxCount": 2,
+        "minCount": 1,
+        "weight": 7
+      }
+    ],
     "misc": [],
     "monster": [],
     "underground_water_creature": [],
@@ -153,12 +147,6 @@
         "maxCount": 1,
         "minCount": 1,
         "weight": 13
-      },
-      {
-        "type": "minecraft:frog",
-        "maxCount": 2,
-        "minCount": 1,
-        "weight": 7
       },
       {
         "type": "alexscaves:atlatitan",

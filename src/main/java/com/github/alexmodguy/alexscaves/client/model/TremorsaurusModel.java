@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.client.model;
 
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexmodguy.alexscaves.server.entity.item.DinosaurSpiritEntity;
 import com.github.alexmodguy.alexscaves.server.entity.living.TremorsaurusEntity;
 import com.github.alexmodguy.alexscaves.server.misc.ACMath;
@@ -186,14 +187,14 @@ public class TremorsaurusModel extends AdvancedEntityModel<TremorsaurusEntity> {
             matrixStackIn.scale(0.25F, 0.25F, 0.25F);
             matrixStackIn.translate(0.0D, 4.5F, 0D);
             parts().forEach((p_228292_8_) -> {
-                p_228292_8_.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
+                p_228292_8_.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, ColorUtil.packColor(red, green, blue, alpha));
             });
             matrixStackIn.popPose();
             head.setScale(1, 1, 1);
         } else {
             matrixStackIn.pushPose();
             parts().forEach((p_228290_8_) -> {
-                p_228290_8_.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
+                p_228290_8_.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, ColorUtil.packColor(red, green, blue, alpha));
             });
             matrixStackIn.popPose();
         }
@@ -458,7 +459,7 @@ public class TremorsaurusModel extends AdvancedEntityModel<TremorsaurusEntity> {
     public void renderSpiritToBuffer(PoseStack poseStack, VertexConsumer ivertexbuilder, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
         poseStack.pushPose();
         poseStack.translate(0, 1.3F, 1);
-        neck.render(poseStack, ivertexbuilder, packedLightIn, packedOverlayIn, red, green, blue, alpha);
+        neck.render(poseStack, ivertexbuilder, packedLightIn, packedOverlayIn, ColorUtil.packColor(red, green, blue, alpha));
         poseStack.popPose();
     }
 }

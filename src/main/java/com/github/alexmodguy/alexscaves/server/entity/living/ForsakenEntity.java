@@ -96,14 +96,14 @@ public class ForsakenEntity extends Monster implements IAnimatedEntity, ShakesSc
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(RUNNING, false);
-        this.entityData.define(LEAPING, false);
-        this.entityData.define(SONIC_CHARGE, false);
-        this.entityData.define(DARKNESS_TIME, 0);
-        this.entityData.define(SONAR_ID, -1);
-        this.entityData.define(HELD_MOB_ID, -1);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(RUNNING, false);
+        builder.define(LEAPING, false);
+        builder.define(SONIC_CHARGE, false);
+        builder.define(DARKNESS_TIME, 0);
+        builder.define(SONAR_ID, -1);
+        builder.define(HELD_MOB_ID, -1);
     }
 
     protected void registerGoals() {
@@ -447,7 +447,7 @@ public class ForsakenEntity extends Monster implements IAnimatedEntity, ShakesSc
         if(this.isInWall()){
             if (this.destroyBlocksTick > 0) {
                 --this.destroyBlocksTick;
-                if (this.destroyBlocksTick == 0 && net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.level(), this)) {
+                if (this.destroyBlocksTick == 0 && net.neoforged.neoforge.event.EventHooks.canEntityGrief(this.level(), this)) {
                     int j1 = Mth.floor(this.getY());
                     int i2 = Mth.floor(this.getX());
                     int j2 = Mth.floor(this.getZ());
@@ -461,7 +461,7 @@ public class ForsakenEntity extends Monster implements IAnimatedEntity, ShakesSc
                                 int i1 = j2 + k2;
                                 BlockPos blockpos = new BlockPos(l2, l, i1);
                                 BlockState blockstate = this.level().getBlockState(blockpos);
-                                if (blockstate.canEntityDestroy(this.level(), blockpos, this) && !blockstate.is(ACTagRegistry.UNMOVEABLE) && net.minecraftforge.event.ForgeEventFactory.onEntityDestroyBlock(this, blockpos, blockstate)) {
+                                if (blockstate.canEntityDestroy(this.level(), blockpos, this) && !blockstate.is(ACTagRegistry.UNMOVEABLE) && net.neoforged.neoforge.event.EventHooks.onEntityDestroyBlock(this, blockpos, blockstate)) {
                                     flag = this.level().destroyBlock(blockpos, true, this) || flag;
                                 }
                             }

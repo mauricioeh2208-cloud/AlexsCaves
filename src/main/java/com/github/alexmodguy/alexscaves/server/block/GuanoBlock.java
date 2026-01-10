@@ -28,7 +28,7 @@ public class GuanoBlock extends FallingBlockWithColor {
     }
 
     public void entityInside(BlockState state, Level level, BlockPos blockPos, Entity entity) {
-        if (!(entity instanceof LivingEntity) || entity.getFeetBlockState().is(this)) {
+        if (!(entity instanceof LivingEntity) || level.getBlockState(entity.blockPosition()).is(this)) {
             if (isForlornEntity(entity)) {
                 entity.setDeltaMovement(entity.getDeltaMovement().multiply(0.9D, 1.0D, 0.9D));
             }

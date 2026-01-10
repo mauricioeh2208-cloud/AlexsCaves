@@ -4,7 +4,7 @@ import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.server.level.biome.ACBiomeRegistry;
 import com.github.alexmodguy.alexscaves.server.level.structure.piece.SodaBottleStructurePiece;
 import com.github.alexmodguy.alexscaves.server.misc.ACMath;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 
 public class SodaBottleStructure extends Structure {
 
-    public static final Codec<SodaBottleStructure> CODEC = simpleCodec((settings) -> new SodaBottleStructure(settings));
+    public static final MapCodec<SodaBottleStructure> CODEC = simpleCodec((settings) -> new SodaBottleStructure(settings));
 
     private static final ResourceLocation[] SODA_NBT = new ResourceLocation[]{
             ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "soda_bottle"),

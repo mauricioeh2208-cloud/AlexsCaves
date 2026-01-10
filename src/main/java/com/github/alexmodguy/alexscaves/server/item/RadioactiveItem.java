@@ -25,8 +25,8 @@ public class RadioactiveItem extends Item {
         if (!level.isClientSide && entity instanceof LivingEntity living && !(living instanceof Player player && player.isCreative())) {
             float stackChance = stack.getCount() * randomChanceOfRadiation;
             float hazmatMultiplier = 1F - HazmatArmorItem.getWornAmount(living) / 4F;
-            if (!living.hasEffect(ACEffectRegistry.IRRADIATED.get()) && level.random.nextFloat() < stackChance * hazmatMultiplier) {
-                MobEffectInstance instance = new MobEffectInstance(ACEffectRegistry.IRRADIATED.get(), 1800);
+            if (!living.hasEffect(ACEffectRegistry.IRRADIATED) && level.random.nextFloat() < stackChance * hazmatMultiplier) {
+                MobEffectInstance instance = new MobEffectInstance(ACEffectRegistry.IRRADIATED, 1800);
                 living.addEffect(instance);
                 AlexsCaves.sendMSGToAll(new UpdateEffectVisualityEntityMessage(entity.getId(), entity.getId(), 0, instance.getDuration()));
             }

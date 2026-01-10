@@ -7,6 +7,7 @@ import com.github.alexmodguy.alexscaves.server.level.biome.ACBiomeRegistry;
 import com.github.alexmodguy.alexscaves.server.level.structure.processor.UndergroundCabinProcessor;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -26,6 +27,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlac
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
+import net.minecraft.world.level.storage.loot.LootTable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +51,7 @@ public class UndergroundCabinStructurePiece extends UndergroundTemplateStructure
     }
 
     private static StructurePlaceSettings makeSettings(Rotation rotation) {
-        return (new StructurePlaceSettings()).setRotation(rotation).setIgnoreEntities(true).setKeepLiquids(false);
+        return (new StructurePlaceSettings()).setRotation(rotation).setIgnoreEntities(true);
     }
 
     protected void addAdditionalSaveData(StructurePieceSerializationContext context, CompoundTag tag) {
@@ -73,8 +75,10 @@ public class UndergroundCabinStructurePiece extends UndergroundTemplateStructure
         accessor.setBlock(pos, Blocks.CAVE_AIR.defaultBlockState(), 0);
         switch (string) {
             case "loot_chest":
-                ResourceLocation chestLoot = pickedBiome == null ? BuiltInLootTables.SIMPLE_DUNGEON : ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "chests/underground_cabin_" + pickedBiome.location().getPath());
-                RandomizableContainerBlockEntity.setLootTable(accessor, random, pos.below(), chestLoot);
+                ResourceKey<LootTable> chestLoot = pickedBiome == null ? BuiltInLootTables.SIMPLE_DUNGEON : ResourceKey.create(Registries.LOOT_TABLE, ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "chests/underground_cabin_" + pickedBiome.location().getPath()));
+                if (accessor.getBlockEntity(pos.below()) instanceof RandomizableContainerBlockEntity container) {
+                    container.setLootTable(chestLoot, random.nextLong());
+                }
                 break;
         }
     }

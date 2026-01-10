@@ -25,11 +25,15 @@ import com.github.alexthe666.citadel.server.tick.ServerTickRateTracker;
 import com.google.common.collect.ImmutableSet;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.*;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
@@ -67,22 +71,25 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.AnvilUpdateEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.EntityEvent;
-import net.minecraftforge.event.entity.EntityTravelToDimensionEvent;
-import net.minecraftforge.event.entity.living.*;
-import net.minecraftforge.event.entity.player.AttackEntityEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.server.ServerAboutToStartEvent;
-import net.minecraftforge.event.server.ServerStoppingEvent;
-import net.minecraftforge.event.village.VillagerTradesEvent;
-import net.minecraftforge.event.village.WandererTradesEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.event.AnvilUpdateEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.entity.EntityEvent;
+import net.neoforged.neoforge.event.entity.EntityTravelToDimensionEvent;
+import net.neoforged.neoforge.event.entity.living.*;
+import net.neoforged.neoforge.event.entity.living.FinalizeSpawnEvent;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.event.village.VillagerTradesEvent;
+import net.neoforged.neoforge.event.village.WandererTradesEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModList;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import java.util.HashMap;
 import java.util.List;
@@ -93,16 +100,19 @@ public class CommonEvents {
     @SuppressWarnings("removal")
     @SubscribeEvent
     public void resizeEntity(EntityEvent.Size event) {
-        if (event.getEntity().isAddedToWorld() && event.getEntity() instanceof MagneticEntityAccessor magnet && event.getEntity().getEntityData().isDirty()) {
+        // In 1.21, isAddedToWorld() is removed - use isAlive() && level() != null instead
+        if (event.getEntity().isAlive() && event.getEntity().level() != null && event.getEntity() instanceof MagneticEntityAccessor magnet && event.getEntity().getEntityData().isDirty()) {
             Direction dir = magnet.getMagneticAttachmentFace();
-            float defaultHeight = event.getOldSize().height;
-            float defaultEyeHeight = event.getEntity().getEyeHeightAccess(event.getPose(), event.getOldSize());
+            float defaultHeight = event.getOldSize().height();
+            float defaultEyeHeight = event.getEntity().getEyeHeight();
             if (dir == Direction.DOWN && event.getEntity() instanceof Player && event.getEntity().getPose() == Pose.STANDING) {
-                event.setNewSize(event.getNewSize(), true); // resets eye height
+                // In 1.21, setNewSize only takes EntityDimensions - eye height is part of dimensions
+                event.setNewSize(event.getNewSize());
             } else if (dir == Direction.UP) {
-                event.setNewEyeHeight(defaultHeight - defaultEyeHeight);
+                // Use withEyeHeight to create new dimensions with adjusted eye height
+                event.setNewSize(event.getNewSize().withEyeHeight(defaultHeight - defaultEyeHeight));
             } else if (dir.getAxis() != Direction.Axis.Y) {
-                event.setNewEyeHeight(0.0F);
+                event.setNewSize(event.getNewSize().withEyeHeight(0.0F));
             }
         }
     }
@@ -110,12 +120,14 @@ public class CommonEvents {
     @SubscribeEvent
     public void livingDie(LivingDeathEvent event) {
         if (event.getEntity().getType() == EntityType.MAGMA_CUBE && event.getSource() != null && event.getSource().getEntity() instanceof Frog frog) {
-            if (frog.getVariant() == ACFrogRegistry.PRIMORDIAL.get()) {
+            // In 1.21, getVariant() returns Holder<FrogVariant>, use is() to compare
+            if (frog.getVariant().is(ACFrogRegistry.PRIMORDIAL)) {
                 event.getEntity().spawnAtLocation(new ItemStack(ACBlockRegistry.CARMINE_FROGLIGHT.get()));
             }
         }
         if (!event.getEntity().level().isClientSide && event.getEntity() instanceof Mob mob && event.getSource() != null && event.getSource().getDirectEntity() instanceof LivingEntity directSource && directSource.getItemInHand(InteractionHand.MAIN_HAND).is(ACItemRegistry.PRIMITIVE_CLUB.get())) {
-            if (directSource.getItemInHand(InteractionHand.MAIN_HAND).getEnchantmentLevel(ACEnchantmentRegistry.BONKING.get()) > 0 && event.getEntity().level().random.nextFloat() < 0.33F) {
+            // In 1.21, use helper method for enchantment check with data-driven enchantments
+            if (hasEnchantment(directSource.getItemInHand(InteractionHand.MAIN_HAND), event.getEntity().level(), ACEnchantmentRegistry.BONKING) && event.getEntity().level().random.nextFloat() < 0.33F) {
                 Creeper fakeCreeperForSkullDrop = EntityType.CREEPER.create(mob.level());
                 if (fakeCreeperForSkullDrop != null) {
                     if (event.getEntity().level() instanceof ServerLevel serverLevel) {
@@ -132,7 +144,9 @@ public class CommonEvents {
                         prevLootDropChances.put(slot, dropChanceAccessor.ac_getEquipmentDropChance(slot));
                         dropChanceAccessor.ac_setDropChance(slot, 0.0F);
                     }
-                    dropChanceAccessor.ac_dropCustomDeathLoot(fakeCreeperDamage, 0, false);
+                    if (mob.level() instanceof ServerLevel serverLevel2) {
+                        dropChanceAccessor.ac_dropCustomDeathLoot(serverLevel2, fakeCreeperDamage, false);
+                    }
                     for (EquipmentSlot slot : EquipmentSlot.values()) {
                         dropChanceAccessor.ac_setDropChance(slot, prevLootDropChances.get(slot));
                     }
@@ -153,7 +167,7 @@ public class CommonEvents {
 
     @SubscribeEvent
     public void livingHeal(LivingHealEvent event) {
-        if (event.getEntity().hasEffect(ACEffectRegistry.IRRADIATED.get()) && !event.getEntity().getType().is(ACTagRegistry.RESISTS_RADIATION)) {
+        if (event.getEntity().hasEffect(ACEffectRegistry.IRRADIATED) && !event.getEntity().getType().is(ACTagRegistry.RESISTS_RADIATION)) {
             event.setCanceled(true);
         }
     }
@@ -162,23 +176,27 @@ public class CommonEvents {
     public void playerEntityInteract(PlayerInteractEvent.EntityInteract event) {
         ItemStack stack = event.getItemStack();
         if (stack.is(ACItemRegistry.HOLOCODER.get()) && event.getTarget() instanceof LivingEntity && !(event.getTarget() instanceof ArmorStand) && event.getTarget().isAlive()) {
-            CompoundTag tag = stack.getOrCreateTag();
+            // In 1.21, use DataComponents API instead of NBT tags
+            CompoundTag tag = new CompoundTag();
             tag.putUUID("BoundEntityUUID", event.getTarget().getUUID());
-            CompoundTag entityTag = event.getTarget() instanceof Player ? new CompoundTag() : event.getTarget().serializeNBT();
-            entityTag.putString("id", ForgeRegistries.ENTITY_TYPES.getKey(event.getTarget().getType()).toString());
+            // In 1.21, serializeNBT requires RegistryAccess provider
+            CompoundTag entityTag = event.getTarget() instanceof Player ? new CompoundTag() : event.getTarget().serializeNBT(event.getLevel().registryAccess());
+            entityTag.putString("id", BuiltInRegistries.ENTITY_TYPE.getKey(event.getTarget().getType()).toString());
             if (event.getTarget() instanceof Player) {
                 entityTag.putUUID("UUID", event.getTarget().getUUID());
             }
             tag.put("BoundEntityTag", entityTag);
             ItemStack stackReplacement = new ItemStack(ACItemRegistry.HOLOCODER.get());
             stack.shrink(1);
-            stackReplacement.setTag(tag);
+            // In 1.21, use DataComponents.CUSTOM_DATA instead of setTag
+            stackReplacement.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
             event.getEntity().swing(event.getHand());
             if (!event.getEntity().addItem(stackReplacement)) {
                 ItemEntity itementity = event.getEntity().drop(stackReplacement, false);
                 if (itementity != null) {
                     itementity.setNoPickUpDelay();
-                    itementity.setThrower(event.getEntity().getUUID());
+                    // In 1.21, setThrower takes Entity, not UUID
+                    itementity.setThrower(event.getEntity());
                 }
             }
             event.setCanceled(true);
@@ -188,36 +206,39 @@ public class CommonEvents {
 
     @SubscribeEvent
     public void livingFindTarget(LivingChangeTargetEvent event) {
-        if (event.getEntity() instanceof Mob mob && event.getNewTarget() instanceof VallumraptorEntity vallumraptor && vallumraptor.getHideFor() > 0) {
+        // In 1.21, use getNewAboutToBeSetTarget() instead of getNewTarget()
+        if (event.getEntity() instanceof Mob mob && event.getNewAboutToBeSetTarget() instanceof VallumraptorEntity vallumraptor && vallumraptor.getHideFor() > 0) {
             mob.setTarget(null);
             event.setCanceled(true);
         }
     }
 
     @SubscribeEvent
-    public void livingHurt(LivingDamageEvent event) {
+    public void livingHurt(LivingDamageEvent.Pre event) {
+        // In 1.21, use LivingDamageEvent.Pre and setNewDamage(0) instead of setCanceled()
         if (event.getEntity().isPassenger() && event.getEntity() instanceof FlyingMount && (event.getSource().is(DamageTypes.IN_WALL) || event.getSource().is(DamageTypes.FALL) || event.getSource().is(DamageTypes.FLY_INTO_WALL))) {
-            event.setCanceled(true);
+            event.setNewDamage(0);
         }
         if (event.getEntity() instanceof WatcherPossessionAccessor possessed && possessed.isPossessedByWatcher() && !event.getSource().is(DamageTypeTags.BYPASSES_INVULNERABILITY) && !(event.getSource().getEntity() instanceof WatcherEntity)) {
-            event.setCanceled(true);
+            event.setNewDamage(0);
         }
         if (event.getEntity() instanceof Player player && player.getUseItem().is(ACItemRegistry.EXTINCTION_SPEAR.get()) && ExtinctionSpearItem.killGrottoGhostsFor(player, true)) {
-            event.setCanceled(true);
+            event.setNewDamage(0);
             player.playSound(SoundEvents.SHIELD_BLOCK);
         }
         if (event.getEntity() instanceof Player player && event.getSource().is(DamageTypes.FALL) && player.getItemBySlot(EquipmentSlot.FEET).is(ACItemRegistry.RAINBOUNCE_BOOTS.get())) {
             player.fallDistance = 0.0F;
-            event.setCanceled(true);
+            event.setNewDamage(0);
         }
     }
 
 
     @SubscribeEvent
-    public void livingAttack(LivingAttackEvent event) {
+    public void livingAttack(LivingIncomingDamageEvent event) {
         if (event.getSource().getDirectEntity() instanceof AbstractArrow arrow && event.getEntity().isBlocking() && event.getEntity().getUseItem().is(ACItemRegistry.RESISTOR_SHIELD.get())) {
             ItemStack shield = event.getEntity().getUseItem();
-            if (shield.getEnchantmentLevel(ACEnchantmentRegistry.ARROW_INDUCTING.get()) > 0 && arrow.getType() != ACEntityRegistry.SEEKING_ARROW.get()) {
+            // Check for arrow inducting enchantment using 1.21 data-driven system
+            if (hasEnchantment(shield, event.getEntity().level(), ACEnchantmentRegistry.ARROW_INDUCTING) && arrow.getType() != ACEntityRegistry.SEEKING_ARROW.get()) {
                 SeekingArrowEntity seekingArrowEntity = new SeekingArrowEntity(event.getEntity().level(), event.getEntity());
                 seekingArrowEntity.copyPosition(arrow);
                 seekingArrowEntity.setDeltaMovement(arrow.getDeltaMovement().scale(-0.4D));
@@ -226,9 +247,18 @@ public class CommonEvents {
                 arrow.discard();
             }
         }
-        if (event.getSource() != null && event.getSource().getDirectEntity() instanceof LivingEntity directSource && directSource.hasEffect(ACEffectRegistry.STUNNED.get())) {
+        if (event.getSource() != null && event.getSource().getDirectEntity() instanceof LivingEntity directSource && directSource.hasEffect(ACEffectRegistry.STUNNED)) {
             event.setCanceled(true);
         }
+    }
+    
+    /**
+     * Helper method to check if an item has an enchantment (1.21 data-driven enchantments)
+     */
+    private boolean hasEnchantment(ItemStack stack, Level level, ResourceKey<Enchantment> enchantmentKey) {
+        if (level.registryAccess() == null) return false;
+        var holder = level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).get(enchantmentKey);
+        return holder.isPresent() && stack.getEnchantmentLevel(holder.get()) > 0;
     }
 
     @SubscribeEvent
@@ -239,23 +269,26 @@ public class CommonEvents {
     }
 
     @SubscribeEvent
-    public void livingTick(LivingEvent.LivingTickEvent event) {
-        if (event.getEntity().hasEffect(ACEffectRegistry.BUBBLED.get()) && event.getEntity().isInFluidType()) {
-            event.getEntity().removeEffect(ACEffectRegistry.BUBBLED.get());
+    public void livingTick(EntityTickEvent.Post event) {
+        if (!(event.getEntity() instanceof LivingEntity livingEntity)) {
+            return;
         }
-        if (event.getEntity().hasEffect(ACEffectRegistry.DARKNESS_INCARNATE.get()) && event.getEntity().tickCount % 5 == 0 && DarknessIncarnateEffect.isInLight(event.getEntity(), 11)) {
-            event.getEntity().removeEffect(ACEffectRegistry.DARKNESS_INCARNATE.get());
+        if (livingEntity.hasEffect(ACEffectRegistry.BUBBLED) && livingEntity.isInFluidType()) {
+            livingEntity.removeEffect(ACEffectRegistry.BUBBLED);
         }
-        if (event.getEntity().getItemBySlot(EquipmentSlot.HEAD).is(ACItemRegistry.DIVING_HELMET.get()) && (!event.getEntity().isEyeInFluid(FluidTags.WATER) || event.getEntity().getVehicle() instanceof SubmarineEntity)) {
-            event.getEntity().addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 810, 0, false, false, true));
+        if (livingEntity.hasEffect(ACEffectRegistry.DARKNESS_INCARNATE) && livingEntity.tickCount % 5 == 0 && DarknessIncarnateEffect.isInLight(livingEntity, 11)) {
+            livingEntity.removeEffect(ACEffectRegistry.DARKNESS_INCARNATE);
         }
-        if (!event.getEntity().level().isClientSide && event.getEntity() instanceof Mob mob && mob.getTarget() instanceof VallumraptorEntity vallumraptor && vallumraptor.getHideFor() > 0) {
+        if (livingEntity.getItemBySlot(EquipmentSlot.HEAD).is(ACItemRegistry.DIVING_HELMET.get()) && (!livingEntity.isEyeInFluid(FluidTags.WATER) || livingEntity.getVehicle() instanceof SubmarineEntity)) {
+            livingEntity.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 810, 0, false, false, true));
+        }
+        if (!livingEntity.level().isClientSide && livingEntity instanceof Mob mob && mob.getTarget() instanceof VallumraptorEntity vallumraptor && vallumraptor.getHideFor() > 0) {
             mob.setTarget(null);
         }
     }
 
     @SubscribeEvent
-    public void onEntityJoinWorld(MobSpawnEvent.FinalizeSpawn event) {
+    public void onEntityJoinWorld(FinalizeSpawnEvent event) {
         try {
             if (event.getEntity() instanceof Creeper creeper) {
                 creeper.targetSelector.addGoal(3, new AvoidEntityGoal<>(creeper, RaycatEntity.class, 10.0F, 1.0D, 1.2D));
@@ -308,7 +341,8 @@ public class CommonEvents {
         if (event.getEffectInstance().getEffect() instanceof SugarRushEffect) {
             event.getEntity().level().playSound(null, event.getEntity().getX(), event.getEntity().getY(), event.getEntity().getZ(), ACSoundRegistry.SUGAR_RUSH_ENTER.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
         }
-        if (event.getEntity() instanceof Player player && player.isAddedToWorld() && event.getEffectInstance().getEffect() instanceof SugarRushEffect && AlexsCaves.COMMON_CONFIG.sugarRushSlowsTime.get()) {
+        // In 1.21, isAddedToWorld() is removed - use isAlive() && level() != null
+        if (event.getEntity() instanceof Player player && player.isAlive() && player.level() != null && event.getEffectInstance().getEffect() instanceof SugarRushEffect && AlexsCaves.COMMON_CONFIG.sugarRushSlowsTime.get()) {
             float timeBetweenTicksIncrease = 2F;
             SugarRushEffect.enterSlowMotion(player, player.level(), Mth.ceil(event.getEffectInstance().getDuration() * timeBetweenTicksIncrease), timeBetweenTicksIncrease);
         }
@@ -327,7 +361,7 @@ public class CommonEvents {
 
     @SubscribeEvent
     public void travelToDimension(EntityTravelToDimensionEvent event) {
-        if (event.getEntity() instanceof Player player && player.hasEffect(ACEffectRegistry.SUGAR_RUSH.get())) {
+        if (event.getEntity() instanceof Player player && player.hasEffect(ACEffectRegistry.SUGAR_RUSH)) {
             SugarRushEffect.leaveSlowMotion(player, player.level());
         }
     }
@@ -368,13 +402,14 @@ public class CommonEvents {
     }
 
     @SubscribeEvent
-    public void playerTick(TickEvent.PlayerTickEvent event) {
-        if (!event.player.isCreative()) {
-            if (event.player.getItemInHand(InteractionHand.MAIN_HAND).is(ACTagRegistry.RESTRICTED_BIOME_LOCATORS)) {
-                checkAndDestroyExploitItem(event.player, EquipmentSlot.MAINHAND);
+    public void playerTick(PlayerTickEvent.Post event) {
+        Player player = event.getEntity();
+        if (!player.isCreative()) {
+            if (player.getItemInHand(InteractionHand.MAIN_HAND).is(ACTagRegistry.RESTRICTED_BIOME_LOCATORS)) {
+                checkAndDestroyExploitItem(player, EquipmentSlot.MAINHAND);
             }
-            if (event.player.getItemInHand(InteractionHand.OFF_HAND).is(ACTagRegistry.RESTRICTED_BIOME_LOCATORS)) {
-                checkAndDestroyExploitItem(event.player, EquipmentSlot.OFFHAND);
+            if (player.getItemInHand(InteractionHand.OFF_HAND).is(ACTagRegistry.RESTRICTED_BIOME_LOCATORS)) {
+                checkAndDestroyExploitItem(player, EquipmentSlot.OFFHAND);
             }
         }
     }
@@ -410,11 +445,14 @@ public class CommonEvents {
     private static void checkAndDestroyExploitItem(Player player, EquipmentSlot slot) {
         ItemStack itemInHand = player.getItemBySlot(slot);
         if (itemInHand.is(ACTagRegistry.RESTRICTED_BIOME_LOCATORS)) {
-            CompoundTag tag = itemInHand.getTag();
-            if (tag != null) {
+            // In 1.21, use DataComponents API instead of getTag()
+            CustomData customData = itemInHand.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
+            CompoundTag tag = customData.copyTag();
+            if (!tag.isEmpty()) {
                 if (itemTagContainsAC(tag, "BiomeKey", false) || itemTagContainsAC(tag, "Structure", true) || itemTagContainsAC(tag, "structurecompass:structureName", true) || itemTagContainsAC(tag, "StructureKey", true)) {
                     itemInHand.shrink(1);
-                    player.broadcastBreakEvent(slot);
+                    // In 1.21, broadcastBreakEvent is replaced with onEquippedItemBroken
+                    player.onEquippedItemBroken(itemInHand.getItem(), slot);
                     player.playSound(ACSoundRegistry.DISAPPOINTMENT.get());
                     if (!player.level().isClientSide) {
                         player.displayClientMessage(Component.translatable("item.alexscaves.natures_compass_warning"), true);
@@ -459,58 +497,52 @@ public class CommonEvents {
         float f5 = Mth.sin(-f * ((float) Math.PI / 180F));
         float f6 = f3 * f4;
         float f7 = f2 * f4;
-        double d0 = player.getBlockReach();
+        // In 1.21, use Attributes.BLOCK_INTERACTION_RANGE instead of getBlockReach()
+        double d0 = player.getAttribute(Attributes.BLOCK_INTERACTION_RANGE).getValue();
         Vec3 vec31 = vec3.add((double) f6 * d0, (double) f5 * d0, (double) f7 * d0);
         return level.clip(new ClipContext(vec3, vec31, ClipContext.Block.OUTLINE, fluid, player));
     }
 
     @SubscribeEvent
     public void onUpdateAnvil(AnvilUpdateEvent event) {
-        if (event.getLeft().getItem() instanceof AlwaysCombinableOnAnvil && event.getLeft().getItem() == event.getRight().getItem() && !event.getLeft().getAllEnchantments().isEmpty() && !event.getRight().getAllEnchantments().isEmpty()) {
-            Map<Enchantment, Integer> map = EnchantmentHelper.getEnchantments(event.getLeft());
-            Map<Enchantment, Integer> map1 = EnchantmentHelper.getEnchantments(event.getRight());
-            boolean canCombine = true;
-            int i = 0;
-            for (Enchantment enchantment1 : map1.keySet()) {
-                if (enchantment1 != null) {
-                    int i2 = map.getOrDefault(enchantment1, 0);
-                    int j2 = map1.get(enchantment1);
-                    j2 = i2 == j2 ? j2 + 1 : Math.max(j2, i2);
-
-                    for (Enchantment enchantment : map.keySet()) {
-                        if (enchantment != enchantment1 && !enchantment1.isCompatibleWith(enchantment)) {
-                            canCombine = false;
-                            ++i;
-                        }
-                    }
-
-                    if (canCombine) {
-                        if (j2 > enchantment1.getMaxLevel()) {
-                            j2 = enchantment1.getMaxLevel();
-                        }
-
-                        map.put(enchantment1, j2);
-                        int k3 = 0;
-                        switch (enchantment1.getRarity()) {
-                            case COMMON:
-                                k3 = 1;
-                                break;
-                            case UNCOMMON:
-                                k3 = 2;
-                                break;
-                            case RARE:
-                                k3 = 4;
-                                break;
-                            case VERY_RARE:
-                                k3 = 8;
-                        }
-                        i += k3 * j2;
+        // In 1.21, enchantments are data-driven - use ItemEnchantments API
+        ItemEnchantments leftEnchants = event.getLeft().getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
+        ItemEnchantments rightEnchants = event.getRight().getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
+        
+        if (event.getLeft().getItem() instanceof AlwaysCombinableOnAnvil && event.getLeft().getItem() == event.getRight().getItem() && !leftEnchants.isEmpty() && !rightEnchants.isEmpty()) {
+            ItemEnchantments.Mutable mutableEnchants = new ItemEnchantments.Mutable(leftEnchants);
+            int cost = 0;
+            
+            for (var entry : rightEnchants.entrySet()) {
+                Holder<Enchantment> enchantHolder = entry.getKey();
+                int rightLevel = entry.getIntValue();
+                int leftLevel = leftEnchants.getLevel(enchantHolder);
+                int newLevel = leftLevel == rightLevel ? rightLevel + 1 : Math.max(rightLevel, leftLevel);
+                
+                // Check compatibility with other enchantments
+                boolean canCombine = true;
+                for (var existingEntry : leftEnchants.entrySet()) {
+                    if (!existingEntry.getKey().equals(enchantHolder) && !Enchantment.areCompatible(enchantHolder, existingEntry.getKey())) {
+                        canCombine = false;
+                        cost++;
                     }
                 }
+                
+                if (canCombine) {
+                    Enchantment enchantment = enchantHolder.value();
+                    if (newLevel > enchantment.getMaxLevel()) {
+                        newLevel = enchantment.getMaxLevel();
+                    }
+                    mutableEnchants.set(enchantHolder, newLevel);
+                    // Use anvil cost from enchantment definition (default to 1 if not available)
+                    int enchantCost = enchantment.getAnvilCost();
+                    cost += enchantCost * newLevel;
+                }
             }
-            event.setCost(i);
+            
+            event.setCost(cost);
             ItemStack copy = event.getLeft().copy();
-            EnchantmentHelper.setEnchantments(map, copy);
+            copy.set(DataComponents.ENCHANTMENTS, mutableEnchants.toImmutable());
             event.setOutput(copy);
         }
     }

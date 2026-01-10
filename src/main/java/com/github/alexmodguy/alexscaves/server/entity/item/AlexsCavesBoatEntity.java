@@ -4,9 +4,9 @@ import com.github.alexmodguy.alexscaves.server.entity.ACEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.util.AlexsCavesBoat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.vehicle.Boat;
@@ -16,18 +16,15 @@ import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.PlayMessages;
 
 public class AlexsCavesBoatEntity extends Boat implements AlexsCavesBoat {
+
+    private static final EntityDataAccessor<Integer> DATA_ID_AC_BOAT_TYPE = SynchedEntityData.defineId(AlexsCavesBoatEntity.class, EntityDataSerializers.INT);
+    private double lastYd;
 
     public AlexsCavesBoatEntity(EntityType type, Level level) {
         super(type, level);
         this.blocksBuilding = true;
-    }
-
-    public AlexsCavesBoatEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.BOAT.get(), level);
-        this.setBoundingBox(this.makeBoundingBox());
     }
 
     public AlexsCavesBoatEntity(Level level, double x, double y, double z) {
@@ -44,8 +41,9 @@ public class AlexsCavesBoatEntity extends Boat implements AlexsCavesBoat {
     }
 
     @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return new ClientboundAddEntityPacket(this);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_ID_AC_BOAT_TYPE, 0);
     }
 
     @Override
@@ -56,17 +54,17 @@ public class AlexsCavesBoatEntity extends Boat implements AlexsCavesBoat {
     @Override
     protected void readAdditionalSaveData(CompoundTag nbt) {
         if (nbt.contains("ACBoatType")) {
-            this.entityData.set(DATA_ID_TYPE, AlexsCavesBoat.Type.byName(nbt.getString("ACBoatType")).ordinal());
+            this.entityData.set(DATA_ID_AC_BOAT_TYPE, AlexsCavesBoat.Type.byName(nbt.getString("ACBoatType")).ordinal());
         }
     }
 
     @Override
-    protected void checkFallDamage(double y, boolean onGround, BlockState state, BlockPos pos) {
+    protected void checkFallDamage(double y, boolean onGroundIn, BlockState state, BlockPos pos) {
         this.lastYd = this.getDeltaMovement().y;
         if (!this.isPassenger()) {
-            if (onGround) {
+            if (onGroundIn) {
                 if (this.fallDistance > 3.0F) {
-                    if (this.status != Boat.Status.ON_LAND) {
+                    if (!this.onGround()) {
                         this.resetFallDistance();
                         return;
                     }
@@ -99,11 +97,11 @@ public class AlexsCavesBoatEntity extends Boat implements AlexsCavesBoat {
     }
 
     public void setACBoatType(AlexsCavesBoat.Type type) {
-        this.entityData.set(DATA_ID_TYPE, type.ordinal());
+        this.entityData.set(DATA_ID_AC_BOAT_TYPE, type.ordinal());
     }
 
     public AlexsCavesBoat.Type getACBoatType() {
-        return AlexsCavesBoat.Type.byId(this.entityData.get(DATA_ID_TYPE));
+        return AlexsCavesBoat.Type.byId(this.entityData.get(DATA_ID_AC_BOAT_TYPE));
     }
 
     @Override

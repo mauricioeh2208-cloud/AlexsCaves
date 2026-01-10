@@ -18,8 +18,8 @@ import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
@@ -102,10 +102,10 @@ public class RainbowParticle extends Particle {
             Matrix3f matrix3f = posestack$pose.normal();
             float alpha0 = calcAlphaForVertex(vertIndex, alphaProgressionLerped) * alphaLerped;
             float alpha1 = calcAlphaForVertex(vertIndex + 1, alphaProgressionLerped) * alphaLerped;
-            vertexconsumer.vertex(matrix4f, (float) draw1.x, (float) draw1.y, (float) draw1.z + width).color(1F, 1F, 1F, alpha0).uv(u1, 1F).overlayCoords(NO_OVERLAY).uv2(j).normal(matrix3f, 0.0F, 1.0F, 0.0F).endVertex();
-            vertexconsumer.vertex(matrix4f, (float) draw2.x, (float) draw2.y, (float) draw1.z + width).color(1F, 1F, 1F, alpha1).uv(u2, 1F).overlayCoords(NO_OVERLAY).uv2(j).normal(matrix3f, 0.0F, 1.0F, 0.0F).endVertex();
-            vertexconsumer.vertex(matrix4f, (float) draw2.x, (float) draw2.y, (float) draw2.z - width).color(1F, 1F, 1F, alpha1).uv(u2, 0).overlayCoords(NO_OVERLAY).uv2(j).normal(matrix3f, 0.0F, 1.0F, 0.0F).endVertex();
-            vertexconsumer.vertex(matrix4f, (float) draw1.x, (float) draw1.y, (float) draw2.z - width).color(1F, 1F, 1F, alpha0).uv(u1, 0).overlayCoords(NO_OVERLAY).uv2(j).normal(matrix3f, 0.0F, 1.0F, 0.0F).endVertex();
+            vertexconsumer.addVertex(matrix4f, (float) draw1.x, (float) draw1.y, (float) draw1.z + width).setColor(1F, 1F, 1F, alpha0).setUv(u1, 1F).setOverlay(NO_OVERLAY).setLight(j).setNormal(0.0F, 1.0F, 0.0F);
+            vertexconsumer.addVertex(matrix4f, (float) draw2.x, (float) draw2.y, (float) draw1.z + width).setColor(1F, 1F, 1F, alpha1).setUv(u2, 1F).setOverlay(NO_OVERLAY).setLight(j).setNormal(0.0F, 1.0F, 0.0F);
+            vertexconsumer.addVertex(matrix4f, (float) draw2.x, (float) draw2.y, (float) draw2.z - width).setColor(1F, 1F, 1F, alpha1).setUv(u2, 0).setOverlay(NO_OVERLAY).setLight(j).setNormal(0.0F, 1.0F, 0.0F);
+            vertexconsumer.addVertex(matrix4f, (float) draw1.x, (float) draw1.y, (float) draw2.z - width).setColor(1F, 1F, 1F, alpha0).setUv(u1, 0).setOverlay(NO_OVERLAY).setLight(j).setNormal(0.0F, 1.0F, 0.0F);
             vertIndex++;
             posestack.popPose();
         }

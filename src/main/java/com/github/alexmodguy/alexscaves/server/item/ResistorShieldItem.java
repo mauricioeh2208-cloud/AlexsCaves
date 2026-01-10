@@ -2,12 +2,16 @@ package com.github.alexmodguy.alexscaves.server.item;
 
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.client.particle.ACParticleRegistry;
+import com.github.alexmodguy.alexscaves.server.enchantment.ACEnchantmentHelper;
 import com.github.alexmodguy.alexscaves.server.enchantment.ACEnchantmentRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -16,7 +20,7 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -42,7 +46,8 @@ public class ResistorShieldItem extends ShieldItem {
         return InteractionResultHolder.consume(itemstack);
     }
 
-    public void appendHoverText(ItemStack stack, @Nullable Level worldIn, List<Component> tooltip, TooltipFlag flagIn) {
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
         tooltip.add(Component.translatable("item.alexscaves.resistor_shield.desc").withStyle(ChatFormatting.GRAY));
     }
 
@@ -58,10 +63,10 @@ public class ResistorShieldItem extends ShieldItem {
 
     public void onUseTick(Level level, LivingEntity living, ItemStack stack, int timeUsing) {
         super.onUseTick(level, living, stack, timeUsing);
-        int i = getUseDuration(stack) - timeUsing;
+        int i = getUseDuration(stack, living) - timeUsing;
         boolean scarlet = isScarlet(stack);
         boolean firstHit = i >= 10 && i <= 12;
-        int slamEnchantAmount = stack.getEnchantmentLevel(ACEnchantmentRegistry.HEAVY_SLAM.get());
+        int slamEnchantAmount = ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.HEAVY_SLAM, stack);
         float range = 5F;
         if (level.isClientSide) {
             setUseTime(stack, i);
@@ -96,9 +101,7 @@ public class ResistorShieldItem extends ShieldItem {
             }
         }
         if (i == 10 && !level.isClientSide) {
-            stack.hurtAndBreak(1, living, (player1) -> {
-                player1.broadcastBreakEvent(player1.getUsedItemHand());
-            });
+            stack.hurtAndBreak(1, living, EquipmentSlot.MAINHAND);
         }
     }
 
@@ -115,14 +118,17 @@ public class ResistorShieldItem extends ShieldItem {
         super.inventoryTick(stack, level, entity, i, held);
         if (getUseTime(stack) != 0 && entity instanceof LivingEntity living && !living.getUseItem().equals(stack)) {
             setUseTime(stack, 0);
-            stack.getOrCreateTag().putInt("PrevUseTime", 0);
+            CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+            tag.putInt("PrevUseTime", 0);
+            stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         }
         if (level.isClientSide) {
             boolean scarlet = isScarlet(stack);
             int switchTime = getSwitchTime(stack);
-            CompoundTag tag = stack.getOrCreateTag();
+            CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
             if (tag.getInt("PrevSwitchTime") != tag.getInt("SwitchTime")) {
                 tag.putInt("PrevSwitchTime", getSwitchTime(stack));
+                stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
             }
             if (scarlet && switchTime < 5.0F) {
                 setSwitchTime(stack, switchTime + 1);
@@ -134,50 +140,53 @@ public class ResistorShieldItem extends ShieldItem {
     }
 
     public static void setUseTime(ItemStack stack, int useTime) {
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         tag.putInt("PrevUseTime", getUseTime(stack));
         tag.putInt("UseTime", useTime);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
     public static void setSwitchTime(ItemStack stack, int useTime) {
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         tag.putInt("PrevSwitchTime", getSwitchTime(stack));
         tag.putInt("SwitchTime", useTime);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
 
     public static void setPolarity(ItemStack stack, boolean scarlet) {
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         tag.putBoolean("Polarity", scarlet);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
     public static int getUseTime(ItemStack stack) {
-        CompoundTag compoundtag = stack.getTag();
-        return compoundtag != null ? compoundtag.getInt("UseTime") : 0;
+        CompoundTag compoundtag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return compoundtag.getInt("UseTime");
     }
 
     public static float getLerpedUseTime(ItemStack stack, float f) {
-        CompoundTag compoundtag = stack.getTag();
-        float prev = compoundtag != null ? (float) compoundtag.getInt("PrevUseTime") : 0F;
-        float current = compoundtag != null ? (float) compoundtag.getInt("UseTime") : 0F;
+        CompoundTag compoundtag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        float prev = (float) compoundtag.getInt("PrevUseTime");
+        float current = (float) compoundtag.getInt("UseTime");
         return prev + f * (current - prev);
     }
 
     public static int getSwitchTime(ItemStack stack) {
-        CompoundTag compoundtag = stack.getTag();
-        return compoundtag != null ? compoundtag.getInt("SwitchTime") : 0;
+        CompoundTag compoundtag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return compoundtag.getInt("SwitchTime");
     }
 
     public static float getLerpedSwitchTime(ItemStack stack, float f) {
-        CompoundTag compoundtag = stack.getTag();
-        float prev = compoundtag != null ? (float) compoundtag.getInt("PrevSwitchTime") : 0F;
-        float current = compoundtag != null ? (float) compoundtag.getInt("SwitchTime") : 0F;
+        CompoundTag compoundtag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        float prev = (float) compoundtag.getInt("PrevSwitchTime");
+        float current = (float) compoundtag.getInt("SwitchTime");
         return prev + f * (current - prev);
     }
 
     public static boolean isScarlet(ItemStack stack) {
-        CompoundTag compoundtag = stack.getTag();
-        return compoundtag != null ? compoundtag.getBoolean("Polarity") : false;
+        CompoundTag compoundtag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return compoundtag.getBoolean("Polarity");
     }
 
     public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {

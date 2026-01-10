@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import com.github.alexmodguy.alexscaves.client.particle.ACParticleRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -23,8 +24,14 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 class FlytrapBlock extends BushBlock implements BonemealableBlock {
 
+    public static final MapCodec<FlytrapBlock> CODEC = simpleCodec((properties) -> new FlytrapBlock());
     public static final BooleanProperty OPEN = BooleanProperty.create("open");
     public static final VoxelShape SHAPE = Block.box(3.5, 0, 3.5, 12.5, 21, 12.5);
+
+    @Override
+    public MapCodec<? extends BushBlock> codec() {
+        return CODEC;
+    }
 
     public FlytrapBlock() {
         super(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).instabreak().sound(SoundType.ROOTS).randomTicks().offsetType(BlockBehaviour.OffsetType.XZ).noOcclusion().noCollission());
@@ -61,7 +68,8 @@ class FlytrapBlock extends BushBlock implements BonemealableBlock {
         }
     }
 
-    public boolean isValidBonemealTarget(LevelReader level, BlockPos blockPos, BlockState blockState, boolean idk) {
+    @Override
+    public boolean isValidBonemealTarget(LevelReader level, BlockPos blockPos, BlockState blockState) {
         return true;
     }
 

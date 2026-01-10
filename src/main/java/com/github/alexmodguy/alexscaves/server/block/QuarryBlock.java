@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.ACBlockEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.QuarryBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -19,7 +20,13 @@ import net.minecraft.world.level.material.MapColor;
 import org.jetbrains.annotations.Nullable;
 
 public class QuarryBlock extends BaseEntityBlock {
+    public static final MapCodec<QuarryBlock> CODEC = simpleCodec((properties) -> new QuarryBlock());
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
+    }
 
     public QuarryBlock() {
         super(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).requiresCorrectToolForDrops().strength(5F, 12.0F).sound(ACSoundTypes.SCRAP_METAL).lightLevel((i) -> 5).emissiveRendering((state, level, pos) -> true));

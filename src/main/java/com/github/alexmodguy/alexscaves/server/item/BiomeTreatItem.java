@@ -3,6 +3,7 @@ package com.github.alexmodguy.alexscaves.server.item;
 import com.github.alexmodguy.alexscaves.client.particle.ACParticleRegistry;
 import com.github.alexmodguy.alexscaves.server.level.biome.ACBiomeRegistry;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -32,7 +33,7 @@ public class BiomeTreatItem extends CaveInfoItem {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
-        if (itemstack.isEdible() && getCaveBiome(itemstack) == null) {
+        if (itemstack.has(DataComponents.FOOD) && getCaveBiome(itemstack) == null) {
             if (player.canEat(itemstack.getFoodProperties(player).canAlwaysEat())) {
                 player.startUsingItem(hand);
                 return InteractionResultHolder.consume(itemstack);
@@ -45,17 +46,12 @@ public class BiomeTreatItem extends CaveInfoItem {
     }
 
     @Override
-    public boolean isEdible() {
-        return true;
-    }
-
-    @Override
-    public void appendHoverText(ItemStack stack, @javax.annotation.Nullable Level worldIn, List<net.minecraft.network.chat.Component> tooltip, TooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
         ResourceKey<Biome> biomeResourceKey = getCaveBiome(stack);
         if (biomeResourceKey == null) {
             tooltip.add(Component.translatable("item.alexscaves.biome_treat.desc").withStyle(ChatFormatting.GRAY));
         }
-        super.appendHoverText(stack, worldIn, tooltip, flagIn);
+        super.appendHoverText(stack, context, tooltip, flagIn);
     }
 
     public static int getBiomeTreatColorOf(Level level, ItemStack stack) {

@@ -7,14 +7,14 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.SaplingBlock;
 import net.minecraft.world.level.block.SupportType;
-import net.minecraft.world.level.block.grower.AbstractTreeGrower;
+import net.minecraft.world.level.block.grower.TreeGrower;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class CaveSaplingBlock extends SaplingBlock {
 
     private final boolean growsNaturally;
 
-    public CaveSaplingBlock(AbstractTreeGrower grower, Properties properties, boolean growsNaturally) {
+    public CaveSaplingBlock(TreeGrower grower, Properties properties, boolean growsNaturally) {
         super(grower, properties);
         this.growsNaturally = growsNaturally;
     }

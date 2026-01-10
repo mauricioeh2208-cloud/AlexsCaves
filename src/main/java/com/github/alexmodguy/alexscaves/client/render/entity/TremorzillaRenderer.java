@@ -23,7 +23,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.entity.PartEntity;
+import net.neoforged.neoforge.entity.PartEntity;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
@@ -166,10 +166,10 @@ public class TremorzillaRenderer extends MobRenderer<TremorzillaEntity, Tremorzi
             float f7 = Mth.cos((float) Math.PI + (float) j * ((float) Math.PI * 2F) / (float) vertices) * width;
             float f8 = Mth.sin((float) Math.PI + (float) j * ((float) Math.PI * 2F) / (float) vertices) * width;
             float f9 = (float) j + 1;
-            vertexconsumer.vertex(matrix4f, f4 * 0.55F, f5 * 0.55F, 0.0F).color(1.0F, 1.0F, 1.0F, startAlpha).uv(f6, v).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(240).normal(matrix3f, 0.0F, -1.0F, 0.0F).endVertex();
-            vertexconsumer.vertex(matrix4f, f4, f5, length).color(1.0F, 1.0F, 1.0F, endAlpha).uv(f6, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(240).normal(matrix3f, 0.0F, -1F, 0.0F).endVertex();
-            vertexconsumer.vertex(matrix4f, f7, f8, length).color(1.0F, 1.0F, 1.0F, endAlpha).uv(f9, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(240).normal(matrix3f, 0.0F, -1F, 0.0F).endVertex();
-            vertexconsumer.vertex(matrix4f, f7 * 0.55F, f8 * 0.55F, 0.0F).color(1.0F, 1.0F, 1.0F, startAlpha).uv(f9, v).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(240).normal(matrix3f, 0.0F, -1.0F, 0.0F).endVertex();
+            vertexconsumer.addVertex(matrix4f, f4 * 0.55F, f5 * 0.55F, 0.0F).setColor(1.0F, 1.0F, 1.0F, startAlpha).setUv(f6, v).setOverlay(OverlayTexture.NO_OVERLAY).setLight(240).setNormal(0.0F, -1.0F, 0.0F);
+            vertexconsumer.addVertex(matrix4f, f4, f5, length).setColor(1.0F, 1.0F, 1.0F, endAlpha).setUv(f6, v1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(240).setNormal(0.0F, -1F, 0.0F);
+            vertexconsumer.addVertex(matrix4f, f7, f8, length).setColor(1.0F, 1.0F, 1.0F, endAlpha).setUv(f9, v1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(240).setNormal(0.0F, -1F, 0.0F);
+            vertexconsumer.addVertex(matrix4f, f7 * 0.55F, f8 * 0.55F, 0.0F).setColor(1.0F, 1.0F, 1.0F, startAlpha).setUv(f9, v).setOverlay(OverlayTexture.NO_OVERLAY).setLight(240).setNormal(0.0F, -1.0F, 0.0F);
             f4 = f7;
             f5 = f8;
             f6 = f9;
@@ -188,7 +188,7 @@ public class TremorzillaRenderer extends MobRenderer<TremorzillaEntity, Tremorzi
             poseStack.mulPose(Axis.XP.rotationDegrees(90));
             poseStack.scale(width, width, width);
             BEAM_END_MODEL.resetToDefaultPose();
-            BEAM_END_MODEL.renderToBuffer(poseStack, endVertexConsumer, 240, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+            BEAM_END_MODEL.renderToBuffer(poseStack, endVertexConsumer, 240, OverlayTexture.NO_OVERLAY, -1);
             poseStack.popPose();
         }
         poseStack.popPose();

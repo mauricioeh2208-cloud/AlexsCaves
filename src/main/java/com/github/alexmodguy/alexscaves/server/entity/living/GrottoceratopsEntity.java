@@ -57,9 +57,9 @@ public class GrottoceratopsEntity extends DinosaurEntity implements IAnimatedEnt
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(TAIL_SWING_ROT, 0F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(TAIL_SWING_ROT, 0F);
     }
 
     protected PathNavigation createNavigation(Level level) {

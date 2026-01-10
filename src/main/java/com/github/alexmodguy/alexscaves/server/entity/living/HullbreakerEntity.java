@@ -46,15 +46,15 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.ForgeMod;
-import net.minecraftforge.entity.PartEntity;
+import net.neoforged.neoforge.common.NeoForgeMod;
+import net.neoforged.neoforge.entity.PartEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -103,13 +103,13 @@ public class HullbreakerEntity extends WaterAnimal implements IAnimatedEntity, K
         tail4Part = new HullbreakerPartEntity(this, tail3Part, 1.5F, 1F);
         allParts = new HullbreakerPartEntity[]{headPart, tail1Part, tail2Part, tail3Part, tail4Part};
         this.moveControl = new VerticalSwimmingMoveControl(this, 0.7F, 30);
-        this.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
+        this.setPathfindingMalus(PathType.WATER, 0.0F);
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(INTEREST_LEVEL, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(INTEREST_LEVEL, 0);
     }
 
     public static boolean checkHullbreakerSpawnRules(EntityType<? extends LivingEntity> type, ServerLevelAccessor level, MobSpawnType spawnType, BlockPos pos, RandomSource randomSource) {
@@ -193,11 +193,10 @@ public class HullbreakerEntity extends WaterAnimal implements IAnimatedEntity, K
     }
 
     private void populateDeathLootForHullbreaker(){
-        ResourceLocation resourcelocation = this.getLootTable();
         DamageSource damageSource = getLastDamageSource();
         if(damageSource != null){
-            LootTable loottable = this.level().getServer().getLootData().getLootTable(resourcelocation);
-            LootParams.Builder lootparams$builder = (new LootParams.Builder((ServerLevel)this.level())).withParameter(LootContextParams.THIS_ENTITY, this).withParameter(LootContextParams.ORIGIN, this.position()).withParameter(LootContextParams.DAMAGE_SOURCE, damageSource).withOptionalParameter(LootContextParams.KILLER_ENTITY, damageSource.getEntity()).withOptionalParameter(LootContextParams.DIRECT_KILLER_ENTITY, damageSource.getDirectEntity());
+            LootTable loottable = this.level().getServer().reloadableRegistries().getLootTable(this.getLootTable());
+            LootParams.Builder lootparams$builder = (new LootParams.Builder((ServerLevel)this.level())).withParameter(LootContextParams.THIS_ENTITY, this).withParameter(LootContextParams.ORIGIN, this.position()).withParameter(LootContextParams.DAMAGE_SOURCE, damageSource).withOptionalParameter(LootContextParams.ATTACKING_ENTITY, damageSource.getEntity()).withOptionalParameter(LootContextParams.DIRECT_ATTACKING_ENTITY, damageSource.getDirectEntity());
             if (this.lastHurtByPlayer != null) {
                 lootparams$builder = lootparams$builder.withParameter(LootContextParams.LAST_DAMAGE_PLAYER, this.lastHurtByPlayer).withLuck(this.lastHurtByPlayer.getLuck());
             }
@@ -213,7 +212,7 @@ public class HullbreakerEntity extends WaterAnimal implements IAnimatedEntity, K
     }
 
     protected float getStandingEyeHeight(Pose pose, EntityDimensions dimensions) {
-        return 0.45F * dimensions.height;
+        return 0.45F * dimensions.height();
     }
 
 
@@ -256,7 +255,7 @@ public class HullbreakerEntity extends WaterAnimal implements IAnimatedEntity, K
         float pulseBy = getInterestLevel() * 0.45F;
         pulseAmount += pulseBy;
         if (!level().isClientSide) {
-            double waterHeight = getFluidTypeHeight(ForgeMod.WATER_TYPE.get());
+            double waterHeight = getFluidTypeHeight(NeoForgeMod.WATER_TYPE.value());
             if (waterHeight > 0 && waterHeight < this.getBbHeight() - 1.0F) {
                 this.setDeltaMovement(this.getDeltaMovement().add(0, -0.05, 0));
             }
@@ -300,7 +299,7 @@ public class HullbreakerEntity extends WaterAnimal implements IAnimatedEntity, K
         }
         boolean flag = false;
         AABB damageBox = this.headPart.getBoundingBox().inflate(1.2F).move(this.calculateViewVector(this.getXRot(), this.getYRot()));
-        if (!level().isClientSide && net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(level(), this) && this.getTarget() instanceof Player) {
+        if (!level().isClientSide && net.neoforged.neoforge.event.EventHooks.canEntityGrief(level(), this) && this.getTarget() instanceof Player) {
             for (int a = (int) Math.round(damageBox.minX); a <= (int) Math.round(damageBox.maxX); a++) {
                 for (int b = (int) Math.round(damageBox.minY) - 1; (b <= (int) Math.round(damageBox.maxY) + 1) && (b <= 127); b++) {
                     for (int c = (int) Math.round(damageBox.minZ); c <= (int) Math.round(damageBox.maxZ); c++) {

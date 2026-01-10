@@ -5,8 +5,6 @@ import com.github.alexmodguy.alexscaves.server.entity.ACEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.living.CaramelCubeEntity;
 import com.github.alexmodguy.alexscaves.server.entity.living.LicowitchEntity;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -16,8 +14,6 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
 
 import java.util.UUID;
 
@@ -39,19 +35,10 @@ public class SugarStaffHexEntity extends Entity {
         super(entityType, level);
     }
 
-    public SugarStaffHexEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.SUGAR_STAFF_HEX.get(), level);
-    }
-
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(LIFESPAN, 100);
-        this.entityData.define(HEX_SCALE, 1F);
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(LIFESPAN, 100);
+        builder.define(HEX_SCALE, 1F);
     }
 
     public void setOwner(@javax.annotation.Nullable LivingEntity living) {

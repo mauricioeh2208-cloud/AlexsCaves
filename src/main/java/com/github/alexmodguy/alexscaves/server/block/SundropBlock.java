@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.client.particle.ACParticleRegistry;
 import com.github.alexmodguy.alexscaves.server.block.poi.ACPOIRegistry;
@@ -31,6 +32,13 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 public class SundropBlock extends DirectionalBlock {
+    public static final MapCodec<SundropBlock> CODEC = simpleCodec((properties) -> new SundropBlock());
+
+    @Override
+    protected MapCodec<? extends DirectionalBlock> codec() {
+        return CODEC;
+    }
+
     public SundropBlock() {
         super(Properties.of().mapColor(DyeColor.YELLOW).strength(2.0F, 5.0F).sound(ACSoundTypes.SQUISHY_CANDY).lightLevel((i) -> 15).emissiveRendering((state, level, pos) -> true).randomTicks().noOcclusion());
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.UP));

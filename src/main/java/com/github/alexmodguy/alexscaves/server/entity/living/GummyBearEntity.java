@@ -52,8 +52,11 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.Holder;
+import java.util.Optional;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
@@ -61,7 +64,9 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Attr;
 
@@ -114,19 +119,19 @@ public class GummyBearEntity extends Animal implements IDancesToJukebox, IAnimat
         super(entityType, level);
     }
 
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(GUMMY_COLOR, GummyColors.RED);
-        this.entityData.define(DANCING, false);
-        this.entityData.define(SITTING, false);
-        this.entityData.define(STANDING, false);
-        this.entityData.define(SLEEPING, false);
-        this.entityData.define(DIGESTING, false);
-        this.entityData.define(STOMACH_RED, 0.0F);
-        this.entityData.define(STOMACH_GREEN, 0.0F);
-        this.entityData.define(STOMACH_BLUE, 0.0F);
-        this.entityData.define(HELD_MOB_ID, -1);
-        this.entityData.define(POSSESSOR_LICOWITCH_ID, -1);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(GUMMY_COLOR, GummyColors.RED);
+        builder.define(DANCING, false);
+        builder.define(SITTING, false);
+        builder.define(STANDING, false);
+        builder.define(SLEEPING, false);
+        builder.define(DIGESTING, false);
+        builder.define(STOMACH_RED, 0.0F);
+        builder.define(STOMACH_GREEN, 0.0F);
+        builder.define(STOMACH_BLUE, 0.0F);
+        builder.define(HELD_MOB_ID, -1);
+        builder.define(POSSESSOR_LICOWITCH_ID, -1);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -193,7 +198,7 @@ public class GummyBearEntity extends Animal implements IDancesToJukebox, IAnimat
         super.readAdditionalSaveData(compound);
         this.setGummyColor(GummyColors.fromOrdinal(compound.getInt("GummyColor")));
         if (compound.contains("DigestingEffect")) {
-            this.digestEffect(ForgeRegistries.POTIONS.getValue(ResourceLocation.parse(compound.getString("DigestingEffect"))));
+            this.digestEffect(BuiltInRegistries.POTION.get(ResourceLocation.parse(compound.getString("DigestingEffect"))));
             this.setDigesting(digestingEffect != null);
             this.jellybeansToMake = compound.getInt("JellyBeansToMake");
         }
@@ -287,16 +292,18 @@ public class GummyBearEntity extends Animal implements IDancesToJukebox, IAnimat
     }
 
     public boolean digestEffect(Potion potion) {
-        digestingEffect = ForgeRegistries.POTIONS.getKey(potion);
+        digestingEffect = BuiltInRegistries.POTION.getKey(potion);
         updateDigestionColors();
         return true;
 
     }
 
     private void updateDigestionColors() {
-        Potion potion = ForgeRegistries.POTIONS.getValue(digestingEffect);
+        Potion potion = BuiltInRegistries.POTION.get(digestingEffect);
         if (potion != null) {
-            int colorizer = PotionUtils.getColor(potion);
+            Holder<Potion> potionHolder = BuiltInRegistries.POTION.wrapAsHolder(potion);
+            PotionContents potionContents = new PotionContents(potionHolder);
+            int colorizer = potionContents.getColor();
             if (colorizer != -1) {
                 float f = (float) (colorizer >> 16 & 255) / 255.0F;
                 float f1 = (float) (colorizer >> 8 & 255) / 255.0F;
@@ -305,30 +312,32 @@ public class GummyBearEntity extends Animal implements IDancesToJukebox, IAnimat
                 this.setStomachGreen(f1);
                 this.setStomachBlue(f2);
             }
-
         }
     }
 
     public boolean isDigestiblePotion(ItemStack itemStack) {
         if (itemStack.is(Items.POTION)) {
-            Potion potion = PotionUtils.getPotion(itemStack);
-            return !potion.hasInstantEffects() && !potion.getEffects().isEmpty();
+            PotionContents potionContents = itemStack.get(DataComponents.POTION_CONTENTS);
+            if (potionContents != null && potionContents.potion().isPresent()) {
+                Potion potion = potionContents.potion().get().value();
+                return !potion.hasInstantEffects() && !potion.getEffects().isEmpty();
+            }
         }
         return false;
     }
 
     public ItemStack createJellybean() {
-        Potion potion = ForgeRegistries.POTIONS.getValue(digestingEffect);
+        Potion potion = BuiltInRegistries.POTION.get(digestingEffect);
         return potion == null ? new ItemStack(ACItemRegistry.JELLY_BEAN.get()) : ACEffectRegistry.createJellybean(potion);
     }
 
     @javax.annotation.Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn, @javax.annotation.Nullable CompoundTag dataTag) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn) {
         if (spawnDataIn == null) {
             spawnDataIn = new AgeableMob.AgeableMobGroupData(0.25F);
         }
         this.setGummyColor(GummyColors.getRandom(random, true));
-        return super.finalizeSpawn(level, difficultyIn, reason, spawnDataIn, dataTag);
+        return super.finalizeSpawn(level, difficultyIn, reason, spawnDataIn);
     }
 
     @Nullable
@@ -647,16 +656,20 @@ public class GummyBearEntity extends Animal implements IDancesToJukebox, IAnimat
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
         if (isDigestiblePotion(itemstack) && !this.isDigesting()) {
-            this.setDigesting(true);
-            this.digestEffect(PotionUtils.getPotion(itemstack));
-            this.usePlayerItem(player, hand, itemstack);
-            if (!player.getAbilities().instabuild) {
-                player.addItem(new ItemStack(Items.GLASS_BOTTLE));
+            PotionContents potionContents = itemstack.get(DataComponents.POTION_CONTENTS);
+            if (potionContents != null && potionContents.potion().isPresent()) {
+                Potion potion = potionContents.potion().get().value();
+                this.setDigesting(true);
+                this.digestEffect(potion);
+                this.usePlayerItem(player, hand, itemstack);
+                if (!player.getAbilities().instabuild) {
+                    player.addItem(new ItemStack(Items.GLASS_BOTTLE));
+                }
+                this.sleepFor = 24000 * (2 + random.nextInt(2));
+                this.jellybeansToMake = random.nextInt(2) + 3;
+                this.playSound(ACSoundRegistry.GUMMY_BEAR_EAT.get(), this.getSoundVolume(), this.getVoicePitch());
+                return InteractionResult.SUCCESS;
             }
-            this.sleepFor = 24000 * (2 + random.nextInt(2));
-            this.jellybeansToMake = random.nextInt(2) + 3;
-            this.playSound(ACSoundRegistry.GUMMY_BEAR_EAT.get(), this.getSoundVolume(), this.getVoicePitch());
-            return InteractionResult.SUCCESS;
         }
         return super.mobInteract(player, hand);
     }

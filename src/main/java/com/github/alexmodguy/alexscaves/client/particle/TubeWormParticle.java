@@ -102,7 +102,7 @@ public class TubeWormParticle extends Particle {
         MultiBufferSource.BufferSource multibuffersource$buffersource = Minecraft.getInstance().renderBuffers().bufferSource();
         MODEL.animateParticle(age, lerpedTuck, this.animationOffset, this.yRot, partialTick);
         VertexConsumer baseConsumer = multibuffersource$buffersource.getBuffer(RenderType.entityCutoutNoCull(TEXTURE));
-        MODEL.renderToBuffer(posestack, baseConsumer, getLightColor(partialTick), OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+        MODEL.renderToBuffer(posestack, baseConsumer, getLightColor(partialTick), OverlayTexture.NO_OVERLAY, -1);
         multibuffersource$buffersource.endBatch();
         posestack.popPose();
     }

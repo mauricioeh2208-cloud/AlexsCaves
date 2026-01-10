@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.client.model;
 
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexmodguy.alexscaves.server.entity.living.CandicornEntity;
 import com.github.alexmodguy.alexscaves.server.misc.ACMath;
 import com.github.alexthe666.citadel.animation.IAnimatedEntity;
@@ -323,6 +324,7 @@ public class CandicornModel extends AdvancedEntityModel<CandicornEntity> {
     }
 
     public void renderToBuffer(PoseStack matrixStackIn, VertexConsumer bufferIn, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
+        int color = ColorUtil.packColor(red, green, blue, alpha);
         this.horn.showModel = !this.young;
         if (this.young) {
             float f = 1.35F;
@@ -336,7 +338,7 @@ public class CandicornModel extends AdvancedEntityModel<CandicornEntity> {
             matrixStackIn.scale(0.45F, 0.45F, 0.45F);
             matrixStackIn.translate(0.0D, 1.25D, 0.125D);
             parts().forEach((p_228292_8_) -> {
-                p_228292_8_.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
+                p_228292_8_.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, color);
             });
             matrixStackIn.popPose();
             head.setScale(1, 1, 1);
@@ -347,7 +349,7 @@ public class CandicornModel extends AdvancedEntityModel<CandicornEntity> {
         } else {
             matrixStackIn.pushPose();
             parts().forEach((p_228290_8_) -> {
-                p_228290_8_.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
+                p_228290_8_.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, color);
             });
             matrixStackIn.popPose();
         }

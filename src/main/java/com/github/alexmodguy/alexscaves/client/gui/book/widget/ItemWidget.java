@@ -16,6 +16,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.resources.ResourceLocation;
@@ -23,12 +24,16 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.model.data.ModelData;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.client.model.data.ModelData;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import net.minecraft.core.registries.Registries;
 
 public class ItemWidget extends BookWidget {
 
@@ -53,15 +58,20 @@ public class ItemWidget extends BookWidget {
 
     public void render(PoseStack poseStack, MultiBufferSource.BufferSource bufferSource, float partialTicks, boolean onFlippingPage) {
         if (actualItem == null && item != null) {
-            actualItem = new ItemStack(ForgeRegistries.ITEMS.getValue(ResourceLocation.parse(item)));
+            actualItem = new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.parse(item)));
             if (nbt != null && !nbt.isEmpty()) {
-                CompoundTag tag = null;
+                CompoundTag parsedTag = null;
                 try {
-                    tag = TagParser.parseTag(nbt);
+                    parsedTag = TagParser.parseTag(nbt);
                 } catch (CommandSyntaxException e) {
                     e.printStackTrace();
                 }
-                actualItem.setTag(tag);
+                if (parsedTag != null) {
+                    final CompoundTag finalTag = parsedTag;
+                    CustomData.update(DataComponents.CUSTOM_DATA, actualItem, existingTag -> {
+                        existingTag.merge(finalTag);
+                    });
+                }
             }
         }
         float scale = 16.0F * getScale();
@@ -107,7 +117,7 @@ public class ItemWidget extends BookWidget {
 
     public static void renderSepiaItem(PoseStack poseStack, BakedModel bakedmodel, ItemStack itemStack, MultiBufferSource.BufferSource bufferSource){
         poseStack.pushPose();
-        bakedmodel = net.minecraftforge.client.ForgeHooksClient.handleCameraTransforms(poseStack, bakedmodel, ItemDisplayContext.GUI, false);
+        bakedmodel = net.neoforged.neoforge.client.ClientHooks.handleCameraTransforms(poseStack, bakedmodel, ItemDisplayContext.GUI, false);
         poseStack.translate(-0.5F, -0.5F, -0.5F);
         for (net.minecraft.client.renderer.RenderType rt : bakedmodel.getRenderTypes(itemStack, false)) {
             renderModel(poseStack.last(), bufferSource.getBuffer(SEPIA_ITEM_RENDER_TYPE), 1.0F, null, bakedmodel, 1.0F, 1.0F, 1.0F, 240, OverlayTexture.NO_OVERLAY, ModelData.EMPTY, rt);

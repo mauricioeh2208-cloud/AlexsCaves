@@ -27,7 +27,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.Tags;
 import org.joml.Matrix4f;
 
 import java.util.*;
@@ -55,7 +54,7 @@ public class CaveMapRenderer {
         this.target = target;
         this.mapBiomes = mapBiomes;
         this.texture = new DynamicTexture(128, 128, true);
-        ResourceLocation resourcelocation = Minecraft.getInstance().textureManager.register("cave_map/" + index + (transparent ? "" : "_frame"), this.texture);
+        ResourceLocation resourcelocation = Minecraft.getInstance().getTextureManager().register("cave_map/" + index + (transparent ? "" : "_frame"), this.texture);
         this.renderType = RenderType.text(resourcelocation);
         updateTexture();
         updateLabels();
@@ -206,13 +205,13 @@ public class CaveMapRenderer {
         if (biome.is(ACBiomeRegistry.CANDY_CAVITY)) {
             return DefaultMapBackgrounds.CANDY_CAVITY.getMapColor(u, v);
         }
-        if (biome.is(Tags.Biomes.IS_SNOWY) && biome.is(BiomeTags.IS_OCEAN)) {
+        if (biome.is(BiomeTags.IS_OCEAN) && biome.value().coldEnoughToSnow(BlockPos.ZERO)) {
             return DefaultMapBackgrounds.FROZEN_OCEAN.getMapColor(u, v);
         }
-        if (biome.is(Tags.Biomes.IS_WATER)) {
+        if (biome.is(BiomeTags.IS_OCEAN) || biome.is(BiomeTags.IS_RIVER)) {
             return DefaultMapBackgrounds.WATER.getMapColor(u, v);
         }
-        if (biome.is(Tags.Biomes.IS_DESERT)) {
+        if (biome.is(Biomes.DESERT)) {
             return DefaultMapBackgrounds.DESERT.getMapColor(u, v);
         }
         if (biome.is(BiomeTags.IS_JUNGLE)) {
@@ -221,31 +220,31 @@ public class CaveMapRenderer {
         if (biome.is(BiomeTags.IS_BADLANDS)) {
             return DefaultMapBackgrounds.BADLANDS.getMapColor(u, v);
         }
-        if (biome.is(Tags.Biomes.IS_MOUNTAIN) && biome.is(Tags.Biomes.IS_SNOWY)) {
+        if (biome.is(BiomeTags.IS_MOUNTAIN) && biome.value().coldEnoughToSnow(BlockPos.ZERO)) {
             return DefaultMapBackgrounds.SNOWY_MOUNTAIN.getMapColor(u, v);
         }
-        if (biome.is(Tags.Biomes.IS_CONIFEROUS) && biome.is(Tags.Biomes.IS_SNOWY)) {
+        if (biome.is(BiomeTags.IS_TAIGA) && biome.value().coldEnoughToSnow(BlockPos.ZERO)) {
             return DefaultMapBackgrounds.SNOWY_TAIGA.getMapColor(u, v);
         }
-        if (biome.is(Tags.Biomes.IS_MOUNTAIN)) {
+        if (biome.is(BiomeTags.IS_MOUNTAIN)) {
             return DefaultMapBackgrounds.MOUNTAIN.getMapColor(u, v);
         }
-        if (biome.is(Tags.Biomes.IS_SWAMP)) {
+        if (biome.is(Biomes.SWAMP) || biome.is(Biomes.MANGROVE_SWAMP)) {
             return DefaultMapBackgrounds.SWAMP.getMapColor(u, v);
         }
-        if (biome.is(Tags.Biomes.IS_SNOWY) && biome.is(Tags.Biomes.IS_RARE)) {
+        if (biome.is(Biomes.ICE_SPIKES)) {
             return DefaultMapBackgrounds.ICE_SPIKES.getMapColor(u, v);
         }
-        if (biome.is(Tags.Biomes.IS_SNOWY)) {
+        if (biome.value().coldEnoughToSnow(BlockPos.ZERO) && !biome.is(BiomeTags.IS_TAIGA)) {
             return DefaultMapBackgrounds.SNOWY.getMapColor(u, v);
         }
-        if (biome.is(Tags.Biomes.IS_CONIFEROUS)) {
+        if (biome.is(BiomeTags.IS_TAIGA)) {
             return DefaultMapBackgrounds.TAIGA.getMapColor(u, v);
         }
-        if (biome.is(Tags.Biomes.IS_MUSHROOM)) {
+        if (biome.is(Biomes.MUSHROOM_FIELDS)) {
             return DefaultMapBackgrounds.MUSHROOM.getMapColor(u, v);
         }
-        if (biome.is(BiomeTags.IS_FOREST) && biome.is(Tags.Biomes.IS_SPOOKY)) {
+        if (biome.is(Biomes.DARK_FOREST)) {
             return DefaultMapBackgrounds.ROOFED_FOREST.getMapColor(u, v);
         }
         if (biome.is(BiomeTags.IS_FOREST)) {
@@ -254,7 +253,7 @@ public class CaveMapRenderer {
         if (biome.is(BiomeTags.IS_SAVANNA)) {
             return DefaultMapBackgrounds.SAVANNA.getMapColor(u, v);
         }
-        if (biome.is(Tags.Biomes.IS_PLAINS)) {
+        if (biome.is(Biomes.PLAINS) || biome.is(Biomes.SUNFLOWER_PLAINS) || biome.is(Biomes.MEADOW)) {
             return DefaultMapBackgrounds.PLAINS.getMapColor(u, v);
         }
         if (biome.is(Biomes.STONY_SHORE)) {
@@ -306,11 +305,11 @@ public class CaveMapRenderer {
         }
         Matrix4f matrix4f = poseStack.last().pose();
         VertexConsumer vertexconsumer = multiBufferSource.getBuffer(this.renderType);
-        vertexconsumer.vertex(matrix4f, 0.0F, 128.0F, -0.01F).color(255, 255, 255, 255).uv(0.0F, 1.0F).uv2(light).endVertex();
-        vertexconsumer.vertex(matrix4f, 128.0F, 128.0F, -0.01F).color(255, 255, 255, 255).uv(1.0F, 1.0F).uv2(light).endVertex();
-        vertexconsumer.vertex(matrix4f, 128.0F, 0.0F, -0.01F).color(255, 255, 255, 255).uv(1.0F, 0.0F).uv2(light).endVertex();
-        vertexconsumer.vertex(matrix4f, 0.0F, 0.0F, -0.01F).color(255, 255,
-                255, 255).uv(0.0F, 0.0F).uv2(light).endVertex();
+        vertexconsumer.addVertex(matrix4f, 0.0F, 128.0F, -0.01F).setColor(255, 255, 255, 255).setUv(0.0F, 1.0F).setLight(light);
+        vertexconsumer.addVertex(matrix4f, 128.0F, 128.0F, -0.01F).setColor(255, 255, 255, 255).setUv(1.0F, 1.0F).setLight(light);
+        vertexconsumer.addVertex(matrix4f, 128.0F, 0.0F, -0.01F).setColor(255, 255, 255, 255).setUv(1.0F, 0.0F).setLight(light);
+        vertexconsumer.addVertex(matrix4f, 0.0F, 0.0F, -0.01F).setColor(255, 255,
+                255, 255).setUv(0.0F, 0.0F).setLight(light);
 
 
         renderLabels(poseStack, multiBufferSource, light);
@@ -336,10 +335,10 @@ public class CaveMapRenderer {
 
     private void renderDetail(VertexConsumer vertexconsumer1, PoseStack poseStack, int yOffset, int light, float scale) {
         Matrix4f matrix4f1 = poseStack.last().pose();
-        vertexconsumer1.vertex(matrix4f1, -1.0F * scale, 1.0F * scale, (float) yOffset * -0.001F).color(255, 255, 255, 255).uv(0.0F, 1.0F).uv2(light).endVertex();
-        vertexconsumer1.vertex(matrix4f1, 1.0F * scale, 1.0F * scale, (float) yOffset * -0.001F).color(255, 255, 255, 255).uv(1.0F, 1.0F).uv2(light).endVertex();
-        vertexconsumer1.vertex(matrix4f1, 1.0F * scale, -1.0F * scale, (float) yOffset * -0.001F).color(255, 255, 255, 255).uv(1.0F, 0.0F).uv2(light).endVertex();
-        vertexconsumer1.vertex(matrix4f1, -1.0F * scale, -1.0F * scale, (float) yOffset * -0.001F).color(255, 255, 255, 255).uv(0.0F, 0.0F).uv2(light).endVertex();
+        vertexconsumer1.addVertex(matrix4f1, -1.0F * scale, 1.0F * scale, (float) yOffset * -0.001F).setColor(255, 255, 255, 255).setUv(0.0F, 1.0F).setLight(light);
+        vertexconsumer1.addVertex(matrix4f1, 1.0F * scale, 1.0F * scale, (float) yOffset * -0.001F).setColor(255, 255, 255, 255).setUv(1.0F, 1.0F).setLight(light);
+        vertexconsumer1.addVertex(matrix4f1, 1.0F * scale, -1.0F * scale, (float) yOffset * -0.001F).setColor(255, 255, 255, 255).setUv(1.0F, 0.0F).setLight(light);
+        vertexconsumer1.addVertex(matrix4f1, -1.0F * scale, -1.0F * scale, (float) yOffset * -0.001F).setColor(255, 255, 255, 255).setUv(0.0F, 0.0F).setLight(light);
 
     }
 

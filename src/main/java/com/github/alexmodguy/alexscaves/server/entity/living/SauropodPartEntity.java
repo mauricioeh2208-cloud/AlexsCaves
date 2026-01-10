@@ -12,12 +12,13 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.entity.PartEntity;
+import net.neoforged.neoforge.entity.PartEntity;
 
 public class SauropodPartEntity extends PartEntity<SauropodBaseEntity> {
 
@@ -51,7 +52,7 @@ public class SauropodPartEntity extends PartEntity<SauropodBaseEntity> {
         } else {
             this.playSound(SoundEvents.ITEM_BREAK);
             if (player.level().isClientSide) {
-                AlexsCaves.sendMSGToServer(new MultipartEntityMessage(parent.getId(), player.getId(), 0, 0));
+                AlexsCaves.sendMSGToServer(new MultipartEntityMessage(parent.getId(), player.getId(), 0));
             }
             return parent.interact(player, hand);
         }
@@ -77,21 +78,19 @@ public class SauropodPartEntity extends PartEntity<SauropodBaseEntity> {
 
     public boolean isInvulnerableTo(DamageSource damageSource) {
         SauropodBaseEntity parent = this.getParent();
-        return super.isInvulnerableTo(damageSource) || parent != null && parent.isInvulnerableTo(damageSource) || damageSource.getEntity() != null && this.getParent().isPassengerOfSameVehicle(damageSource.getEntity());
+        return super.isInvulnerableTo(damageSource) || parent != null && parent.isInvulnerableTo(damageSource) || damageSource.getEntity() != null && parent != null && parent.isPassengerOfSameVehicle(damageSource.getEntity());
     }
 
-        @Override
     public boolean is(Entity entityIn) {
         return this == entityIn || this.getParent() == entityIn;
     }
 
-    @Override
     public Packet<ClientGamePacketListener> getAddEntityPacket() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected void defineSynchedData() {
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
 
     }
 
@@ -114,7 +113,7 @@ public class SauropodPartEntity extends PartEntity<SauropodBaseEntity> {
         if (!this.isInvulnerableTo(source) && parent != null) {
             Entity player = source.getEntity();
             if (player != null && !parent.isAlliedTo(player) && player.level().isClientSide) {
-                AlexsCaves.sendMSGToServer(new MultipartEntityMessage(parent.getId(), player.getId(), 1, amount));
+                AlexsCaves.sendMSGToServer(new MultipartEntityMessage(parent.getId(), player.getId(), 1));
             }
         }
         return false;

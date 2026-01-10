@@ -55,7 +55,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
@@ -87,7 +87,7 @@ public class LuxtructosaurusEntity extends SauropodBaseEntity implements Enemy {
 
     public LuxtructosaurusEntity(EntityType entityType, Level level) {
         super(entityType, level);
-        this.setPathfindingMalus(BlockPathTypes.LEAVES, 0.0F);
+        this.setPathfindingMalus(PathType.LEAVES, 0.0F);
         VORONOI_GENERATOR.setOffsetAmount(1.0F);
         VORONOI_GENERATOR.setDistanceType(VoronoiGenerator.DistanceType.euclidean);
     }
@@ -110,9 +110,9 @@ public class LuxtructosaurusEntity extends SauropodBaseEntity implements Enemy {
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(ENRAGED, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(ENRAGED, false);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -135,10 +135,6 @@ public class LuxtructosaurusEntity extends SauropodBaseEntity implements Enemy {
         this.bossEvent.setName(this.getDisplayName());
     }
 
-    public MobType getMobType() {
-        return MobType.UNDEAD;
-    }
-
     @Override
     public BlockState createEggBlockState() {
         return Blocks.AIR.defaultBlockState();
@@ -150,6 +146,10 @@ public class LuxtructosaurusEntity extends SauropodBaseEntity implements Enemy {
         return null;
     }
 
+    @Override
+    public boolean isFood(ItemStack stack) {
+        return false;
+    }
 
     public void tick() {
         super.tick();
@@ -341,11 +341,10 @@ public class LuxtructosaurusEntity extends SauropodBaseEntity implements Enemy {
     }
 
     private void populateDeathLootForLuxtructosaurus() {
-        ResourceLocation resourcelocation = this.getLootTable();
         DamageSource damageSource = getLastDamageSource();
         if (damageSource != null) {
-            LootTable loottable = this.level().getServer().getLootData().getLootTable(resourcelocation);
-            LootParams.Builder lootparams$builder = (new LootParams.Builder((ServerLevel) this.level())).withParameter(LootContextParams.THIS_ENTITY, this).withParameter(LootContextParams.ORIGIN, this.position()).withParameter(LootContextParams.DAMAGE_SOURCE, damageSource).withOptionalParameter(LootContextParams.KILLER_ENTITY, damageSource.getEntity()).withOptionalParameter(LootContextParams.DIRECT_KILLER_ENTITY, damageSource.getDirectEntity());
+            LootTable loottable = this.level().getServer().reloadableRegistries().getLootTable(this.getLootTable());
+            LootParams.Builder lootparams$builder = (new LootParams.Builder((ServerLevel) this.level())).withParameter(LootContextParams.THIS_ENTITY, this).withParameter(LootContextParams.ORIGIN, this.position()).withParameter(LootContextParams.DAMAGE_SOURCE, damageSource).withOptionalParameter(LootContextParams.ATTACKING_ENTITY, damageSource.getEntity()).withOptionalParameter(LootContextParams.DIRECT_ATTACKING_ENTITY, damageSource.getDirectEntity());
             if (this.lastHurtByPlayer != null) {
                 lootparams$builder = lootparams$builder.withParameter(LootContextParams.LAST_DAMAGE_PLAYER, this.lastHurtByPlayer).withLuck(this.lastHurtByPlayer.getLuck());
             }
@@ -392,7 +391,7 @@ public class LuxtructosaurusEntity extends SauropodBaseEntity implements Enemy {
                     this.setEnraged(false);
                 }
             }
-            if ((this.horizontalCollision || this.isInWater()) || net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.level(), this)) {
+            if ((this.horizontalCollision || this.isInWater()) || net.neoforged.neoforge.event.EventHooks.canEntityGrief(this.level(), this)) {
                 AABB aabb = this.getBoundingBox().inflate(0.2D);
                 if (this.getAnimation() == ANIMATION_JUMP && this.getAnimationTick() > 24 && this.onGround()) {
                     return;
@@ -403,7 +402,7 @@ public class LuxtructosaurusEntity extends SauropodBaseEntity implements Enemy {
                         this.level().destroyBlock(blockpos, random.nextFloat() < AlexsCaves.COMMON_CONFIG.luxtructosaurusBlockDropChance.get(), this);
                     }
                     if (blockstate.getFluidState().is(FluidTags.WATER)) {
-                        level().setBlock(blockpos, net.minecraftforge.event.ForgeEventFactory.fireFluidPlaceBlockEvent(level(), blockpos, blockpos, Blocks.STONE.defaultBlockState()), 3);
+                        level().setBlock(blockpos, net.neoforged.neoforge.event.EventHooks.fireFluidPlaceBlockEvent(level(), blockpos, blockpos, Blocks.STONE.defaultBlockState()), 3);
                         level().levelEvent(1501, blockpos, 0);
                     }
                 }
@@ -609,7 +608,7 @@ public class LuxtructosaurusEntity extends SauropodBaseEntity implements Enemy {
         VoronoiGenerator.VoronoiInfo info = VORONOI_GENERATOR.get2(blockPos.getX() * sampleScale, blockPos.getZ() * sampleScale);
         boolean flag = false;
         if (info.distance1() - sampleScale * 4 < info.distance()) {
-            if(net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.level(), this)){
+            if(net.neoforged.neoforge.event.EventHooks.canEntityGrief(this.level(), this)){
                 int y = blockPos.getY();
                 for (int i = 0; i <= depth; i++) {
                     BlockState state = level().getBlockState(blockPos);

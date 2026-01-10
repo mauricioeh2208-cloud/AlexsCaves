@@ -2,14 +2,24 @@ package com.github.alexmodguy.alexscaves.server.message;
 
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.UUID;
-import java.util.function.Supplier;
 
-public class UpdateBossBarMessage {
+public class UpdateBossBarMessage implements CustomPacketPayload {
+
+    public static final CustomPacketPayload.Type<UpdateBossBarMessage> TYPE =
+        new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "update_boss_bar"));
+
+    public static final StreamCodec<FriendlyByteBuf, UpdateBossBarMessage> CODEC =
+        StreamCodec.ofMember(UpdateBossBarMessage::write, UpdateBossBarMessage::read);
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() { return TYPE; }
 
     private UUID bossBar;
     private int renderType;
@@ -29,15 +39,14 @@ public class UpdateBossBarMessage {
         buf.writeInt(message.renderType);
     }
 
-    public static void handle(UpdateBossBarMessage message, Supplier<NetworkEvent.Context> context) {
-        context.get().setPacketHandled(true);
-        Player playerSided = context.get().getSender();
-        if (context.get().getDirection().getReceptionSide() == LogicalSide.CLIENT) {
-            playerSided = AlexsCaves.PROXY.getClientSidePlayer();
+    public static void handle(UpdateBossBarMessage message, IPayloadContext context) {
+        // This packet is sent from server to client
+        if (!context.flow().isClientbound()) {
+            return;
         }
-        if(message.renderType == -1){
+        if (message.renderType == -1) {
             AlexsCaves.PROXY.removeBossBarRender(message.bossBar);
-        }else{
+        } else {
             AlexsCaves.PROXY.setBossBarRender(message.bossBar, message.renderType);
         }
     }

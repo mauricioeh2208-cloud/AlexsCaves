@@ -46,7 +46,7 @@ public class AmbersolLightBlock extends Block {
     }
 
     public RenderShape getRenderShape(BlockState p_153693_) {
-        return RenderShape.INVISIBLE;
+        return net.minecraft.world.level.block.RenderShape.INVISIBLE;
     }
 
     public FluidState getFluidState(BlockState state) {

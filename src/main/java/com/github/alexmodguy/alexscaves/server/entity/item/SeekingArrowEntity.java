@@ -4,8 +4,6 @@ import com.github.alexmodguy.alexscaves.client.particle.ACParticleRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.ACEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -17,8 +15,6 @@ import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
 
 public class SeekingArrowEntity extends AbstractArrow {
     private static final EntityDataAccessor<Integer> ARC_TOWARDS_ENTITY_ID = SynchedEntityData.defineId(SeekingArrowEntity.class, EntityDataSerializers.INT);
@@ -29,27 +25,17 @@ public class SeekingArrowEntity extends AbstractArrow {
     }
 
     public SeekingArrowEntity(Level level, LivingEntity shooter) {
-        super(ACEntityRegistry.SEEKING_ARROW.get(), shooter, level);
+        super(ACEntityRegistry.SEEKING_ARROW.get(), shooter, level, new ItemStack(ACItemRegistry.SEEKING_ARROW.get()), ItemStack.EMPTY);
     }
 
     public SeekingArrowEntity(Level level, double x, double y, double z) {
-        super(ACEntityRegistry.SEEKING_ARROW.get(), x, y, z, level);
-    }
-
-    public SeekingArrowEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.SEEKING_ARROW.get(), level);
-        this.setBoundingBox(this.makeBoundingBox());
+        super(ACEntityRegistry.SEEKING_ARROW.get(), x, y, z, level, new ItemStack(ACItemRegistry.SEEKING_ARROW.get()), ItemStack.EMPTY);
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(ARC_TOWARDS_ENTITY_ID, -1);
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(ARC_TOWARDS_ENTITY_ID, -1);
     }
 
     public void tick() {
@@ -92,7 +78,8 @@ public class SeekingArrowEntity extends AbstractArrow {
         stopSeeking = true;
     }
 
-    protected ItemStack getPickupItem() {
+    @Override
+    protected ItemStack getDefaultPickupItem() {
         return new ItemStack(ACItemRegistry.SEEKING_ARROW.get());
     }
 

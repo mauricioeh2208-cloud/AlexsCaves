@@ -22,6 +22,7 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.DefaultPlayerSkin;
+import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -104,10 +105,10 @@ public class HologramProjectorBlockRenderer<T extends HologramProjectorBlockEnti
         PoseStack.Pose posestack$pose = poseStack.last();
         Matrix4f matrix4f1 = posestack$pose.pose();
         Matrix3f matrix3f1 = posestack$pose.normal();
-        lightConsumer.vertex(matrix4f1, padStart, 0.0F, padEnd).color(220, 220, 255, (int) (amount * 150)).uv(0.0F, 1.0F).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(240).normal(matrix3f1, 0.0F, 1.0F, 0.0F).endVertex();
-        lightConsumer.vertex(matrix4f1, padEnd, 0.0F, padEnd).color(220, 220, 255, (int) (amount * 150)).uv(1.0F, 1.0F).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(240).normal(matrix3f1, 0.0F, 1.0F, 0.0F).endVertex();
-        lightConsumer.vertex(matrix4f1, padEnd, 0.0F, padStart).color(220, 220, 255, (int) (amount * 150)).uv(1.0F, 0.0F).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(240).normal(matrix3f1, 0.0F, 1.0F, 0.0F).endVertex();
-        lightConsumer.vertex(matrix4f1, padStart, 0.0F, padStart).color(220, 220, 255, (int) (amount * 150)).uv(0.0F, 0.0F).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(240).normal(matrix3f1, 0.0F, 1.0F, 0.0F).endVertex();
+        lightConsumer.addVertex(matrix4f1, padStart, 0.0F, padEnd).setColor(220, 220, 255, (int) (amount * 150)).setUv(0.0F, 1.0F).setOverlay(OverlayTexture.NO_OVERLAY).setLight(240).setNormal(0.0F, 1.0F, 0.0F);
+        lightConsumer.addVertex(matrix4f1, padEnd, 0.0F, padEnd).setColor(220, 220, 255, (int) (amount * 150)).setUv(1.0F, 1.0F).setOverlay(OverlayTexture.NO_OVERLAY).setLight(240).setNormal(0.0F, 1.0F, 0.0F);
+        lightConsumer.addVertex(matrix4f1, padEnd, 0.0F, padStart).setColor(220, 220, 255, (int) (amount * 150)).setUv(1.0F, 0.0F).setOverlay(OverlayTexture.NO_OVERLAY).setLight(240).setNormal(0.0F, 1.0F, 0.0F);
+        lightConsumer.addVertex(matrix4f1, padStart, 0.0F, padStart).setColor(220, 220, 255, (int) (amount * 150)).setUv(0.0F, 0.0F).setOverlay(OverlayTexture.NO_OVERLAY).setLight(240).setNormal(0.0F, 1.0F, 0.0F);
         poseStack.popPose();
         poseStack.pushPose();
         poseStack.translate(0F, -0.2F, 0F);
@@ -147,31 +148,37 @@ public class HologramProjectorBlockRenderer<T extends HologramProjectorBlockEnti
     }
 
     private static String getPlayerModelName(PlayerInfo playerInfo, UUID uuid) {
-        return playerInfo == null ? DefaultPlayerSkin.getSkinModelName(uuid) : playerInfo.getModelName();
+        return playerInfo == null ? DefaultPlayerSkin.get(uuid).model().id() : playerInfo.getSkin().model().id();
+    }
+
+    private static PlayerSkin.Model getPlayerSkinModel(PlayerInfo playerInfo, UUID uuid) {
+        return playerInfo == null ? DefaultPlayerSkin.get(uuid).model() : playerInfo.getSkin().model();
     }
 
 
     private static ResourceLocation getPlayerSkinTextureLocation(PlayerInfo playerInfo, UUID uuid) {
-        return playerInfo == null ? DefaultPlayerSkin.getDefaultSkin(uuid) : playerInfo.getSkinLocation();
+        return playerInfo == null ? DefaultPlayerSkin.get(uuid).texture() : playerInfo.getSkin().texture();
     }
 
     private static void renderPlayerHologram(UUID lastPlayerUUID, float partialTicks, PoseStack poseStack, MultiBufferSource bufferIn, int i) {
         PostEffectRegistry.renderEffectForNextTick(ClientProxy.HOLOGRAM_SHADER);
         PlayerInfo playerInfo = getPlayerInfo(lastPlayerUUID);
-        String modelName = getPlayerModelName(playerInfo, lastPlayerUUID);
+        // In 1.21, getSkinMap() uses PlayerSkin.Model enum as key, not String
+        PlayerSkin.Model skinModel = getPlayerSkinModel(playerInfo, lastPlayerUUID);
         EntityRenderDispatcher manager = Minecraft.getInstance().getEntityRenderDispatcher();
-        EntityRenderer<? extends Player> renderer = manager.getSkinMap().get(modelName);
+        EntityRenderer<? extends Player> renderer = manager.getSkinMap().get(skinModel);
         if(playerModel == null || slimPlayerModel == null){
             playerModel = new PlayerModel(Minecraft.getInstance().getEntityModels().bakeLayer(ModelLayers.PLAYER), false);
             slimPlayerModel = new PlayerModel(Minecraft.getInstance().getEntityModels().bakeLayer(ModelLayers.PLAYER_SLIM), true);
         }
-        PlayerModel model = modelName.equals("slim") ? slimPlayerModel : playerModel;
+        PlayerModel model = skinModel == PlayerSkin.Model.SLIM ? slimPlayerModel : playerModel;
         model.young = false;
         if (renderer instanceof LivingEntityRenderer livingEntityRenderer) {
-            VertexConsumer ivertexbuilder = bufferIn.getBuffer(ACRenderTypes.getHologram(getPlayerSkinTextureLocation(playerInfo, lastPlayerUUID)));
+            ResourceLocation skinTexture = getPlayerSkinTextureLocation(playerInfo, lastPlayerUUID);
+            VertexConsumer ivertexbuilder = bufferIn.getBuffer(ACRenderTypes.getHologram(skinTexture));
             poseStack.pushPose();
             poseStack.scale(-1F, -1F, 1F);
-            model.renderToBuffer(poseStack, ivertexbuilder, 240, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+            model.renderToBuffer(poseStack, ivertexbuilder, 240, OverlayTexture.NO_OVERLAY, -1);
             poseStack.popPose();
         }
         Minecraft.getInstance().getMainRenderTarget().bindWrite(false);
@@ -179,15 +186,15 @@ public class HologramProjectorBlockRenderer<T extends HologramProjectorBlockEnti
 
 
     private static void shineOriginVertex(VertexConsumer p_114220_, Matrix4f p_114221_, Matrix3f p_114092_, float xOffset, float yOffset) {
-        p_114220_.vertex(p_114221_, 0.0F, 0.0F, 0.0F).color(255, 255, 255, 230).uv(xOffset + 0.5F, yOffset).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(240).normal(p_114092_, 0.0F, 1.0F, 0.0F).endVertex();
+        p_114220_.addVertex(p_114221_, 0.0F, 0.0F, 0.0F).setColor(255, 255, 255, 230).setUv(xOffset + 0.5F, yOffset).setOverlay(OverlayTexture.NO_OVERLAY).setLight(240).setNormal(0.0F, 1.0F, 0.0F);
     }
 
     private static void shineLeftCornerVertex(VertexConsumer p_114215_, Matrix4f p_114216_, Matrix3f p_114092_, float p_114217_, float p_114218_, float xOffset, float yOffset) {
-        p_114215_.vertex(p_114216_, -ACMath.HALF_SQRT_3 * p_114218_, p_114217_, 0).color(0, 0, 255, 0).uv(xOffset, yOffset + 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(240).normal(p_114092_, 0.0F, -1.0F, 0.0F).endVertex();
+        p_114215_.addVertex(p_114216_, -ACMath.HALF_SQRT_3 * p_114218_, p_114217_, 0).setColor(0, 0, 255, 0).setUv(xOffset, yOffset + 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(240).setNormal(0.0F, -1.0F, 0.0F);
     }
 
     private static void shineRightCornerVertex(VertexConsumer p_114224_, Matrix4f p_114225_, Matrix3f p_114092_, float p_114226_, float p_114227_, float xOffset, float yOffset) {
-        p_114224_.vertex(p_114225_, ACMath.HALF_SQRT_3 * p_114227_, p_114226_, 0).color(0, 0, 255, 0).uv(xOffset + 1, yOffset + 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(240).normal(p_114092_, 0.0F, -1.0F, 0.0F).endVertex();
+        p_114224_.addVertex(p_114225_, ACMath.HALF_SQRT_3 * p_114227_, p_114226_, 0).setColor(0, 0, 255, 0).setUv(xOffset + 1, yOffset + 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(240).setNormal(0.0F, -1.0F, 0.0F);
     }
 
     public int getViewDistance() {

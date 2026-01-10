@@ -2,7 +2,7 @@ package com.github.alexmodguy.alexscaves.server.level.structure;
 
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.server.level.structure.piece.AbyssalRuinsStructurePiece;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
@@ -17,7 +17,7 @@ import java.util.Optional;
 
 public class AbyssalRuinsStructure extends Structure {
 
-    public static final Codec<AbyssalRuinsStructure> CODEC = simpleCodec(AbyssalRuinsStructure::new);
+    public static final MapCodec<AbyssalRuinsStructure> CODEC = simpleCodec(AbyssalRuinsStructure::new);
 
     private static final ResourceLocation[] RUINS_NBT = new ResourceLocation[]{
             ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "abyssal_ruins_0"),

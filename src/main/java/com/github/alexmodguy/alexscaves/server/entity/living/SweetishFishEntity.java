@@ -10,6 +10,7 @@ import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -41,10 +42,11 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemUtils;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.pathfinder.PathFinder;
 import net.minecraft.world.phys.Vec3;
 
@@ -63,7 +65,7 @@ public class SweetishFishEntity extends WaterAnimal implements Bucketable, HasGu
     public SweetishFishEntity(EntityType<? extends WaterAnimal> type, Level level) {
         super(type, level);
         this.moveControl = new VerticalSwimmingMoveControl(this, 0.7F, 10);
-        this.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
+        this.setPathfindingMalus(PathType.WATER, 0.0F);
     }
 
     protected void registerGoals() {
@@ -73,10 +75,10 @@ public class SweetishFishEntity extends WaterAnimal implements Bucketable, HasGu
         this.targetSelector.addGoal(1, (new HurtByTargetGoal(this)));
     }
 
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(FROM_BUCKET, false);
-        this.entityData.define(GUMMY_COLOR, GummyColors.RED);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(FROM_BUCKET, false);
+        builder.define(GUMMY_COLOR, GummyColors.RED);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -92,7 +94,7 @@ public class SweetishFishEntity extends WaterAnimal implements Bucketable, HasGu
             }
 
             public boolean isInLiquid() {
-                return SweetishFishEntity.this.isInLiquid();
+                return SweetishFishEntity.this.isInLiquidInternal();
             }
         };
     }
@@ -139,7 +141,7 @@ public class SweetishFishEntity extends WaterAnimal implements Bucketable, HasGu
         this.setGummyColor(GummyColors.fromOrdinal(compound.getInt("GummyColor")));
     }
 
-    private boolean isInLiquid() {
+    private boolean isInLiquidInternal() {
         return this.isInWaterOrBubble() || this.isInSoda();
     }
 
@@ -148,7 +150,7 @@ public class SweetishFishEntity extends WaterAnimal implements Bucketable, HasGu
     }
 
     protected void handleAirSupply(int prevAir) {
-        if (this.isAlive() && !isInLiquid()) {
+        if (this.isAlive() && !isInLiquidInternal()) {
             this.setAirSupply(prevAir - 1);
             if (this.getAirSupply() == -20) {
                 this.setAirSupply(0);
@@ -162,12 +164,13 @@ public class SweetishFishEntity extends WaterAnimal implements Bucketable, HasGu
     @Override
     public void saveToBucketTag(@Nonnull ItemStack bucket) {
         if (this.hasCustomName()) {
-            bucket.setHoverName(this.getCustomName());
+            bucket.set(DataComponents.CUSTOM_NAME, this.getCustomName());
         }
         CompoundTag platTag = new CompoundTag();
         this.addAdditionalSaveData(platTag);
-        CompoundTag compound = bucket.getOrCreateTag();
-        compound.put("FishBucketTag", platTag);
+        CompoundTag outerTag = new CompoundTag();
+        outerTag.put("FishBucketTag", platTag);
+        bucket.set(DataComponents.BUCKET_ENTITY_DATA, CustomData.of(outerTag));
     }
 
     @Override
@@ -176,6 +179,11 @@ public class SweetishFishEntity extends WaterAnimal implements Bucketable, HasGu
             this.readAdditionalSaveData(compound.getCompound("FishBucketTag"));
         }
         this.setAirSupply(400);
+    }
+
+    // Helper method to copy entity data to bucket - called by Bucketable implementation
+    public static void copyEntityDataToBucket(SweetishFishEntity entity, ItemStack bucket) {
+        entity.saveToBucketTag(bucket);
     }
 
     @Override
@@ -199,7 +207,7 @@ public class SweetishFishEntity extends WaterAnimal implements Bucketable, HasGu
                 break;
         }
         if (this.hasCustomName()) {
-            stack.setHoverName(this.getCustomName());
+            stack.set(DataComponents.CUSTOM_NAME, this.getCustomName());
         }
         return stack;
     }
@@ -229,7 +237,7 @@ public class SweetishFishEntity extends WaterAnimal implements Bucketable, HasGu
         super.tick();
         prevLandProgress = landProgress;
         prevFishPitch = fishPitch;
-        boolean grounded = !isInLiquid();
+        boolean grounded = !isInLiquidInternal();
         if (grounded && landProgress < 5F) {
             landProgress++;
         }
@@ -267,7 +275,7 @@ public class SweetishFishEntity extends WaterAnimal implements Bucketable, HasGu
     }
 
     public void travel(Vec3 travelVector) {
-        if (this.isEffectiveAi() && this.isInLiquid()) {
+        if (this.isEffectiveAi() && this.isInLiquidInternal()) {
             this.moveRelative(this.getSpeed(), travelVector);
             Vec3 delta = this.getDeltaMovement();
             this.move(MoverType.SELF, delta);
@@ -293,9 +301,9 @@ public class SweetishFishEntity extends WaterAnimal implements Bucketable, HasGu
     }
 
     @javax.annotation.Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn, @javax.annotation.Nullable CompoundTag dataTag) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn) {
         this.setGummyColor(GummyColors.getRandom(random, true));
-        return super.finalizeSpawn(level, difficultyIn, reason, spawnDataIn, dataTag);
+        return super.finalizeSpawn(level, difficultyIn, reason, spawnDataIn);
     }
 
     public boolean canBeAffected(MobEffectInstance effectInstance) {
@@ -342,7 +350,7 @@ public class SweetishFishEntity extends WaterAnimal implements Bucketable, HasGu
 
         @Override
         public boolean canUse() {
-            if (!SweetishFishEntity.this.isInLiquid()) {
+            if (!SweetishFishEntity.this.isInLiquidInternal()) {
                 return false;
             } else if(SweetishFishEntity.this.random.nextInt(4) == 0){
                 BlockPos found = findMoveToPos();
@@ -356,7 +364,7 @@ public class SweetishFishEntity extends WaterAnimal implements Bucketable, HasGu
 
         @Override
         public boolean canContinueToUse() {
-            return SweetishFishEntity.this.isInLiquid() && !SweetishFishEntity.this.navigation.isDone() && timeout < 40;
+            return SweetishFishEntity.this.isInLiquidInternal() && !SweetishFishEntity.this.navigation.isDone() && timeout < 40;
         }
 
         public void stop() {

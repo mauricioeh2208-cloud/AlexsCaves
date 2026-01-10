@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.client.model.misc;
 
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexthe666.citadel.client.model.AdvancedEntityModel;
 import com.github.alexthe666.citadel.client.model.AdvancedModelBox;
 import com.github.alexthe666.citadel.client.model.basic.BasicModelPart;
@@ -25,7 +26,7 @@ public class HideableModelBoxWithChildren extends AdvancedModelBox {
 
     public void render(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLightIn, int overlay, float r, float g, float b, float a) {
         if (this.showModel) {
-            super.render(poseStack, vertexConsumer, packedLightIn, overlay, r, g, b, a);
+            super.render(poseStack, vertexConsumer, packedLightIn, overlay, ColorUtil.packColor(r, g, b, a));
         } else if (!this.cubeList.isEmpty() || !this.childModels.isEmpty()) {
             poseStack.pushPose();
             this.translateAndRotate(poseStack);
@@ -35,7 +36,7 @@ public class HideableModelBoxWithChildren extends AdvancedModelBox {
             }
             while (var9.hasNext()) {
                 BasicModelPart lvt_10_1_ = (BasicModelPart) var9.next();
-                lvt_10_1_.render(poseStack, vertexConsumer, packedLightIn, overlay, r, g, b, a);
+                lvt_10_1_.render(poseStack, vertexConsumer, packedLightIn, overlay, ColorUtil.packColor(r, g, b, a));
             }
             poseStack.popPose();
         }

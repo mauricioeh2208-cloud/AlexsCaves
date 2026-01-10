@@ -5,6 +5,7 @@ import com.github.alexmodguy.alexscaves.client.ClientProxy;
 import com.github.alexmodguy.alexscaves.client.model.GumbeeperModel;
 import com.github.alexmodguy.alexscaves.client.model.LicowitchModel;
 import com.github.alexmodguy.alexscaves.client.render.ACRenderTypes;
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexmodguy.alexscaves.server.entity.living.CorrodentEntity;
 import com.github.alexmodguy.alexscaves.server.entity.living.GumWormSegmentEntity;
 import com.github.alexmodguy.alexscaves.server.entity.living.GumbeeperEntity;
@@ -76,10 +77,10 @@ public class LicowitchRenderer extends MobRenderer<LicowitchEntity, LicowitchMod
                 MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
                 VertexConsumer textureBuffer = bufferSource.getBuffer(RenderType.entityTranslucentCull(LicowitchRenderer.TEXTURE));
                 TELEPORTING_MODEL.setupAnim(licowitch, licowitch.walkAnimation.position(partialTick), licowitch.walkAnimation.speed(partialTick), licowitch.tickCount + partialTick, netHeadYaw, headPitch);
-                TELEPORTING_MODEL.renderToBuffer(posestack, textureBuffer, 240, LivingEntityRenderer.getOverlayCoords(licowitch, 0.0F), 1.0F, 1.0F - (1F - progress), 1.0F, progress);
+                TELEPORTING_MODEL.renderToBuffer(posestack, textureBuffer, 240, LivingEntityRenderer.getOverlayCoords(licowitch, 0.0F), ColorUtil.packColor(1.0F, 1.0F - (1F - progress), 1.0F, progress));
                 PostEffectRegistry.renderEffectForNextTick(ClientProxy.PURPLE_WITCH_SHADER);
                 VertexConsumer witchEffectBuffer = bufferSource.getBuffer(ACRenderTypes.getPurpleWitch(LicowitchRenderer.TEXTURE));
-                TELEPORTING_MODEL.renderToBuffer(posestack, witchEffectBuffer, 240, LivingEntityRenderer.getOverlayCoords(licowitch, 0.0F), 1.0F, 0.0F, 1.0F, progress);
+                TELEPORTING_MODEL.renderToBuffer(posestack, witchEffectBuffer, 240, LivingEntityRenderer.getOverlayCoords(licowitch, 0.0F), ColorUtil.packColor(1.0F, 0.0F, 1.0F, progress));
                 posestack.popPose();
             }
         }
@@ -118,7 +119,7 @@ public class LicowitchRenderer extends MobRenderer<LicowitchEntity, LicowitchMod
         @Override
         protected void renderArmWithItem(LivingEntity livingEntity, ItemStack itemStack, ItemDisplayContext displayContext, HumanoidArm humanoidArm, PoseStack poseStack, MultiBufferSource multiBufferSource, int packedLight) {
             if (!itemStack.isEmpty() && livingEntity instanceof LicowitchEntity licowitch) {
-                float partialTicks = Minecraft.getInstance().getPartialTick();
+                float partialTicks = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(false);
                 boolean crossedArms = licowitch.areArmsVisuallyCrossed(partialTicks);
 
                 boolean staff = itemStack.is(ACItemRegistry.SUGAR_STAFF.get());
@@ -168,8 +169,8 @@ public class LicowitchRenderer extends MobRenderer<LicowitchEntity, LicowitchMod
         }
     }
 
-    protected void setupRotations(LicowitchEntity licowitch, PoseStack poseStack, float f1, float f2, float f3) {
-        super.setupRotations(licowitch, poseStack, f1, f2, f3);
+    protected void setupRotations(LicowitchEntity licowitch, PoseStack poseStack, float f1, float f2, float f3, float f4) {
+        super.setupRotations(licowitch, poseStack, f1, f2, f3, f4);
 
     }
 
@@ -188,9 +189,9 @@ public class LicowitchRenderer extends MobRenderer<LicowitchEntity, LicowitchMod
                     if (vec3.length() > 0.5F) {
                         PostEffectRegistry.renderEffectForNextTick(ClientProxy.PURPLE_WITCH_SHADER);
                         VertexConsumer textureBuffer2 = bufferIn.getBuffer(RenderType.entityTranslucentCull(LicowitchRenderer.this.getTextureLocation(witch)));
-                        this.getParentModel().renderToBuffer(poseStack, textureBuffer2, packedLightIn, LivingEntityRenderer.getOverlayCoords(witch, 0.0F), 1.0F, 1.0F - progress, 1.0F, progress);
+                        this.getParentModel().renderToBuffer(poseStack, textureBuffer2, packedLightIn, LivingEntityRenderer.getOverlayCoords(witch, 0.0F), ColorUtil.packColor(1.0F, 1.0F - progress, 1.0F, progress));
                         VertexConsumer witchEffectBuffer2 = bufferIn.getBuffer(ACRenderTypes.getPurpleWitch(LicowitchRenderer.this.getTextureLocation(witch)));
-                        this.getParentModel().renderToBuffer(poseStack, witchEffectBuffer2, packedLightIn, LivingEntityRenderer.getOverlayCoords(witch, 0.0F), 1.0F, 0.0F, 1.0F, progress);
+                        this.getParentModel().renderToBuffer(poseStack, witchEffectBuffer2, packedLightIn, LivingEntityRenderer.getOverlayCoords(witch, 0.0F), ColorUtil.packColor(1.0F, 0.0F, 1.0F, progress));
                     }
                 }
             }

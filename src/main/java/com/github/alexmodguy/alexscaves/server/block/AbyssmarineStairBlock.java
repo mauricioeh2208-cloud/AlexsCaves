@@ -23,7 +23,7 @@ public class AbyssmarineStairBlock extends StairBlock implements ActivatedByAlta
     }
 
     public AbyssmarineStairBlock(Supplier<BlockState> state, Properties properties) {
-        super(state, properties);
+        super(state.get(), properties);
         this.registerDefaultState(this.defaultBlockState().setValue(DISTANCE, Integer.valueOf(MAX_DISTANCE)).setValue(FACING, Direction.NORTH).setValue(HALF, Half.BOTTOM).setValue(SHAPE, StairsShape.STRAIGHT).setValue(WATERLOGGED, Boolean.valueOf(false)).setValue(ACTIVE, Boolean.valueOf(false)));
     }
 

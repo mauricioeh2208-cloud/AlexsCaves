@@ -36,7 +36,7 @@ public class MothDustItem extends Item {
 
     public void releaseUsing(ItemStack itemStack, Level level, LivingEntity living, int time) {
         if (living instanceof Player player) {
-            int i = this.getUseDuration(itemStack) - time;
+            int i = this.getUseDuration(itemStack, living) - time;
             float strength = getPowerForTime(i);
             float distance = strength * 5.0F;
             HitResult realHitResult = ProjectileUtil.getHitResultOnViewVector(living, Entity::canBeHitByProjectile, distance);
@@ -67,7 +67,8 @@ public class MothDustItem extends Item {
         }
     }
 
-    public int getUseDuration(ItemStack stack) {
+    @Override
+    public int getUseDuration(ItemStack stack, LivingEntity entity) {
         return 72000;
     }
 

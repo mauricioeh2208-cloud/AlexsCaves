@@ -12,7 +12,14 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.BucketPickup;
+import net.minecraft.world.level.block.LiquidBlock;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.TransparentBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -21,12 +28,12 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
-import net.minecraftforge.fluids.FluidType;
+import net.neoforged.neoforge.fluids.FluidType;
 
 import java.util.List;
 import java.util.Queue;
 
-public class DrainBlock extends AbstractGlassBlock {
+public class DrainBlock extends TransparentBlock {
     public static final BooleanProperty OPEN = BooleanProperty.create("open");
     private static final int MAXIMUM_BLOCKS_DRAINED = 64;
     public static final int MAX_FLUID_SPREAD = 10;
@@ -194,7 +201,7 @@ public class DrainBlock extends AbstractGlassBlock {
             if (!state.getFluidState().isEmpty()) {
                 fullBlocks++;
                 if (state.getBlock() instanceof BucketPickup) {
-                    ((BucketPickup) state.getBlock()).pickupBlock(level, blockpos, state);
+                    ((BucketPickup) state.getBlock()).pickupBlock(null, level, blockpos, state);
                 }else{
                     level.setBlockAndUpdate(blockpos, Blocks.AIR.defaultBlockState());
                 }
@@ -222,7 +229,7 @@ public class DrainBlock extends AbstractGlassBlock {
                     }
                     ++i;
                     fullBlocks++;
-                    ((BucketPickup) blockstate.getBlock()).pickupBlock(level, blockpos1, blockstate);
+                    ((BucketPickup) blockstate.getBlock()).pickupBlock(null, level, blockpos1, blockstate);
                     if (j < MAX_FLUID_SPREAD) {
                         queue.add(new Tuple<>(blockpos1, j + 1));
                     }

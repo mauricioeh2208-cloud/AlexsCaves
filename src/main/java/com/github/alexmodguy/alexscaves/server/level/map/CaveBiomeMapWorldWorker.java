@@ -10,9 +10,11 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.core.*;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
@@ -23,8 +25,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.biome.Climate;
-import net.minecraftforge.common.WorldWorkerManager;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.common.WorldWorkerManager;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -94,7 +98,7 @@ public class CaveBiomeMapWorldWorker implements WorldWorkerManager.IWorker {
             if(ACBiomeRarity.isQuartInRareBiome(serverLevel.getSeed(), quartX, quartZ)){
                 for (int blockY : searchedHeights) {
                     int quartY = QuartPos.fromBlock(blockY);
-                    Biome biome = source.getNoiseBiome(quartX, quartY, quartZ, sampler).get();
+                    Biome biome = source.getNoiseBiome(quartX, quartY, quartZ, sampler).value();
                     if (verifyBiomeRespectRegistry(serverLevel, biome, biomeResourceKey)) {
                         lastBiomePos = new BlockPos(nextBlockX, blockY, nextBlockZ);
                     }
@@ -125,7 +129,7 @@ public class CaveBiomeMapWorldWorker implements WorldWorkerManager.IWorker {
 
     public void onWorkComplete(@Nullable BlockPos biomeCorner) {
         if(!complete){
-            CompoundTag tag = map.getOrCreateTag();
+            CompoundTag tag = map.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
             if (biomeCorner != null) {
                 BlockPos centered = calculateBiomeCenter(biomeCorner);
                 fillOutMapColors(centered, tag);
@@ -145,7 +149,7 @@ public class CaveBiomeMapWorldWorker implements WorldWorkerManager.IWorker {
             }
             tag.putBoolean("Loading", false);
             tag.remove("MapUUID");
-            map.setTag(tag);
+            map.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
             AlexsCaves.sendMSGToAll(new UpdateCaveBiomeMapTagMessage(player.getUUID(), getTaskUUID(), tag));
         }
         complete = true;
@@ -157,7 +161,7 @@ public class CaveBiomeMapWorldWorker implements WorldWorkerManager.IWorker {
     }
 
     private static boolean verifyBiomeRespectRegistry(Level level, Biome biome, ResourceKey<Biome> matches) {
-        Optional<Registry<Biome>> biomeRegistry = level.registryAccess().registry(ForgeRegistries.Keys.BIOMES);
+        Optional<Registry<Biome>> biomeRegistry = level.registryAccess().registry(Registries.BIOME);
         if (biomeRegistry.isPresent()) {
             Optional<ResourceKey<Biome>> resourceKey = biomeRegistry.get().getResourceKey(biome);
             return resourceKey.isPresent() && resourceKey.get().equals(matches);

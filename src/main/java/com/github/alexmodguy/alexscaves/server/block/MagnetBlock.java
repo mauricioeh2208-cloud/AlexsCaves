@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.ACBlockEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.MagnetBlockEntity;
 import com.github.alexmodguy.alexscaves.server.misc.ACMath;
@@ -9,6 +10,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -31,9 +33,15 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class MagnetBlock extends BaseEntityBlock {
+    public static final MapCodec<MagnetBlock> CODEC = MapCodec.unit(() -> new MagnetBlock(false));
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
     private final boolean azure;
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
+    }
 
     private static final VoxelShape SHAPE_UP = ACMath.buildShape(
             Block.box(0, 6, 5, 6, 16, 11),
@@ -142,8 +150,8 @@ public class MagnetBlock extends BaseEntityBlock {
     }
 
 
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
-        ItemStack heldItem = player.getItemInHand(handIn);
+    @Override
+    public ItemInteractionResult useItemOn(ItemStack heldItem, BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
         if (worldIn.getBlockEntity(pos) instanceof MagnetBlockEntity magnet && !player.isShiftKeyDown()) {
             if (magnet.canAddRange() && magnet.isExtenderItem(heldItem)) {
                 magnet.increaseRange(1);
@@ -151,17 +159,17 @@ public class MagnetBlock extends BaseEntityBlock {
                     heldItem.shrink(1);
                 }
                 player.swing(handIn);
-                return InteractionResult.SUCCESS;
+                return ItemInteractionResult.SUCCESS;
             } else if (magnet.canRemoveRange() && magnet.isRetracterItem(heldItem)) {
                 magnet.increaseRange(-1);
                 if (!player.isCreative()) {
                     heldItem.shrink(1);
                 }
                 player.swing(handIn);
-                return InteractionResult.SUCCESS;
+                return ItemInteractionResult.SUCCESS;
             }
         }
-        return InteractionResult.PASS;
+        return super.useItemOn(heldItem, state, worldIn, pos, player, handIn, hit);
     }
 
     public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {

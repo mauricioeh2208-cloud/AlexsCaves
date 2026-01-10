@@ -2,6 +2,7 @@ package com.github.alexmodguy.alexscaves.client.particle;
 
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.client.model.SplashModel;
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Camera;
@@ -75,9 +76,9 @@ public class BigSplashParticle extends Particle {
         MultiBufferSource.BufferSource multibuffersource$buffersource = Minecraft.getInstance().renderBuffers().bufferSource();
         MODEL.setupAnim(null, 0, lifetime, age + partialTick, 0, 0);
         VertexConsumer baseConsumer = multibuffersource$buffersource.getBuffer(RenderType.entityTranslucent(TEXTURE));
-        MODEL.renderToBuffer(posestack, baseConsumer, packedLight, OverlayTexture.NO_OVERLAY, colorR, colorG, colorB, alpha);
+        MODEL.renderToBuffer(posestack, baseConsumer, packedLight, OverlayTexture.NO_OVERLAY, ColorUtil.packColor(colorR, colorG, colorB, alpha));
         VertexConsumer overlayconsumer = multibuffersource$buffersource.getBuffer(RenderType.entityTranslucent(TEXTURE_OVERLAY));
-        MODEL.renderToBuffer(posestack, overlayconsumer, packedLight, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, alpha);
+        MODEL.renderToBuffer(posestack, overlayconsumer, packedLight, OverlayTexture.NO_OVERLAY, ColorUtil.packColor(1.0F, 1.0F, 1.0F, alpha));
         multibuffersource$buffersource.endBatch();
         posestack.popPose();
     }

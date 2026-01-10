@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.client.model;
 
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexmodguy.alexscaves.server.entity.item.DinosaurSpiritEntity;
 import com.github.alexmodguy.alexscaves.server.entity.living.GrottoceratopsEntity;
 import com.github.alexmodguy.alexscaves.server.misc.ACMath;
@@ -300,6 +301,7 @@ public class GrottoceratopsModel extends AdvancedEntityModel<GrottoceratopsEntit
     }
 
     public void renderToBuffer(PoseStack matrixStackIn, VertexConsumer bufferIn, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
+        int color = ColorUtil.packColor(red, green, blue, alpha);
         if (this.young) {
             float f = 1.5F;
             head.setScale(f, f, f);
@@ -309,14 +311,14 @@ public class GrottoceratopsModel extends AdvancedEntityModel<GrottoceratopsEntit
             matrixStackIn.scale(0.5F, 0.5F, 0.5F);
             matrixStackIn.translate(0.0D, 1.5D, 0D);
             parts().forEach((p_228292_8_) -> {
-                p_228292_8_.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
+                p_228292_8_.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, color);
             });
             matrixStackIn.popPose();
             head.setScale(1, 1, 1);
         } else {
             matrixStackIn.pushPose();
             parts().forEach((p_228290_8_) -> {
-                p_228290_8_.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
+                p_228290_8_.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, color);
             });
             matrixStackIn.popPose();
         }
@@ -431,9 +433,10 @@ public class GrottoceratopsModel extends AdvancedEntityModel<GrottoceratopsEntit
     }
 
     public void renderSpiritToBuffer(PoseStack poseStack, VertexConsumer ivertexbuilder, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
+        int color = ColorUtil.packColor(red, green, blue, alpha);
         poseStack.pushPose();
         poseStack.translate(0, 1.3F, 1);
-        head.render(poseStack, ivertexbuilder, packedLightIn, packedOverlayIn, red, green, blue, alpha);
+        head.render(poseStack, ivertexbuilder, packedLightIn, packedOverlayIn, color);
         poseStack.popPose();
     }
 }

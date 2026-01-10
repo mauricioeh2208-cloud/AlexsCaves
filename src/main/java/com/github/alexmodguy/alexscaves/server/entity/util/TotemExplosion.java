@@ -21,7 +21,6 @@ import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.ProtectionEnchantment;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
@@ -156,7 +155,7 @@ public class TotemExplosion {
 
         for (int k2 = 0; k2 < list.size(); ++k2) {
             Entity entity = list.get(k2);
-            if (!entity.ignoreExplosion() && !(entity instanceof LuxtructosaurusEntity)) {
+            if (!entity.isInvulnerable() && !(entity instanceof LuxtructosaurusEntity)) {
                 double d12 = Math.sqrt(entity.distanceToSqr(vec3)) / (double) f2;
                 if (d12 <= 1.0D) {
                     double d5 = entity.getX() - this.x;
@@ -173,7 +172,7 @@ public class TotemExplosion {
                         double d11;
                         if (entity instanceof LivingEntity) {
                             LivingEntity livingentity = (LivingEntity) entity;
-                            d11 = ProtectionEnchantment.getExplosionKnockbackAfterDampener(livingentity, d10);
+                            d11 = d10;
                         } else {
                             d11 = d10;
                         }

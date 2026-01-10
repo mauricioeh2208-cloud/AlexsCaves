@@ -20,6 +20,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 
 import javax.annotation.Nullable;
+import net.neoforged.neoforge.common.NeoForge;
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 
 public class WatcherRenderer extends MobRenderer<WatcherEntity, WatcherModel> {
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "textures/entity/watcher.png");
@@ -35,7 +37,7 @@ public class WatcherRenderer extends MobRenderer<WatcherEntity, WatcherModel> {
     }
 
     public void render(WatcherEntity entity, float entityYaw, float partialTicks, PoseStack poseStack, MultiBufferSource bufferSource, int light) {
-        if (net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.RenderLivingEvent.Pre<WatcherEntity, WatcherModel>(entity, this, partialTicks, poseStack, bufferSource, light)))
+        if (net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(new net.neoforged.neoforge.client.event.RenderLivingEvent.Pre<WatcherEntity, WatcherModel>(entity, this, partialTicks, poseStack, bufferSource, light)).isCanceled())
             return;
         poseStack.pushPose();
         this.model.attackTime = this.getAttackAnim(entity, partialTicks);
@@ -82,7 +84,7 @@ public class WatcherRenderer extends MobRenderer<WatcherEntity, WatcherModel> {
         }
 
         float f7 = this.getBob(entity, partialTicks);
-        this.setupRotations(entity, poseStack, f7, f, partialTicks);
+        this.setupRotations(entity, poseStack, f7, f, partialTicks, 1.0F);
         poseStack.scale(-1.0F, -1.0F, 1.0F);
         this.scale(entity, poseStack, partialTicks);
         poseStack.translate(0.0F, -1.501F, 0.0F);
@@ -111,7 +113,7 @@ public class WatcherRenderer extends MobRenderer<WatcherEntity, WatcherModel> {
             VertexConsumer vertexconsumer = bufferSource.getBuffer(rendertype);
             int i = getOverlayCoords(entity, this.getWhiteOverlayProgress(entity, partialTicks));
             float transparency = getWatcherTransparency(entity, partialTicks);
-            this.model.renderToBuffer(poseStack, vertexconsumer, light, i, 1.0F, 1.0F, 1.0F, flag1 ? 0.15F * transparency : transparency);
+            this.model.renderToBuffer(poseStack, vertexconsumer, light, i, ColorUtil.packColor(1.0F, 1.0F, 1.0F, flag1 ? 0.15F * transparency : transparency));
         }
 
         if (!entity.isSpectator()) {
@@ -119,13 +121,13 @@ public class WatcherRenderer extends MobRenderer<WatcherEntity, WatcherModel> {
                 renderlayer.render(poseStack, bufferSource, light, entity, f5, f8, partialTicks, f7, f2, f6);
             }
         }
-        var renderNameTagEvent = new net.minecraftforge.client.event.RenderNameTagEvent(entity, entity.getDisplayName(), this, poseStack, bufferSource, light, partialTicks);
-        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(renderNameTagEvent);
-        if (renderNameTagEvent.getResult() != net.minecraftforge.eventbus.api.Event.Result.DENY && (renderNameTagEvent.getResult() == net.minecraftforge.eventbus.api.Event.Result.ALLOW || this.shouldShowName(entity))) {
-            this.renderNameTag(entity, renderNameTagEvent.getContent(), poseStack, bufferSource, light);
+        var renderNameTagEvent = new net.neoforged.neoforge.client.event.RenderNameTagEvent(entity, entity.getDisplayName(), this, poseStack, bufferSource, light, partialTicks);
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(renderNameTagEvent);
+        if (renderNameTagEvent.canRender().isTrue() || (renderNameTagEvent.canRender().isDefault() && this.shouldShowName(entity))) {
+            this.renderNameTag(entity, renderNameTagEvent.getContent(), poseStack, bufferSource, light, partialTicks);
         }
         poseStack.popPose();
-        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.RenderLivingEvent.Post<WatcherEntity, WatcherModel>(entity, this, partialTicks, poseStack, bufferSource, light));
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(new net.neoforged.neoforge.client.event.RenderLivingEvent.Post<WatcherEntity, WatcherModel>(entity, this, partialTicks, poseStack, bufferSource, light));
     }
 
     private float getWatcherTransparency(WatcherEntity entity, float partialTicks) {
@@ -150,9 +152,9 @@ public class WatcherRenderer extends MobRenderer<WatcherEntity, WatcherModel> {
 
         public void render(PoseStack poseStack, MultiBufferSource bufferIn, int packedLightIn, WatcherEntity entitylivingbaseIn, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
             VertexConsumer ivertexbuilder1 = bufferIn.getBuffer(RenderType.entityCutoutNoCull(TEXTURE_MOTH));
-            this.getParentModel().renderToBuffer(poseStack, ivertexbuilder1, packedLightIn, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), 1.0F, 1.0F, 1.0F, 1F);
+            this.getParentModel().renderToBuffer(poseStack, ivertexbuilder1, packedLightIn, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), -1);
             VertexConsumer ivertexbuilder2 = bufferIn.getBuffer(ACRenderTypes.getEyesAlphaEnabled(TEXTURE_EYESPOTS));
-            this.getParentModel().renderToBuffer(poseStack, ivertexbuilder2, packedLightIn, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), 1.0F, 1.0F, 1.0F, 0.66F);
+            this.getParentModel().renderToBuffer(poseStack, ivertexbuilder2, packedLightIn, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), ColorUtil.packColor(1.0F, 1.0F, 1.0F, 0.66F));
         }
     }
 }

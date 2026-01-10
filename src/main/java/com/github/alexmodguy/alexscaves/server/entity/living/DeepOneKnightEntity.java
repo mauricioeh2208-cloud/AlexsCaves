@@ -8,8 +8,11 @@ import com.github.alexthe666.citadel.animation.Animation;
 import com.github.alexthe666.citadel.animation.IAnimatedEntity;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.DifficultyInstance;
@@ -40,9 +43,9 @@ public class DeepOneKnightEntity extends DeepOneBaseEntity {
 
     private UUID lastThrownTrident = null;
     private boolean melee = random.nextBoolean();
-    private static final EntityDimensions SWIMMING_SIZE = new EntityDimensions(1.2F, 1.3F, false);
+    private static final EntityDimensions SWIMMING_SIZE = EntityDimensions.scalable(1.2F, 1.3F);
 
-    public static final ResourceLocation BARTER_LOOT = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "gameplay/deep_one_knight_barter");
+    public static final ResourceKey<LootTable> BARTER_LOOT = ResourceKey.create(Registries.LOOT_TABLE, ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "gameplay/deep_one_knight_barter"));
 
     public DeepOneKnightEntity(EntityType entityType, Level level) {
         super(entityType, level);
@@ -93,7 +96,7 @@ public class DeepOneKnightEntity extends DeepOneBaseEntity {
     }
 
     @Override
-    protected ResourceLocation getBarterLootTable() {
+    protected ResourceKey<LootTable> getBarterLootTable() {
         return BARTER_LOOT;
     }
 
@@ -216,8 +219,8 @@ public class DeepOneKnightEntity extends DeepOneBaseEntity {
         }
     }
 
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor serverLevelAccessor, DifficultyInstance difficultyInstance, MobSpawnType mobSpawnType, @Nullable SpawnGroupData spawnGroupData, @Nullable CompoundTag compoundTag) {
-        spawnGroupData = super.finalizeSpawn(serverLevelAccessor, difficultyInstance, mobSpawnType, spawnGroupData, compoundTag);
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor serverLevelAccessor, DifficultyInstance difficultyInstance, MobSpawnType mobSpawnType, @Nullable SpawnGroupData spawnGroupData) {
+        spawnGroupData = super.finalizeSpawn(serverLevelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
         this.setItemSlot(EquipmentSlot.MAINHAND, random.nextFloat() > 0.7 ? new ItemStack(ACItemRegistry.ORTHOLANCE.get()) : new ItemStack(Items.TRIDENT));
         return spawnGroupData;
     }

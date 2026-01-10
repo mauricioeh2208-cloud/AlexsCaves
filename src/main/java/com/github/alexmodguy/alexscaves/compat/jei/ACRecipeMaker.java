@@ -13,28 +13,37 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.crafting.ShapedRecipePattern;
 import net.minecraft.world.level.biome.Biome;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ACRecipeMaker {
 
-    public static List<CraftingRecipe> createCaveMapRecipes() {
+    public static List<RecipeHolder<CraftingRecipe>> createCaveMapRecipes() {
         String group = "jei.cave_map";
-        List<CraftingRecipe> recipes = new ArrayList<>();
+        List<RecipeHolder<CraftingRecipe>> recipes = new ArrayList<>();
         for (ResourceKey<Biome> biome : ACBiomeRegistry.ALEXS_CAVES_BIOMES) {
             ItemStack scroll = CaveInfoItem.create(ACItemRegistry.CAVE_CODEX.get(), biome);
             ItemStack map = CaveMapItem.createMap(biome);
             ResourceLocation id = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "jei.cave_map_" + biome.location().getPath());
             Ingredient paper = Ingredient.of(Items.PAPER);
-            NonNullList<Ingredient> inputs = NonNullList.of(Ingredient.EMPTY,
-                    paper, paper, paper,
-                    paper, Ingredient.of(scroll), paper,
-                    paper, paper, paper
+            Ingredient scrollIngredient = Ingredient.of(scroll);
+            
+            // In 1.21, ShapedRecipe uses ShapedRecipePattern
+            // Create a pattern with key mappings
+            Map<Character, Ingredient> key = Map.of(
+                'P', paper,
+                'S', scrollIngredient
             );
-            recipes.add(new ShapedRecipe(id, group, CraftingBookCategory.MISC, 3, 3, inputs, map));
+            // Pattern: PPP, PSP, PPP
+            ShapedRecipePattern pattern = ShapedRecipePattern.of(key, "PPP", "PSP", "PPP");
+            ShapedRecipe shapedRecipe = new ShapedRecipe(group, CraftingBookCategory.MISC, pattern, map);
+            recipes.add(new RecipeHolder<>(id, shapedRecipe));
         }
         return recipes;
     }

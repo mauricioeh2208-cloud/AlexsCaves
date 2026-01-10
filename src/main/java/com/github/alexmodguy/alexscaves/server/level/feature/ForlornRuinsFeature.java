@@ -45,6 +45,6 @@ public class ForlornRuinsFeature extends UndergroundRuinsFeature {
 
     @Override
     public StructurePlaceSettings modifyPlacementSettings(StructurePlaceSettings structureplacesettings) {
-        return structureplacesettings.setKeepLiquids(false);
+        return structureplacesettings;
     }
 }

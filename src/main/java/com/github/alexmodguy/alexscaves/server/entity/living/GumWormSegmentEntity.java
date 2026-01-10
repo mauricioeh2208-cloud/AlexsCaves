@@ -14,8 +14,6 @@ import com.github.alexthe666.citadel.server.entity.collision.ICustomCollisions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -35,8 +33,6 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -80,24 +76,15 @@ public class GumWormSegmentEntity extends Entity implements ICustomCollisions, K
         }
     }
 
-    public GumWormSegmentEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.GUM_WORM_SEGMENT.get(), level);
-    }
-
     @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
-    }
-
-    @Override
-    protected void defineSynchedData() {
-        this.entityData.define(HEAD_ENTITY_UUID, Optional.empty());
-        this.entityData.define(HEAD_ENTITY_ID, -1);
-        this.entityData.define(FRONT_ENTITY_UUID, Optional.empty());
-        this.entityData.define(FRONT_ENTITY_ID, -1);
-        this.entityData.define(BACK_ENTITY_UUID, Optional.empty());
-        this.entityData.define(BACK_ENTITY_ID, -1);
-        this.entityData.define(INDEX, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(HEAD_ENTITY_UUID, Optional.empty());
+        builder.define(HEAD_ENTITY_ID, -1);
+        builder.define(FRONT_ENTITY_UUID, Optional.empty());
+        builder.define(FRONT_ENTITY_ID, -1);
+        builder.define(BACK_ENTITY_UUID, Optional.empty());
+        builder.define(BACK_ENTITY_ID, -1);
+        builder.define(INDEX, 0);
     }
 
     @Nullable
@@ -489,7 +476,6 @@ public class GumWormSegmentEntity extends Entity implements ICustomCollisions, K
         return f > 0.1F;
     }
 
-    @Override
     public void lerpTo(double x, double y, double z, float yr, float xr, int steps, boolean b) {
         this.lx = x;
         this.ly = y;
@@ -525,7 +511,7 @@ public class GumWormSegmentEntity extends Entity implements ICustomCollisions, K
         return false;
     }
     public Vec3 getRiderPosition(Entity playerOwner) {
-        float f = (float) (this.getBbHeight() + 0.25F + playerOwner.getMyRidingOffset());
+        float f = (float) (this.getBbHeight() + 0.25F);
         Vec3 offset = new Vec3(0.0F, f, 0.15F).xRot((float) -Math.toRadians(this.getXRot())).yRot((float) -Math.toRadians(this.getYRot()));
         Vec3 position = this.position().add(offset);
         double setY = surfaceY;

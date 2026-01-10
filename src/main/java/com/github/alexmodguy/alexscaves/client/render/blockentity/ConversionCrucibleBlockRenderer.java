@@ -2,6 +2,7 @@ package com.github.alexmodguy.alexscaves.client.render.blockentity;
 
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.client.ClientProxy;
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexmodguy.alexscaves.client.model.ConversionCrucibleModel;
 import com.github.alexmodguy.alexscaves.client.render.ACRenderTypes;
 import com.github.alexmodguy.alexscaves.client.render.entity.SugarStaffHexRenderer;
@@ -28,7 +29,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.model.data.ModelData;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
@@ -72,7 +73,7 @@ public class ConversionCrucibleBlockRenderer<T extends ConversionCrucibleBlockEn
         MODEL.hideSauce(true);
         MODEL.setupAnim(null, splashProgress, conversionProgress, ageInTicks, 0, 0);
         MODEL.setFilledLevel(crucible.getFilledLevel());
-        MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(RenderType.entityCutoutNoCull(TEXTURE)), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1);
+        MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(RenderType.entityCutoutNoCull(TEXTURE)), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(1.0F, 1.0F, 1.0F, 1.0F));
         if(conversionProgress > 0){
             poseStack.pushPose();
             poseStack.translate(0, 1.3F, 0);
@@ -89,11 +90,11 @@ public class ConversionCrucibleBlockRenderer<T extends ConversionCrucibleBlockEn
         if(crucible.getFilledLevel() > 0){
             MODEL.hideBeam(true);
             MODEL.hideSauce(false);
-            MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(ACRenderTypes.getVoidBeingCloud(TEXTURE_FLUID)), combinedLightIn, combinedOverlayIn, r, g, b, 1.0F);
+            MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(ACRenderTypes.getVoidBeingCloud(TEXTURE_FLUID)), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(r, g, b, 1.0F));
         }
         MODEL.hideBeam(false);
         MODEL.hideSauce(true);
-        MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(ACRenderTypes.getVoidBeingCloud(TEXTURE_OVERLAY)), combinedLightIn, combinedOverlayIn, r, g, b, Math.max(splashProgress, bob1 * conversionProgress));
+        MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(ACRenderTypes.getVoidBeingCloud(TEXTURE_OVERLAY)), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(r, g, b, Math.max(splashProgress, bob1 * conversionProgress)));
         poseStack.popPose();
         float cameraY = Minecraft.getInstance().getEntityRenderDispatcher().camera.getYRot();
         float lightLength = 1.25F + bob2;
@@ -165,15 +166,15 @@ public class ConversionCrucibleBlockRenderer<T extends ConversionCrucibleBlockEn
 
 
     private static void shineOriginVertex(VertexConsumer vertexConsumer, Matrix4f matrix4f, Matrix3f matrix3f, float xOffset, float yOffset, float r, float g, float b, float a) {
-        vertexConsumer.vertex(matrix4f, 0.0F, 0.0F, 0.0F).color(r, g, b, a).uv(xOffset + 0.5F, yOffset).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(240).normal(matrix3f, 0.0F, 1.0F, 0.0F).endVertex();
+        vertexConsumer.addVertex(matrix4f, 0.0F, 0.0F, 0.0F).setColor(r, g, b, a).setUv(xOffset + 0.5F, yOffset).setOverlay(OverlayTexture.NO_OVERLAY).setLight(240).setNormal(0.0F, 1.0F, 0.0F);
     }
 
     private static void shineLeftCornerVertex(VertexConsumer vertexConsumer, Matrix4f matrix4f, Matrix3f matrix3f, float length, float width, float xOffset, float yOffset, float r, float g, float b, float a) {
-        vertexConsumer.vertex(matrix4f, -ACMath.HALF_SQRT_3 * width, length, 0).color(r, g, b, a).uv(xOffset, yOffset + 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(240).normal(matrix3f, 0.0F, -1.0F, 0.0F).endVertex();
+        vertexConsumer.addVertex(matrix4f, -ACMath.HALF_SQRT_3 * width, length, 0).setColor(r, g, b, a).setUv(xOffset, yOffset + 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(240).setNormal(0.0F, -1.0F, 0.0F);
     }
 
     private static void shineRightCornerVertex(VertexConsumer vertexConsumer, Matrix4f matrix4f, Matrix3f matrix3f, float length, float width, float xOffset, float yOffset, float r, float g, float b, float a) {
-        vertexConsumer.vertex(matrix4f, ACMath.HALF_SQRT_3 * width, length, 0).color(r, g, b, a).uv(xOffset + 1, yOffset + 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(240).normal(matrix3f, 0.0F, -1.0F, 0.0F).endVertex();
+        vertexConsumer.addVertex(matrix4f, ACMath.HALF_SQRT_3 * width, length, 0).setColor(r, g, b, a).setUv(xOffset + 1, yOffset + 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(240).setNormal(0.0F, -1.0F, 0.0F);
     }
 
     public int getViewDistance() {

@@ -2,6 +2,7 @@ package com.github.alexmodguy.alexscaves.client.render.entity;
 
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.client.model.ForsakenModel;
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexmodguy.alexscaves.client.render.entity.layer.ForsakenHeldMobLayer;
 import com.github.alexmodguy.alexscaves.server.entity.living.ForsakenEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -58,9 +59,9 @@ public class ForsakenRenderer extends MobRenderer<ForsakenEntity, ForsakenModel>
 
         public void render(PoseStack matrixStackIn, MultiBufferSource bufferIn, int packedLightIn, ForsakenEntity entitylivingbaseIn, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
             VertexConsumer darnkessConsumer = bufferIn.getBuffer(RenderType.entityTranslucent(TEXTURE_DARKNESS));
-            this.getParentModel().renderToBuffer(matrixStackIn, darnkessConsumer, packedLightIn, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), 1.0F, 1.0F, 1.0F, entitylivingbaseIn.getDarknessAmount(partialTicks));
+            this.getParentModel().renderToBuffer(matrixStackIn, darnkessConsumer, packedLightIn, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), ColorUtil.packColor(1.0F, 1.0F, 1.0F, entitylivingbaseIn.getDarknessAmount(partialTicks)));
             VertexConsumer eyesConsumer = bufferIn.getBuffer(RenderType.eyes(TEXTURE_EYES));
-            this.getParentModel().renderToBuffer(matrixStackIn, eyesConsumer, packedLightIn, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), 1.0F, 1.0F, 1.0F, 1.0F);
+            this.getParentModel().renderToBuffer(matrixStackIn, eyesConsumer, packedLightIn, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), -1);
         }
     }
 }

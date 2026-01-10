@@ -15,7 +15,6 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.util.LandRandomPos;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
-import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -280,7 +279,8 @@ public class ForsakenAttackGoal extends Goal {
         if (vec3 != null) {
             BlockPos blockpos = BlockPos.containing(vec3);
             AABB aabb = this.entity.getBoundingBox().move(vec3.add(0.5F, 1, 0.5F).subtract(this.entity.position()));
-            if (entity.level().getBlockState(blockpos.below()).isSolidRender(entity.level(), blockpos.below()) && entity.getPathfindingMalus(WalkNodeEvaluator.getBlockPathTypeStatic(entity.level(), blockpos.mutable())) == 0.0F && entity.level().isUnobstructed(this.entity, Shapes.create(aabb))) {
+            // Check: ground below is solid, position is passable (not solid), and space is unobstructed
+            if (entity.level().getBlockState(blockpos.below()).isSolidRender(entity.level(), blockpos.below()) && !entity.level().getBlockState(blockpos).isSolid() && entity.level().isUnobstructed(this.entity, Shapes.create(aabb))) {
                 return blockpos;
             }
         }

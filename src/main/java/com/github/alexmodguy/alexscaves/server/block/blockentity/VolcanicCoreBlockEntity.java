@@ -10,6 +10,7 @@ import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACAdvancementTriggerRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
@@ -54,7 +55,7 @@ public class VolcanicCoreBlockEntity extends BlockEntity {
                     item.getItem().shrink(1);
                     if(!level.isClientSide){
                         for(Player player : level.getEntitiesOfClass(Player.class, aabb, EntitySelector.NO_SPECTATORS)){
-                            ACAdvancementTriggerRegistry.SUMMON_LUXTRUCTOSAURUS.triggerForEntity(player);
+                            ACAdvancementTriggerRegistry.SUMMON_LUXTRUCTOSAURUS.get().triggerForEntity(player);
                         }
                     }
                 }
@@ -70,14 +71,16 @@ public class VolcanicCoreBlockEntity extends BlockEntity {
         }
     }
 
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    @Override
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         this.tephraSpawnCooldown = tag.getInt("TephraSpawnCooldown");
         this.bossSpawnCooldown = tag.getInt("BossSpawnCooldown");
     }
 
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
         tag.putInt("TephraSpawnCooldown", this.tephraSpawnCooldown);
         tag.putInt("BossSpawnCooldown", this.bossSpawnCooldown);
     }

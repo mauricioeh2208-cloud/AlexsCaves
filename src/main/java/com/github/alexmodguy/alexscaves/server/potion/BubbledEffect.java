@@ -6,7 +6,6 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectUtil;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
@@ -19,8 +18,10 @@ public class BubbledEffect extends MobEffect {
         super(MobEffectCategory.HARMFUL, 0X21B5FF);
     }
 
-    public void applyEffectTick(LivingEntity entity, int tick) {
-        if (entity.canBreatheUnderwater() || entity.getMobType() == MobType.WATER) {
+    @Override
+    public boolean applyEffectTick(LivingEntity entity, int tick) {
+        // In 1.21, MobType was removed, so we check canBreatheUnderwater instead
+        if (entity.canBreatheUnderwater()) {
             if (!entity.getType().is(ACTagRegistry.RESISTS_BUBBLED)) {
                 entity.setAirSupply(entity.getMaxAirSupply());
                 if (!entity.onGround()) {
@@ -43,6 +44,7 @@ public class BubbledEffect extends MobEffect {
                 entity.hurt(entity.damageSources().drown(), 2.0F);
             }
         }
+        return true;
     }
 
     public boolean isDurationEffectTick(int i, int j) {

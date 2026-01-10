@@ -1,7 +1,7 @@
 package com.github.alexmodguy.alexscaves.server.item.dispenser;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.BlockSource;
+import net.minecraft.core.dispenser.BlockSource;
 import net.minecraft.core.dispenser.DefaultDispenseItemBehavior;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DispensibleContainerItem;
@@ -15,10 +15,11 @@ public class FluidContainerDispenseItemBehavior extends DefaultDispenseItemBehav
 
     private final DefaultDispenseItemBehavior defaultDispenseItemBehavior = new DefaultDispenseItemBehavior();
 
+    @Override
     public ItemStack execute(BlockSource blockSource, ItemStack itemStack) {
         DispensibleContainerItem dispensiblecontaineritem = (DispensibleContainerItem)itemStack.getItem();
-        BlockPos blockpos = blockSource.getPos().relative(blockSource.getBlockState().getValue(DispenserBlock.FACING));
-        Level level = blockSource.getLevel();
+        BlockPos blockpos = blockSource.pos().relative(blockSource.state().getValue(DispenserBlock.FACING));
+        Level level = blockSource.level();
         if (dispensiblecontaineritem.emptyContents((Player)null, level, blockpos, (BlockHitResult)null, itemStack)) {
             dispensiblecontaineritem.checkExtraContent((Player)null, level, itemStack, blockpos);
             return new ItemStack(Items.BUCKET);

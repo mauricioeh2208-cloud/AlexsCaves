@@ -837,6 +837,7 @@
   "item.minecraft.potion.effect.strong_hunger": "饥饿药水",
   "item.minecraft.splash_potion.effect.strong_hunger": "喷溅型饥饿药水",
   "item.minecraft.lingering_potion.effect.strong_hunger": "滞留型饥饿药水",
+  "item.alexscaves.polarity_armor_trim_smithing_template": "极性盔甲纹饰锻造模板",
   "trim_pattern.alexscaves.polarity": "极性盔甲纹饰",
   "biome.alexscaves.magnetic_caves": "磁场洞穴",
   "biome.alexscaves.primordial_caves": "原始洞穴",
@@ -1353,7 +1354,7 @@
   "alexscaves.sound.subtitle.luxtructosaurus_stomp": "暝煌龙：践踏",
   "alexscaves.sound.subtitle.luxtructosaurus_kick": "暝煌龙：掷出猎物",
   "alexscaves.sound.subtitle.luxtructosaurus_tail": "暝煌龙：摆尾",
-  "alexscaves.sound.subtitle.luxtructosaurus_breathe": "暝煌龙：喷气",
+  "alexscaves.sound.subtitle.luxtructosaurus_breath": "暝煌龙：喷气",
   "alexscaves.sound.subtitle.luxtructosaurus_roar": "暝煌龙：怒吼",
   "alexscaves.sound.subtitle.luxtructosaurus_attack_stomp": "暝煌龙：践踏",
   "alexscaves.sound.subtitle.luxtructosaurus_summon": "暝煌龙：出现",
@@ -1703,5 +1704,14 @@
   "enchantment.alexscaves.multiple_mint": "双倍薄荷",
   "enchantment.alexscaves.multiple_mint.desc": "每等级增加一个召唤出的薄荷糖",
   "enchantment.alexscaves.seekcandy": "糖果制导",
-  "enchantment.alexscaves.seekcandy.desc": "召唤的薄荷糖会主动搜寻正在看向的实体"
+  "enchantment.alexscaves.seekcandy.desc": "召唤的薄荷糖会主动搜寻正在看向的实体",
+  "alexscaves.sound.subtitle.gingerbread_man_talk": "姜饼人：闲聊",
+  "alexscaves.sound.subtitle.licowitch_cast_hex": "甘草女巫：施放诅咒",
+  "alexscaves.sound.subtitle.licowitch_cast_peppermint": "甘草女巫：施放薄荷糖",
+  "alexscaves.sound.subtitle.licowitch_cast_summon": "甘草女巫：召唤怪物",
+  "alexscaves.sound.subtitle.licowitch_celebrate": "甘草女巫：庆祝",
+  "alexscaves.sound.subtitle.licowitch_death": "甘草女巫：死亡",
+  "alexscaves.sound.subtitle.licowitch_hurt": "甘草女巫：受伤",
+  "alexscaves.sound.subtitle.licowitch_idle": "甘草女巫：咯咯笑",
+  "alexscaves.sound.subtitle.luxtructosaurus_snort": "光棘龙：喷鼻息"
 }

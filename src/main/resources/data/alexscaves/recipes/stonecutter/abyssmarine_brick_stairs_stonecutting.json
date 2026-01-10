@@ -1,8 +1,0 @@
-{
-  "type": "minecraft:stonecutting",
-  "count": 1,
-  "ingredient": {
-    "item": "alexscaves:abyssmarine_bricks"
-  },
-  "result": "alexscaves:abyssmarine_brick_stairs"
-}

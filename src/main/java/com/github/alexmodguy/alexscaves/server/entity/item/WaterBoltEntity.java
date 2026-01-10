@@ -10,8 +10,6 @@ import com.github.alexmodguy.alexscaves.server.potion.ACEffectRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -28,8 +26,6 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.phys.*;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -62,10 +58,6 @@ public class WaterBoltEntity extends Projectile {
         super(entityType, level);
     }
 
-    public WaterBoltEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.WATER_BOLT.get(), level);
-    }
-
     public WaterBoltEntity(Level level, LivingEntity shooter) {
         this(ACEntityRegistry.WATER_BOLT.get(), level);
         float f = shooter instanceof Player ? 0.3F : 0.1F;
@@ -74,14 +66,9 @@ public class WaterBoltEntity extends Projectile {
     }
 
     @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
-    }
-
-    @Override
-    protected void defineSynchedData() {
-        this.getEntityData().define(BUBBLING, false);
-        this.getEntityData().define(ARC_TOWARDS_ENTITY_UUID, Optional.empty());
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(BUBBLING, false);
+        builder.define(ARC_TOWARDS_ENTITY_UUID, Optional.empty());
     }
 
     public void tick() {
@@ -145,7 +132,7 @@ public class WaterBoltEntity extends Projectile {
         this.trailPositions[this.trailPointer] = trailAt;
 
         HitResult hitresult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
-        if (hitresult.getType() != HitResult.Type.MISS && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitresult)) {
+        if (hitresult.getType() != HitResult.Type.MISS && !net.neoforged.neoforge.event.EventHooks.onProjectileImpact(this, hitresult)) {
             this.onHit(hitresult);
         }
         if (dieIn > 0) {
@@ -179,7 +166,6 @@ public class WaterBoltEntity extends Projectile {
         return d0.add(d1.scale(partialTick));
     }
 
-    @Override
     public void lerpTo(double x, double y, double z, float yr, float xr, int steps, boolean b) {
         this.lx = x;
         this.ly = y;
@@ -222,7 +208,7 @@ public class WaterBoltEntity extends Projectile {
             if (!isAlliedTo(entity) && !(entity instanceof DeepOneBaseEntity) && (owner == null || !entity.is(owner) && !entity.isAlliedTo(owner))) {
                 lastHitMob = entity;
                 if (entity.hurt(source, 3.0F) && this.isBubbling()) {
-                    entity.addEffect(new MobEffectInstance(ACEffectRegistry.BUBBLED.get(), 200));
+                    entity.addEffect(new MobEffectInstance(ACEffectRegistry.BUBBLED, 200));
                     if (!entity.level().isClientSide) {
                         AlexsCaves.sendMSGToAll(new UpdateEffectVisualityEntityMessage(entity.getId(), this.getId(), 1, 200));
                     }

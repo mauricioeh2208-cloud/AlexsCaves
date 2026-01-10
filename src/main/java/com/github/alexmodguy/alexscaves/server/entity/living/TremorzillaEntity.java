@@ -61,12 +61,12 @@ import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.entity.PartEntity;
-import net.minecraftforge.fluids.FluidType;
+import net.neoforged.neoforge.entity.PartEntity;
+import net.neoforged.neoforge.fluids.FluidType;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -105,7 +105,7 @@ public class TremorzillaEntity extends DinosaurEntity implements KeybindUsingMou
     protected float tailXRot;
     protected float tailYRot;
     public TremorzillaLegSolver legSolver = new TremorzillaLegSolver(1F, 2.15F, 3);
-    private static final EntityDimensions SWIMMING_SIZE = new EntityDimensions(4.0F, 5.0F, true);
+    private static final EntityDimensions SWIMMING_SIZE = EntityDimensions.fixed(4.0F, 5.0F);
     private Animation currentAnimation;
     private int animationTick;
     private float lastYawBeforeWhip;
@@ -156,15 +156,15 @@ public class TremorzillaEntity extends DinosaurEntity implements KeybindUsingMou
         this.tailPart4 = new TremorzillaPartEntity(this, tailPart3, 2.5F, 1.5F);
         this.tailPart5 = new TremorzillaPartEntity(this, tailPart4, 2F, 1F);
         this.allParts = new TremorzillaPartEntity[]{tailPart1, tailPart2, tailPart3, tailPart4, tailPart5};
-        this.setPathfindingMalus(BlockPathTypes.UNPASSABLE_RAIL, 0.0F);
-        this.setPathfindingMalus(BlockPathTypes.DAMAGE_OTHER, 8.0F);
-        this.setPathfindingMalus(BlockPathTypes.POWDER_SNOW, 8.0F);
-        this.setPathfindingMalus(BlockPathTypes.LAVA, 0.0F);
-        this.setPathfindingMalus(BlockPathTypes.DAMAGE_FIRE, 0.0F);
-        this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, 0.0F);
-        this.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
-        this.setPathfindingMalus(BlockPathTypes.LEAVES, 0.0F);
-        dummyExplosion = new Explosion(level(), null, this.getX(), this.getY(), this.getZ(), 10.0F, List.of());
+        this.setPathfindingMalus(PathType.UNPASSABLE_RAIL, 0.0F);
+        this.setPathfindingMalus(PathType.DAMAGE_OTHER, 8.0F);
+        this.setPathfindingMalus(PathType.POWDER_SNOW, 8.0F);
+        this.setPathfindingMalus(PathType.LAVA, 0.0F);
+        this.setPathfindingMalus(PathType.DAMAGE_FIRE, 0.0F);
+        this.setPathfindingMalus(PathType.DANGER_FIRE, 0.0F);
+        this.setPathfindingMalus(PathType.WATER, 0.0F);
+        this.setPathfindingMalus(PathType.LEAVES, 0.0F);
+        dummyExplosion = new Explosion(level(), null, this.getX(), this.getY(), this.getZ(), 10.0F, false, Explosion.BlockInteraction.KEEP, List.of());
     }
 
     protected PathNavigation createNavigation(Level level) {
@@ -189,20 +189,16 @@ public class TremorzillaEntity extends DinosaurEntity implements KeybindUsingMou
         return super.getMaxFallDistance() + 10;
     }
 
-    public boolean canBreatheUnderwater() {
-        return true;
-    }
-
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(BEAM_END_POSITION, Optional.empty());
-        this.entityData.define(SWIMMING, false);
-        this.entityData.define(CHARGE, MAX_CHARGE);
-        this.entityData.define(SPIKES_DOWN_PROGRESS, 0F);
-        this.entityData.define(MAX_BEAM_BREAK_LENGTH, 100F);
-        this.entityData.define(TAME_ATTEMPTS, 0);
-        this.entityData.define(FIRING, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(BEAM_END_POSITION, Optional.empty());
+        builder.define(SWIMMING, false);
+        builder.define(CHARGE, MAX_CHARGE);
+        builder.define(SPIKES_DOWN_PROGRESS, 0F);
+        builder.define(MAX_BEAM_BREAK_LENGTH, 100F);
+        builder.define(TAME_ATTEMPTS, 0);
+        builder.define(FIRING, false);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -365,7 +361,7 @@ public class TremorzillaEntity extends DinosaurEntity implements KeybindUsingMou
                 if(killCountFromBeam > 20 && !this.level().isClientSide){
                     if(this.isVehicle()){
                         for(Entity passenger : this.getPassengers()){
-                            ACAdvancementTriggerRegistry.TREMORZILLA_KILL_BEAM.triggerForEntity(passenger);
+                            ACAdvancementTriggerRegistry.TREMORZILLA_KILL_BEAM.get().triggerForEntity(passenger);
                         }
                     }
                 }
@@ -509,11 +505,11 @@ public class TremorzillaEntity extends DinosaurEntity implements KeybindUsingMou
                 tremorzillaPartEntity.refreshDimensions();
             }
         }
-        if (this.hasEffect(ACEffectRegistry.IRRADIATED.get())) {
-            MobEffectInstance instance = this.getEffect(ACEffectRegistry.IRRADIATED.get());
+        if (this.hasEffect(ACEffectRegistry.IRRADIATED)) {
+            MobEffectInstance instance = this.getEffect(ACEffectRegistry.IRRADIATED);
             int level = instance == null ? 1 : 1 + instance.getAmplifier();
             this.heal(level * 12);
-            this.removeEffect(ACEffectRegistry.IRRADIATED.get());
+            this.removeEffect(ACEffectRegistry.IRRADIATED);
         }
         if (this.getAnimation() == ANIMATION_BITE && this.getAnimationTick() == 2) {
             this.playSound(ACSoundRegistry.TREMORZILLA_BITE.get(), 4.0F, this.getVoicePitch());
@@ -639,7 +635,7 @@ public class TremorzillaEntity extends DinosaurEntity implements KeybindUsingMou
     public void aiStep() {
         super.aiStep();
         if (!this.level().isClientSide) {
-            if (net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.level(), this) && blockBreakCounter <= 0) {
+            if (net.neoforged.neoforge.event.EventHooks.canEntityGrief(this.level(), this) && blockBreakCounter <= 0) {
                 this.breakBlocksInBoundingBox(0.1F);
                 blockBreakCounter = 10;
             }
@@ -738,7 +734,7 @@ public class TremorzillaEntity extends DinosaurEntity implements KeybindUsingMou
     }
 
     public boolean isStunned() {
-        return this.hasEffect(ACEffectRegistry.STUNNED.get());
+        return this.hasEffect(ACEffectRegistry.STUNNED);
     }
 
     public void readAdditionalSaveData(CompoundTag compound) {
@@ -855,7 +851,7 @@ public class TremorzillaEntity extends DinosaurEntity implements KeybindUsingMou
                         if(living.getHealth() <= 0.0F && living instanceof Enemy){
                             killCountFromBeam++;
                         }
-                        living.addEffect(new MobEffectInstance(ACEffectRegistry.IRRADIATED.get(), 6000, 2));
+                        living.addEffect(new MobEffectInstance(ACEffectRegistry.IRRADIATED, 6000, 2));
                     }
                 }
             }
@@ -868,7 +864,7 @@ public class TremorzillaEntity extends DinosaurEntity implements KeybindUsingMou
     }
 
     public void knockbackTarget(Entity target, double strength, double x, double z, boolean ignoreResistance) {
-        net.minecraftforge.event.entity.living.LivingKnockBackEvent event = net.minecraftforge.common.ForgeHooks.onLivingKnockBack(this, (float) strength, x, z);
+        net.neoforged.neoforge.event.entity.living.LivingKnockBackEvent event = net.neoforged.neoforge.common.CommonHooks.onLivingKnockBack(this, (float) strength, x, z);
         if (event.isCanceled()) return;
         strength = event.getStrength();
         x = event.getRatioX();
@@ -885,7 +881,7 @@ public class TremorzillaEntity extends DinosaurEntity implements KeybindUsingMou
     }
 
     public boolean breakBlocksAround(Vec3 center, float radius, boolean square, boolean triggerExplosions, float dropChance) {
-        if (this.isBaby() || !net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.level(), this) || level().isClientSide) {
+        if (this.isBaby() || !net.neoforged.neoforge.event.EventHooks.canEntityGrief(this.level(), this) || level().isClientSide) {
             return false;
         }
         boolean flag = false;
@@ -913,7 +909,7 @@ public class TremorzillaEntity extends DinosaurEntity implements KeybindUsingMou
     }
 
     public boolean breakBlocksInBoundingBox(float dropChance) {
-        if (this.isBaby() || !net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.level(), this) || level().isClientSide) {
+        if (this.isBaby() || !net.neoforged.neoforge.event.EventHooks.canEntityGrief(this.level(), this) || level().isClientSide) {
             return false;
         }
         boolean flag = false;
@@ -1033,7 +1029,6 @@ public class TremorzillaEntity extends DinosaurEntity implements KeybindUsingMou
     }
 
 
-    @Override
     public void lerpTo(double x, double y, double z, float yr, float xr, int steps, boolean b) {
         this.lx = x;
         this.ly = y;
@@ -1205,7 +1200,7 @@ public class TremorzillaEntity extends DinosaurEntity implements KeybindUsingMou
     }
 
     protected float getBlockSpeedFactor() {
-        return this.isTremorzillaSwimming() || this.onSoulSpeedBlock() ? 1.0F : super.getBlockSpeedFactor();
+        return this.isTremorzillaSwimming() ? 1.0F : super.getBlockSpeedFactor();
     }
 
     protected float getWaterSlowDown() {
@@ -1305,8 +1300,9 @@ public class TremorzillaEntity extends DinosaurEntity implements KeybindUsingMou
         return false;
     }
 
-    public EntityDimensions getDimensions(Pose poseIn) {
-        return this.isTremorzillaSwimming() ? SWIMMING_SIZE.scale(this.getScale()) : super.getDimensions(poseIn);
+    @Override
+    public EntityDimensions getDefaultDimensions(Pose poseIn) {
+        return this.isTremorzillaSwimming() ? SWIMMING_SIZE.scale(this.getScale()) : super.getDefaultDimensions(poseIn);
     }
 
     public boolean isTremorzillaSwimming() {

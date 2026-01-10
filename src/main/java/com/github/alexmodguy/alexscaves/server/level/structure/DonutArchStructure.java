@@ -4,7 +4,7 @@ import com.github.alexmodguy.alexscaves.server.level.biome.ACBiomeRegistry;
 import com.github.alexmodguy.alexscaves.server.level.structure.piece.DonutArchStructurePiece;
 import com.github.alexmodguy.alexscaves.server.level.structure.piece.ForlornBridgeStructurePiece;
 import com.github.alexmodguy.alexscaves.server.misc.ACMath;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -22,7 +22,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 public class DonutArchStructure extends Structure {
-    public static final Codec<DonutArchStructure> CODEC = simpleCodec((settings) -> new DonutArchStructure(settings));
+    public static final MapCodec<DonutArchStructure> CODEC = simpleCodec((settings) -> new DonutArchStructure(settings));
 
     public static final int DONUT_SECTION_WIDTH = 16;
 

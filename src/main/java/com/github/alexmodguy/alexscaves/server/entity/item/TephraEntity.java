@@ -5,8 +5,6 @@ import com.github.alexmodguy.alexscaves.server.entity.ACEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.util.TephraExplosion;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -26,8 +24,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -57,10 +53,6 @@ public class TephraEntity extends Projectile {
         super(entityType, level);
     }
 
-    public TephraEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.TEPHRA.get(), level);
-    }
-
     public TephraEntity(Level level, LivingEntity shooter) {
         this(ACEntityRegistry.TEPHRA.get(), level);
         float f = shooter instanceof Player ? 0.3F : 0.1F;
@@ -69,15 +61,10 @@ public class TephraEntity extends Projectile {
     }
 
     @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
-    }
-
-    @Override
-    protected void defineSynchedData() {
-        this.getEntityData().define(ARC_TOWARDS_ENTITY_UUID, Optional.empty());
-        this.getEntityData().define(MAX_SCALE, 1.0F);
-        this.getEntityData().define(SCALE, 0.1F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(ARC_TOWARDS_ENTITY_UUID, Optional.empty());
+        builder.define(MAX_SCALE, 1.0F);
+        builder.define(SCALE, 0.1F);
     }
 
     public void tick() {
@@ -130,7 +117,7 @@ public class TephraEntity extends Projectile {
         }
 
         HitResult hitresult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
-        if (hitresult.getType() != HitResult.Type.MISS && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitresult)) {
+        if (hitresult.getType() != HitResult.Type.MISS) {
             this.onHit(hitresult);
         }
         if (dieIn > 0) {
@@ -147,7 +134,6 @@ public class TephraEntity extends Projectile {
         }
     }
 
-    @Override
     public void lerpTo(double x, double y, double z, float yr, float xr, int steps, boolean b) {
         this.lx = x;
         this.ly = y;
@@ -175,7 +161,7 @@ public class TephraEntity extends Projectile {
     }
 
     private void explode() {
-        Explosion.BlockInteraction blockinteraction = net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(level(), this) ? level().getGameRules().getBoolean(GameRules.RULE_MOB_EXPLOSION_DROP_DECAY) ? Explosion.BlockInteraction.DESTROY_WITH_DECAY : Explosion.BlockInteraction.DESTROY : Explosion.BlockInteraction.KEEP;
+        Explosion.BlockInteraction blockinteraction = net.neoforged.neoforge.event.EventHooks.canEntityGrief(level(), this) ? level().getGameRules().getBoolean(GameRules.RULE_MOB_EXPLOSION_DROP_DECAY) ? Explosion.BlockInteraction.DESTROY_WITH_DECAY : Explosion.BlockInteraction.DESTROY : Explosion.BlockInteraction.KEEP;
         TephraExplosion explosion = new TephraExplosion(level(), this, this.getX(), this.getY(0.5), this.getZ(), 1.0F + getMaxScale(), blockinteraction);
         explosion.explode();
         explosion.finalizeExplosion(true);

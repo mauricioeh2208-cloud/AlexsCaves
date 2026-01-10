@@ -173,7 +173,7 @@ public class DeepOneReactToPlayerGoal extends Goal {
                     deepOne.getNavigation().stop();
                     moveTarget = null;
                     if (executionTime > 20 && deepOne.distanceTo(player) < 20F) {
-                        ACAdvancementTriggerRegistry.STALKED_BY_DEEP_ONE.triggerForEntity(player);
+                        ACAdvancementTriggerRegistry.STALKED_BY_DEEP_ONE.get().triggerForEntity(player);
                     }
                 }
                 isBeingLookedAt = isLooking;

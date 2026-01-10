@@ -4,7 +4,7 @@ import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import net.minecraft.core.Holder;
 import net.minecraft.sounds.Music;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 public class ACMusics {
 
@@ -12,16 +12,16 @@ public class ACMusics {
 
     private static class ForgeMusic extends Music {
 
-        private final RegistryObject<SoundEvent> registryObject;
+        private final DeferredHolder<SoundEvent, SoundEvent> registryObject;
 
-        public ForgeMusic(RegistryObject<SoundEvent> registryObject, int minDelay, int maxDelay, boolean replaceCurrentMusic) {
+        public ForgeMusic(DeferredHolder<SoundEvent, SoundEvent> registryObject, int minDelay, int maxDelay, boolean replaceCurrentMusic) {
             super(null, minDelay, maxDelay, replaceCurrentMusic);
             this.registryObject = registryObject;
         }
 
         @Override
         public Holder<SoundEvent> getEvent() {
-            return this.registryObject.getHolder().get();
+            return this.registryObject;
         }
     }
 }

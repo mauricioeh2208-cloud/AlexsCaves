@@ -5,8 +5,6 @@ import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -20,8 +18,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
 
 public class BurrowingArrowEntity extends AbstractArrow {
     private static final EntityDataAccessor<Integer> DUG_BLOCK_COUNT = SynchedEntityData.defineId(BurrowingArrowEntity.class, EntityDataSerializers.INT);
@@ -39,35 +35,23 @@ public class BurrowingArrowEntity extends AbstractArrow {
     public BurrowingArrowEntity(EntityType entityType, Level level) {
         super(entityType, level);
         this.setBaseDamage(3.5D);
-        this.setPierceLevel((byte)(this.getPierceLevel() + 1));
     }
 
     public BurrowingArrowEntity(Level level, LivingEntity shooter) {
-        super(ACEntityRegistry.BURROWING_ARROW.get(), shooter, level);
+        super(ACEntityRegistry.BURROWING_ARROW.get(), shooter, level, new ItemStack(ACItemRegistry.BURROWING_ARROW.get()), ItemStack.EMPTY);
         this.setBaseDamage(3.5D);
-        this.setPierceLevel((byte)(this.getPierceLevel() + 1));
     }
 
     public BurrowingArrowEntity(Level level, double x, double y, double z) {
-        super(ACEntityRegistry.BURROWING_ARROW.get(), x, y, z, level);
+        super(ACEntityRegistry.BURROWING_ARROW.get(), x, y, z, level, new ItemStack(ACItemRegistry.BURROWING_ARROW.get()), ItemStack.EMPTY);
         this.setBaseDamage(3.5D);
     }
 
-    public BurrowingArrowEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.BURROWING_ARROW.get(), level);
-        this.setBoundingBox(this.makeBoundingBox());
-    }
-
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DUG_BLOCK_COUNT, 0);
-        this.entityData.define(DIGGING, false);
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DUG_BLOCK_COUNT, 0);
+        builder.define(DIGGING, false);
     }
 
     public void tick() {
@@ -124,7 +108,6 @@ public class BurrowingArrowEntity extends AbstractArrow {
         }
     }
 
-    @Override
     public void startFalling() {
         this.inGround = false;
     }
@@ -153,7 +136,8 @@ public class BurrowingArrowEntity extends AbstractArrow {
         hitPos = blockHitResult.getBlockPos();
     }
 
-    protected ItemStack getPickupItem() {
+    @Override
+    protected ItemStack getDefaultPickupItem() {
         return new ItemStack(ACItemRegistry.BURROWING_ARROW.get());
     }
 

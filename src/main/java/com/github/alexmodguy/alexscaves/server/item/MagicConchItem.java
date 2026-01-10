@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.item;
 
+import com.github.alexmodguy.alexscaves.server.enchantment.ACEnchantmentHelper;
 import com.github.alexmodguy.alexscaves.server.enchantment.ACEnchantmentRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.ACEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.living.DeepOneBaseEntity;
@@ -34,21 +35,19 @@ public class MagicConchItem extends Item {
 
     public void releaseUsing(ItemStack stack, Level level, LivingEntity player, int useTimeLeft) {
         level.playSound(null, player, ACSoundRegistry.MAGIC_CONCH_CAST.get(), SoundSource.RECORDS, 16.0F, 1.0F);
-        int i = this.getUseDuration(stack) - useTimeLeft;
+        int i = this.getUseDuration(stack, player) - useTimeLeft;
         boolean hurtRelations = false;
         if (i > 25) {
-            if(stack.getEnchantmentLevel(ACEnchantmentRegistry.TAXING_BELLOW.get()) > 0){
+            if(ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.TAXING_BELLOW, stack) > 0){
                 stack.setDamageValue(Math.min(0, stack.getDamageValue() - 1));
                 hurtRelations = true;
             }else{
-                stack.hurtAndBreak(1, player, (player1) -> {
-                    player1.broadcastBreakEvent(player1.getUsedItemHand());
-                });
+                stack.hurtAndBreak(1, player, net.minecraft.world.entity.EquipmentSlot.MAINHAND);
             }
             RandomSource randomSource = player.getRandom();
-            int time = 1200 + stack.getEnchantmentLevel(ACEnchantmentRegistry.LASTING_MORALE.get()) * 400;
+            int time = 1200 + ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.LASTING_MORALE, stack) * 400;
             if (!level.isClientSide) {
-                int chartingLevel = stack.getEnchantmentLevel(ACEnchantmentRegistry.CHARTING_CALL.get());
+                int chartingLevel = ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.CHARTING_CALL, stack);
                 DeepOneBaseEntity lastSummonedDeepOne = null;
                 int maxNormal = 3 + randomSource.nextInt(1);
                 int maxKnights = 2 + randomSource.nextInt(1);
@@ -117,7 +116,8 @@ public class MagicConchItem extends Item {
         return stack.getCount() == 1;
     }
 
-    public int getUseDuration(ItemStack stack) {
+    @Override
+    public int getUseDuration(ItemStack stack, LivingEntity entity) {
         return 1200;
     }
 
@@ -143,7 +143,7 @@ public class MagicConchItem extends Item {
             deepOne.yBodyRot = f;
             deepOne.setYHeadRot(f);
             deepOne.setSummonedBy(summoner, time);
-            deepOne.finalizeSpawn((ServerLevel) summoner.level(), summoner.level().getCurrentDifficultyAt(BlockPos.containing(at)), MobSpawnType.TRIGGERED, (SpawnGroupData) null, (CompoundTag) null);
+            deepOne.finalizeSpawn((ServerLevel) summoner.level(), summoner.level().getCurrentDifficultyAt(BlockPos.containing(at)), MobSpawnType.TRIGGERED, (SpawnGroupData) null);
             if (deepOne.checkSpawnObstruction(summoner.level())) {
                 summoner.level().addFreshEntity(deepOne);
                 deepOne.copyTarget(summoner);

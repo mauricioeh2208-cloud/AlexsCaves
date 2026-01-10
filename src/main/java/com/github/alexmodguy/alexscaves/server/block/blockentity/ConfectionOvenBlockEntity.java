@@ -12,10 +12,10 @@ import com.github.alexmodguy.alexscaves.server.misc.ACMath;
 import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
@@ -213,15 +213,17 @@ public class ConfectionOvenBlockEntity extends BlockEntity {
         return rotate;
     }
 
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    @Override
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         this.cooldown = tag.getInt("Cooldown");
         this.gingerbreadTeamColor = tag.getInt("TeamColor");
         this.gingerbreadSpawns = tag.getInt("GingerbreadSpawns");
     }
 
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
         tag.putInt("Cooldown", this.cooldown);
         tag.putInt("TeamColor", this.gingerbreadTeamColor);
         tag.putInt("GingerbreadSpawns", this.gingerbreadSpawns);
@@ -233,11 +235,9 @@ public class ConfectionOvenBlockEntity extends BlockEntity {
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet) {
-        if (packet != null && packet.getTag() != null) {
-            this.cooldown = packet.getTag().getInt("Cooldown");
-            this.gingerbreadTeamColor = packet.getTag().getInt("TeamColor");
-            this.gingerbreadSpawns = packet.getTag().getInt("GingerbreadSpawns");
-        }
+    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider registries) {
+        this.cooldown = tag.getInt("Cooldown");
+        this.gingerbreadTeamColor = tag.getInt("TeamColor");
+        this.gingerbreadSpawns = tag.getInt("GingerbreadSpawns");
     }
 }

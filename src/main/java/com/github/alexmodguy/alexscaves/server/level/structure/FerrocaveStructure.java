@@ -2,7 +2,7 @@ package com.github.alexmodguy.alexscaves.server.level.structure;
 
 import com.github.alexmodguy.alexscaves.server.level.biome.ACBiomeRegistry;
 import com.github.alexmodguy.alexscaves.server.level.structure.piece.FerrocaveStructurePiece;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
@@ -11,7 +11,7 @@ import net.minecraft.world.level.levelgen.structure.StructureType;
 
 public class FerrocaveStructure extends AbstractCaveGenerationStructure {
 
-    public static final Codec<FerrocaveStructure> CODEC = simpleCodec((settings) -> new FerrocaveStructure(settings));
+    public static final MapCodec<FerrocaveStructure> CODEC = simpleCodec((settings) -> new FerrocaveStructure(settings));
 
     public FerrocaveStructure(StructureSettings settings) {
         super(settings, ACBiomeRegistry.MAGNETIC_CAVES);

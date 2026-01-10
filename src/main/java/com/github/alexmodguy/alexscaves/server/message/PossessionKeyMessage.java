@@ -3,14 +3,23 @@ package com.github.alexmodguy.alexscaves.server.message;
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.server.entity.util.PossessesCamera;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Supplier;
+public class PossessionKeyMessage implements CustomPacketPayload {
 
-public class PossessionKeyMessage {
+    public static final CustomPacketPayload.Type<PossessionKeyMessage> TYPE =
+        new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "possession_key"));
+
+    public static final StreamCodec<FriendlyByteBuf, PossessionKeyMessage> CODEC =
+        StreamCodec.ofMember(PossessionKeyMessage::write, PossessionKeyMessage::read);
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() { return TYPE; }
 
     public int watcher;
     public int playerId;
@@ -36,18 +45,17 @@ public class PossessionKeyMessage {
         buf.writeInt(message.type);
     }
 
-    public static void handle(PossessionKeyMessage message, Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> {
-            Player playerSided = context.get().getSender();
-            if (context.get().getDirection().getReceptionSide() == LogicalSide.CLIENT) {
-                playerSided = AlexsCaves.PROXY.getClientSidePlayer();
-            }
-            Entity watcher = playerSided.level().getEntity(message.watcher);
-            Entity keyPresser = playerSided.level().getEntity(message.playerId);
-            if (watcher instanceof PossessesCamera watcherEntity && keyPresser instanceof Player) {
-                watcherEntity.onPossessionKeyPacket(keyPresser, message.type);
+    public static void handle(PossessionKeyMessage message, IPayloadContext context) {
+        // This packet is sent from client to server
+        context.enqueueWork(() -> {
+            Player playerSided = context.player();
+            if (playerSided != null) {
+                Entity watcher = playerSided.level().getEntity(message.watcher);
+                Entity keyPresser = playerSided.level().getEntity(message.playerId);
+                if (watcher instanceof PossessesCamera watcherEntity && keyPresser instanceof Player) {
+                    watcherEntity.onPossessionKeyPacket(keyPresser, message.type);
+                }
             }
         });
-        context.get().setPacketHandled(true);
     }
 }

@@ -1,6 +1,7 @@
 package com.github.alexmodguy.alexscaves.mixin;
 
 import com.github.alexmodguy.alexscaves.server.entity.util.EntityDropChanceAccessor;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -19,7 +20,7 @@ public abstract class MobMixin extends LivingEntity implements EntityDropChanceA
 
     @Shadow private boolean canPickUpLoot;
 
-    @Shadow protected abstract void dropCustomDeathLoot(DamageSource p_21385_, int p_21386_, boolean p_21387_);
+    @Shadow protected abstract void dropCustomDeathLoot(ServerLevel serverLevel, DamageSource damageSource, boolean playerKill);
 
     public MobMixin(EntityType<? extends LivingEntity> entityType, Level level) {
         super(entityType, level);
@@ -33,7 +34,7 @@ public abstract class MobMixin extends LivingEntity implements EntityDropChanceA
         this.setDropChance(equipmentSlot, chance);
     }
 
-    public void ac_dropCustomDeathLoot(DamageSource damageSource, int i1, boolean idk){
-        this.dropCustomDeathLoot(damageSource, i1, idk);
+    public void ac_dropCustomDeathLoot(ServerLevel serverLevel, DamageSource damageSource, boolean playerKill){
+        this.dropCustomDeathLoot(serverLevel, damageSource, playerKill);
     }
 }

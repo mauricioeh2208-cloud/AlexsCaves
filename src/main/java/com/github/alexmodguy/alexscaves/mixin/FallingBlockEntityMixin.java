@@ -30,9 +30,10 @@ public abstract class FallingBlockEntityMixin extends Entity implements FallingB
         super(entityType, level);
     }
 
-    @Inject(at = @At("TAIL"), remap = CitadelConstants.REMAPREFS, method = "Lnet/minecraft/world/entity/item/FallingBlockEntity;defineSynchedData()V")
-    private void citadel_registerData(CallbackInfo ci) {
-        entityData.define(FALL_BLOCK_TIME, 0);
+    @Inject(at = @At("TAIL"), remap = CitadelConstants.REMAPREFS, method = "Lnet/minecraft/world/entity/item/FallingBlockEntity;defineSynchedData(Lnet/minecraft/network/syncher/SynchedEntityData$Builder;)V")
+    private void citadel_registerData(SynchedEntityData.Builder builder, CallbackInfo ci) {
+        builder.define(FALL_BLOCK_TIME, 0);
+        // Magnetic data is now handled via NeoForge Attachment API in EntityMixin
     }
 
     @Inject(

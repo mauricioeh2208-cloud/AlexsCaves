@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.ACBlockEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.GeothermalVentBlockEntity;
 import com.github.alexmodguy.alexscaves.server.block.fluid.ACFluidRegistry;
@@ -35,8 +36,14 @@ import org.jetbrains.annotations.Nullable;
 
 public class GeothermalVentBlock extends BaseEntityBlock {
 
+    public static final MapCodec<GeothermalVentBlock> CODEC = simpleCodec((properties) -> new GeothermalVentBlock());
     public static final IntegerProperty SMOKE_TYPE = IntegerProperty.create("smoke_type", 0, 3);
     public static final BooleanProperty SPAWNING_PARTICLES = BooleanProperty.create("spawning_particles");
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
+    }
 
     public GeothermalVentBlock() {
         super(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).requiresCorrectToolForDrops().strength(2F, 5.0F).sound(SoundType.TUFF));
@@ -81,8 +88,8 @@ public class GeothermalVentBlock extends BaseEntityBlock {
 
     }
 
-    public InteractionResult use(BlockState blockState, Level level, BlockPos blockPos, Player player, InteractionHand hand, BlockHitResult result) {
-        ItemStack heldItem = player.getItemInHand(hand);
+    public InteractionResult useWithoutItem(BlockState blockState, Level level, BlockPos blockPos, Player player, BlockHitResult result) {
+        ItemStack heldItem = player.getMainHandItem();
         if (heldItem.is(Items.GLASS_BOTTLE) && blockState.getValue(SMOKE_TYPE) == 3 && blockState.getValue(SPAWNING_PARTICLES)) {
             ItemStack bottle = new ItemStack(ACItemRegistry.RADON_BOTTLE.get());
             if (!player.addItem(bottle)) {
@@ -94,7 +101,7 @@ public class GeothermalVentBlock extends BaseEntityBlock {
             player.playSound(SoundEvents.BOTTLE_FILL);
             return InteractionResult.SUCCESS;
         }
-        return super.use(blockState, level, blockPos, player, hand, result);
+        return super.useWithoutItem(blockState, level, blockPos, player, result);
     }
 
     @javax.annotation.Nullable

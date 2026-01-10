@@ -222,7 +222,7 @@ public class VesperEntity extends Monster implements IAnimatedEntity, Underzealo
                 if (forsakenEntity != null) {
                     this.playSound(ACSoundRegistry.FORSAKEN_SPAWN.get(), 8.0F, 1.0F);
                     forsakenEntity.setAnimation(ForsakenEntity.ANIMATION_SUMMON);
-                    net.minecraftforge.event.ForgeEventFactory.onLivingConvert(this, forsakenEntity);
+                    net.neoforged.neoforge.event.EventHooks.onLivingConvert(this, forsakenEntity);
                     forsakenEntity.stopRiding();
                 }
             }
@@ -263,10 +263,10 @@ public class VesperEntity extends Monster implements IAnimatedEntity, Underzealo
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(FLYING, false);
-        this.entityData.define(HANGING, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(FLYING, false);
+        builder.define(HANGING, false);
     }
 
     protected void checkFallDamage(double y, boolean onGroundIn, BlockState state, BlockPos pos) {
@@ -378,11 +378,11 @@ public class VesperEntity extends Monster implements IAnimatedEntity, Underzealo
     }
 
     @javax.annotation.Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor worldIn, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn, @javax.annotation.Nullable CompoundTag dataTag) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor worldIn, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn) {
         if (reason == MobSpawnType.NATURAL) {
             doInitialPosing(worldIn);
         }
-        return super.finalizeSpawn(worldIn, difficultyIn, reason, spawnDataIn, dataTag);
+        return super.finalizeSpawn(worldIn, difficultyIn, reason, spawnDataIn);
     }
 
     public static boolean checkVesperSpawnRules(EntityType<? extends Monster> entityType, ServerLevelAccessor levelAccessor, MobSpawnType mobSpawnType, BlockPos blockPos, RandomSource randomSource) {

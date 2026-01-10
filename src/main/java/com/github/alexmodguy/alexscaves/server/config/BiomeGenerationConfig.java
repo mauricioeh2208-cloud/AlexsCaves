@@ -1,17 +1,14 @@
 package com.github.alexmodguy.alexscaves.server.config;
 
-import com.github.alexmodguy.alexscaves.server.level.biome.ACBiomeRarity;
 import com.github.alexmodguy.alexscaves.server.level.biome.ACBiomeRegistry;
-import com.github.alexmodguy.alexscaves.server.misc.VoronoiGenerator;
 import com.github.alexthe666.citadel.Citadel;
-import com.github.alexthe666.citadel.server.event.EventReplaceBiome;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraftforge.fml.loading.FMLPaths;
+import net.neoforged.fml.loading.FMLPaths;
 import org.apache.commons.io.FileUtils;
 
 import javax.annotation.Nullable;
@@ -50,21 +47,6 @@ public class BiomeGenerationConfig {
         BIOMES.put(ACBiomeRegistry.ABYSSAL_CHASM, getConfigData("abyssal_chasm", ABYSSAL_CHASM_CONDITION));
         BIOMES.put(ACBiomeRegistry.FORLORN_HOLLOWS, getConfigData("forlorn_hollows", FORLORN_HOLLOWS_CONDITION));
         BIOMES.put(ACBiomeRegistry.CANDY_CAVITY, getConfigData("candy_cavity", CANDY_CAVITY_CONDITION));
-    }
-
-    @Nullable
-    @Deprecated(forRemoval = true, since="1.21")
-    public static ResourceKey<Biome> getBiomeForEvent(EventReplaceBiome event) {
-        VoronoiGenerator.VoronoiInfo voronoiInfo = ACBiomeRarity.getRareBiomeInfoForQuad(event.getWorldSeed(), event.getX(), event.getZ());
-        if(voronoiInfo != null){
-            int foundRarityOffset = ACBiomeRarity.getRareBiomeOffsetId(voronoiInfo);
-            for (Map.Entry<ResourceKey<Biome>, BiomeGenerationNoiseCondition> condition : BIOMES.entrySet()) {
-                if (foundRarityOffset == condition.getValue().getRarityOffset() && condition.getValue().test(event, voronoiInfo)) {
-                    return condition.getKey();
-                }
-            }
-        }
-        return null;
     }
 
     public static int getBiomeCount() {

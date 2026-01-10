@@ -4,18 +4,28 @@ import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import com.github.alexmodguy.alexscaves.server.potion.ACEffectRegistry;
 import com.github.alexmodguy.alexscaves.server.potion.IrradiatedEffect;
+import net.minecraft.core.Holder;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Supplier;
+public class UpdateEffectVisualityEntityMessage implements CustomPacketPayload {
 
-public class UpdateEffectVisualityEntityMessage {
+    public static final CustomPacketPayload.Type<UpdateEffectVisualityEntityMessage> TYPE =
+        new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "update_effect_visuality_entity"));
+
+    public static final StreamCodec<FriendlyByteBuf, UpdateEffectVisualityEntityMessage> CODEC =
+        StreamCodec.ofMember(UpdateEffectVisualityEntityMessage::write, UpdateEffectVisualityEntityMessage::read);
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() { return TYPE; }
 
     private int entityID;
     private int fromEntityID;
@@ -49,34 +59,34 @@ public class UpdateEffectVisualityEntityMessage {
         buf.writeBoolean(message.remove);
     }
 
-    public static void handle(UpdateEffectVisualityEntityMessage message, Supplier<NetworkEvent.Context> context) {
-        context.get().setPacketHandled(true);
-        Player playerSided = context.get().getSender();
-        if (context.get().getDirection().getReceptionSide() == LogicalSide.CLIENT) {
-            playerSided = AlexsCaves.PROXY.getClientSidePlayer();
+    public static void handle(UpdateEffectVisualityEntityMessage message, IPayloadContext context) {
+        // This packet is sent from server to client
+        if (!context.flow().isClientbound()) {
+            return;
         }
+        Player playerSided = AlexsCaves.PROXY.getClientSidePlayer();
         if (playerSided != null) {
             Entity entity = playerSided.level().getEntity(message.entityID);
             Entity senderEntity = playerSided.level().getEntity(message.fromEntityID);
             if (entity instanceof LivingEntity living && senderEntity != null && senderEntity.distanceTo(living) < 32) {
-                MobEffect mobEffect = null;
+                Holder<MobEffect> mobEffect = null;
                 int level = 0;
                 switch (message.potionType) {
                     case 0:
-                        mobEffect = ACEffectRegistry.IRRADIATED.get();
+                        mobEffect = ACEffectRegistry.IRRADIATED;
                         break;
                     case 1:
-                        mobEffect = ACEffectRegistry.BUBBLED.get();
+                        mobEffect = ACEffectRegistry.BUBBLED;
                         entity.playSound(ACSoundRegistry.SEA_STAFF_BUBBLE.get());
                         break;
                     case 2:
-                        mobEffect = ACEffectRegistry.MAGNETIZING.get();
+                        mobEffect = ACEffectRegistry.MAGNETIZING;
                         break;
                     case 3:
-                        mobEffect = ACEffectRegistry.STUNNED.get();
+                        mobEffect = ACEffectRegistry.STUNNED;
                         break;
                     case 4:
-                        mobEffect = ACEffectRegistry.IRRADIATED.get();
+                        mobEffect = ACEffectRegistry.IRRADIATED;
                         level = IrradiatedEffect.BLUE_LEVEL;
                         break;
                 }

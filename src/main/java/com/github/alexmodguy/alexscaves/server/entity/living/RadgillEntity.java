@@ -1,6 +1,8 @@
 package com.github.alexmodguy.alexscaves.server.entity.living;
 
 import com.github.alexmodguy.alexscaves.client.particle.ACParticleRegistry;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.CustomData;
 import com.github.alexmodguy.alexscaves.server.block.fluid.ACFluidRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.ai.NotLavaSwimNodeEvaluator;
 import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
@@ -42,7 +44,7 @@ import net.minecraft.world.item.ItemUtils;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.pathfinder.PathFinder;
 import net.minecraft.world.phys.Vec3;
 
@@ -61,12 +63,12 @@ public class RadgillEntity extends WaterAnimal implements Bucketable {
     public RadgillEntity(EntityType<? extends WaterAnimal> type, Level level) {
         super(type, level);
         this.moveControl = new AcidMoveControl();
-        this.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
+        this.setPathfindingMalus(PathType.WATER, 0.0F);
     }
 
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(FROM_BUCKET, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(FROM_BUCKET, false);
     }
 
     protected void registerGoals() {
@@ -89,7 +91,7 @@ public class RadgillEntity extends WaterAnimal implements Bucketable {
             }
 
             public boolean isInLiquid() {
-                return RadgillEntity.this.isInLiquid();
+                return RadgillEntity.this.checkInLiquid();
             }
         };
     }
@@ -144,7 +146,7 @@ public class RadgillEntity extends WaterAnimal implements Bucketable {
         super.tick();
         prevLandProgress = landProgress;
         prevFishPitch = fishPitch;
-        boolean grounded = this.onGround() && !isInLiquid();
+        boolean grounded = this.onGround() && !checkInLiquid();
         if (grounded && landProgress < 5F) {
             landProgress++;
         }
@@ -159,7 +161,7 @@ public class RadgillEntity extends WaterAnimal implements Bucketable {
             }
             wasJustInAcid = inAcid;
         }
-        if (!isInLiquid() && this.isAlive()) {
+        if (!checkInLiquid() && this.isAlive()) {
             if (this.onGround() && random.nextFloat() < 0.1F) {
                 this.setDeltaMovement(this.getDeltaMovement().add((this.random.nextFloat() * 2.0F - 1.0F) * 0.2F, 0.5D, (this.random.nextFloat() * 2.0F - 1.0F) * 0.2F));
                 this.setYRot(this.random.nextFloat() * 360.0F);
@@ -172,12 +174,12 @@ public class RadgillEntity extends WaterAnimal implements Bucketable {
         return (prevFishPitch + (fishPitch - prevFishPitch) * partialTick);
     }
 
-    private boolean isInLiquid() {
+    private boolean checkInLiquid() {
         return this.isInWaterOrBubble() || this.isInAcid();
     }
 
     protected void handleAirSupply(int prevAir) {
-        if (this.isAlive() && !isInLiquid()) {
+        if (this.isAlive() && !checkInLiquid()) {
             this.setAirSupply(prevAir - 1);
             if (this.getAirSupply() == -20) {
                 this.setAirSupply(0);
@@ -226,12 +228,13 @@ public class RadgillEntity extends WaterAnimal implements Bucketable {
     @Override
     public void saveToBucketTag(@Nonnull ItemStack bucket) {
         if (this.hasCustomName()) {
-            bucket.setHoverName(this.getCustomName());
+            bucket.set(DataComponents.CUSTOM_NAME, this.getCustomName());
         }
         CompoundTag platTag = new CompoundTag();
         this.addAdditionalSaveData(platTag);
-        CompoundTag compound = bucket.getOrCreateTag();
+        CompoundTag compound = bucket.getOrDefault(DataComponents.BUCKET_ENTITY_DATA, CustomData.EMPTY).copyTag();
         compound.put("FishBucketTag", platTag);
+        bucket.set(DataComponents.BUCKET_ENTITY_DATA, CustomData.of(compound));
     }
 
     @Override
@@ -246,7 +249,7 @@ public class RadgillEntity extends WaterAnimal implements Bucketable {
     public ItemStack getBucketItemStack() {
         ItemStack stack = new ItemStack(ACItemRegistry.RADGILL_BUCKET.get());
         if (this.hasCustomName()) {
-            stack.setHoverName(this.getCustomName());
+            stack.set(DataComponents.CUSTOM_NAME, this.getCustomName());
         }
         return stack;
     }
@@ -304,7 +307,7 @@ public class RadgillEntity extends WaterAnimal implements Bucketable {
 
         @Override
         public boolean canUse() {
-            if (!RadgillEntity.this.isInLiquid()) {
+            if (!RadgillEntity.this.checkInLiquid()) {
                 return false;
             } else if (RadgillEntity.this.getRandom().nextInt(10) == 0) {
                 boolean jump = random.nextFloat() <= 0.4F;
@@ -320,7 +323,7 @@ public class RadgillEntity extends WaterAnimal implements Bucketable {
 
         @Override
         public boolean canContinueToUse() {
-            return (RadgillEntity.this.isInLiquid() && !hasJumped || isJump) && RadgillEntity.this.distanceToSqr(Vec3.atCenterOf(target)) < 3 && timeout < 200;
+            return (RadgillEntity.this.checkInLiquid() && !hasJumped || isJump) && RadgillEntity.this.distanceToSqr(Vec3.atCenterOf(target)) < 3 && timeout < 200;
         }
 
         public void stop() {
@@ -359,7 +362,7 @@ public class RadgillEntity extends WaterAnimal implements Bucketable {
         }
 
         public void tick() {
-            if (this.operation == MoveControl.Operation.MOVE_TO && RadgillEntity.this.isInLiquid()) {
+            if (this.operation == MoveControl.Operation.MOVE_TO && RadgillEntity.this.checkInLiquid()) {
                 final Vec3 vector3d = new Vec3(this.wantedX - RadgillEntity.this.getX(), this.wantedY - RadgillEntity.this.getY(), this.wantedZ - RadgillEntity.this.getZ());
                 final double d5 = vector3d.length();
                 if (d5 < RadgillEntity.this.getBoundingBox().getSize()) {

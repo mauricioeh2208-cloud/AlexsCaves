@@ -48,6 +48,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import com.github.alexthe666.citadel.server.entity.collision.ICustomCollisions;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -138,12 +139,12 @@ public class SubterranodonEntity extends DinosaurEntity implements PackAnimal, F
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(FLYING, false);
-        this.entityData.define(HOVERING, false);
-        this.entityData.define(METER_AMOUNT, 1.0F);
-        this.entityData.define(ATTACK_TICK, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(FLYING, false);
+        builder.define(HOVERING, false);
+        builder.define(METER_AMOUNT, 1.0F);
+        builder.define(ATTACK_TICK, 0);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -311,7 +312,6 @@ public class SubterranodonEntity extends DinosaurEntity implements PackAnimal, F
         lastStepZ = this.zo;
     }
 
-    @Override
     public void lerpTo(double x, double y, double z, float yr, float xr, int steps, boolean b) {
         this.lx = x;
         this.ly = y;
@@ -359,7 +359,7 @@ public class SubterranodonEntity extends DinosaurEntity implements PackAnimal, F
         if (rider == null || rider.noPhysics) {
             return false;
         } else {
-            float f = rider.getDimensions(Pose.STANDING).width * 0.8F;
+            float f = rider.getDimensions(Pose.STANDING).width() * 0.8F;
             AABB aabb = AABB.ofSize(rider.position().add(0, 0.5, 0), (double) f, 1.0E-6D, (double) f);
             return BlockPos.betweenClosedStream(aabb).anyMatch((state) -> {
                 BlockState blockstate = this.level().getBlockState(state);
@@ -600,10 +600,10 @@ public class SubterranodonEntity extends DinosaurEntity implements PackAnimal, F
             boolean flag1 = movement.y != vec3.y;
             boolean flag2 = movement.z != vec3.z;
             boolean flag3 = this.onGround() || flag1 && movement.y < 0.0D;
-            if (this.getStepHeight() > 0.0F && flag3 && (flag || flag2)) {
-                Vec3 vec31 = collideBoundingBox(this, new Vec3(movement.x, this.getStepHeight(), movement.z), aabb, this.level(), list);
-                Vec3 vec32 = collideBoundingBox(this, new Vec3(0.0D, this.getStepHeight(), 0.0D), aabb.expandTowards(movement.x, 0.0D, movement.z), this.level(), list);
-                if (vec32.y < (double) this.getStepHeight()) {
+            if (this.maxUpStep() > 0.0F && flag3 && (flag || flag2)) {
+                Vec3 vec31 = collideBoundingBox(this, new Vec3(movement.x, this.maxUpStep(), movement.z), aabb, this.level(), list);
+                Vec3 vec32 = collideBoundingBox(this, new Vec3(0.0D, this.maxUpStep(), 0.0D), aabb.expandTowards(movement.x, 0.0D, movement.z), this.level(), list);
+                if (vec32.y < (double) this.maxUpStep()) {
                     Vec3 vec33 = collideBoundingBox(this, new Vec3(movement.x, 0.0D, movement.z), aabb.move(vec32), this.level(), list).add(vec32);
                     if (vec33.horizontalDistanceSqr() > vec31.horizontalDistanceSqr()) {
                         vec31 = vec33;
@@ -617,7 +617,8 @@ public class SubterranodonEntity extends DinosaurEntity implements PackAnimal, F
 
             return vec3;
         } else {
-            return super.collide(movement);
+            // super.collide() removed in 1.21, use ICustomCollisions
+            return ICustomCollisions.getAllowedMovementForEntity(this, movement);
         }
     }
 

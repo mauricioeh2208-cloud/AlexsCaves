@@ -7,6 +7,7 @@ import com.github.alexmodguy.alexscaves.server.level.storage.ACWorldData;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -17,7 +18,6 @@ import net.minecraft.util.random.WeightedRandomList;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.NaturalSpawner;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.MobSpawnSettings;
@@ -25,7 +25,9 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -107,10 +109,10 @@ public class AmberMonolithBlockEntity extends BlockEntity {
                 if (blockpos == null) {
                     continue;
                 }
-                if (spawnType.canSummon() && NaturalSpawner.isSpawnPositionOk(SpawnPlacements.getPlacementType(spawnType), level, blockpos, spawnType)) {
+                if (spawnType.canSummon() && SpawnPlacements.getPlacementType(spawnType).isSpawnPositionOk(level, blockpos, spawnType)) {
                     double d0 = blockpos.getX() + 0.5F;
                     double d1 = blockpos.getZ() + 0.5F;
-                    if (!level.noCollision(spawnType.getAABB(d0, (double) blockpos.getY(), d1)) || !SpawnPlacements.checkSpawnRules(spawnType, (ServerLevelAccessor) level, MobSpawnType.SPAWNER, BlockPos.containing(d0, (double) blockpos.getY(), d1), level.getRandom())) {
+                    if (!level.noCollision(spawnType.getDimensions().makeBoundingBox(d0, (double) blockpos.getY(), d1)) || !SpawnPlacements.checkSpawnRules(spawnType, (ServerLevelAccessor) level, MobSpawnType.SPAWNER, BlockPos.containing(d0, (double) blockpos.getY(), d1), level.getRandom())) {
                         continue;
                     }
 
@@ -129,8 +131,8 @@ public class AmberMonolithBlockEntity extends BlockEntity {
                     entity.moveTo(d0, (double) blockpos.getY(), d1, level.random.nextFloat() * 360.0F, 0.0F);
                     if (entity instanceof Mob) {
                         Mob mob = (Mob) entity;
-                        if (net.minecraftforge.event.ForgeEventFactory.checkSpawnPosition(mob, (ServerLevelAccessor) level, MobSpawnType.CHUNK_GENERATION)) {
-                            spawngroupdata = mob.finalizeSpawn((ServerLevelAccessor) level, level.getCurrentDifficultyAt(mob.blockPosition()), MobSpawnType.CHUNK_GENERATION, spawngroupdata, (CompoundTag) null);
+                        if (net.neoforged.neoforge.event.EventHooks.checkSpawnPosition(mob, (ServerLevelAccessor) level, MobSpawnType.CHUNK_GENERATION)) {
+                            spawngroupdata = mob.finalizeSpawn((ServerLevelAccessor) level, level.getCurrentDifficultyAt(mob.blockPosition()), MobSpawnType.CHUNK_GENERATION, spawngroupdata);
                             ((ServerLevel) level).addFreshEntityWithPassengers(mob);
                             spawned = true;
                             flag = true;
@@ -248,11 +250,11 @@ public class AmberMonolithBlockEntity extends BlockEntity {
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet) {
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet, HolderLookup.Provider registries) {
         if (packet != null && packet.getTag() != null) {
             if (packet.getTag().contains("EntityType")) {
                 String str = packet.getTag().getString("EntityType");
-                this.spawnType = ForgeRegistries.ENTITY_TYPES.getValue(ResourceLocation.parse(str));
+                this.spawnType = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.parse(str));
             }
             this.spawnCount = packet.getTag().getInt("SpawnCount");
             this.spawnsMobIn = packet.getTag().getInt("SpawnMobsIn");
@@ -260,29 +262,32 @@ public class AmberMonolithBlockEntity extends BlockEntity {
         }
     }
 
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         if (tag.contains("EntityType")) {
             String str = tag.getString("EntityType");
-            this.spawnType = ForgeRegistries.ENTITY_TYPES.getValue(ResourceLocation.parse(str));
+            this.spawnType = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.parse(str));
         }
         this.spawnCount = tag.getInt("SpawnCount");
         this.spawnsMobIn = tag.getInt("SpawnMobsIn");
         this.hasDonePostBossSpawn = tag.getBoolean("PostBossSpawn");
     }
 
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
         if (this.spawnType != null) {
-            tag.putString("EntityType", ForgeRegistries.ENTITY_TYPES.getKey(this.spawnType).toString());
+            tag.putString("EntityType", BuiltInRegistries.ENTITY_TYPE.getKey(this.spawnType).toString());
         }
         tag.putInt("SpawnCount", this.spawnCount);
         tag.putInt("SpawnMobsIn", this.spawnsMobIn);
         tag.putBoolean("PostBossSpawn", this.hasDonePostBossSpawn);
     }
 
-    public CompoundTag getUpdateTag() {
-        return this.saveWithoutMetadata();
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return this.saveWithoutMetadata(registries);
     }
 
     public int getSpawnsMobIn() {

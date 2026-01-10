@@ -2,6 +2,7 @@ package com.github.alexmodguy.alexscaves.client.render.blockentity;
 
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.client.model.BeholderModel;
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.BeholderBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
@@ -31,8 +32,8 @@ public class BeholderBlockRenderer<T extends BeholderBlockEntity> implements Blo
         poseStack.mulPose(Axis.XP.rotationDegrees(-180));
         MODEL.hideEye(beholder.isFirstPersonView(Minecraft.getInstance().cameraEntity));
         MODEL.setupAnim(null, beholder.getEyeXRot(partialTicks), beholder.getEyeYRot(partialTicks), beholder.age + partialTicks, 0, 0);
-        MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(RenderType.entityCutoutNoCull(TEXTURE)), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1);
-        MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(RenderType.eyes(TEXTURE_EYE)), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1);
+        MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(RenderType.entityCutoutNoCull(TEXTURE)), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(1.0F, 1.0F, 1.0F, 1.0F));
+        MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(RenderType.eyes(TEXTURE_EYE)), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(1.0F, 1.0F, 1.0F, 1.0F));
         poseStack.popPose();
 
     }

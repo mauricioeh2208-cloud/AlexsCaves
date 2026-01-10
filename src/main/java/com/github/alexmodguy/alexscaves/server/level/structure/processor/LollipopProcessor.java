@@ -2,6 +2,7 @@ package com.github.alexmodguy.alexscaves.server.level.structure.processor;
 
 import com.github.alexmodguy.alexscaves.server.block.ACBlockRegistry;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryCodecs;
@@ -35,7 +36,7 @@ public class LollipopProcessor extends StructureProcessor {
             {ACBlockRegistry.PINK_ROCK_CANDY.get(), ACBlockRegistry.BLUE_ROCK_CANDY.get(), ACBlockRegistry.PURPLE_ROCK_CANDY.get(), ACBlockRegistry.BLACK_ROCK_CANDY.get()},
     };
 
-    public static final Codec<LollipopProcessor> CODEC = RecordCodecBuilder.create((instance) -> {
+    public static final MapCodec<LollipopProcessor> CODEC = RecordCodecBuilder.mapCodec((instance) -> {
         return instance.group(Codec.INT.fieldOf("palette_index").forGetter((p_230289_) -> {
             return p_230289_.paletteIndex;
         })).apply(instance, LollipopProcessor::new);

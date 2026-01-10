@@ -1,10 +1,13 @@
 package com.github.alexmodguy.alexscaves.server.item;
 
 import com.github.alexmodguy.alexscaves.AlexsCaves;
+import com.github.alexmodguy.alexscaves.server.enchantment.ACEnchantmentHelper;
 import com.github.alexmodguy.alexscaves.server.enchantment.ACEnchantmentRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.item.GumballEntity;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
@@ -16,7 +19,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
 import java.util.function.Predicate;
 
@@ -51,57 +54,61 @@ public class ShotGumItem extends Item implements UpdatesStackTags, AlwaysCombina
     }
 
     public static float getLerpedShootTime(ItemStack stack, float f) {
-        CompoundTag compoundtag = stack.getTag();
-        float prev = compoundtag != null ? (float) compoundtag.getInt("PrevShootTime") : 0F;
-        float current = compoundtag != null ? (float) compoundtag.getInt("ShootTime") : 0F;
+        CompoundTag compoundtag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        float prev = (float) compoundtag.getInt("PrevShootTime");
+        float current = (float) compoundtag.getInt("ShootTime");
         return prev + f * (current - prev);
     }
 
     public static float getLerpedCrankAngle(ItemStack stack, float f) {
-        CompoundTag compoundtag = stack.getTag();
-        float prev = compoundtag != null ? (float) compoundtag.getFloat("PrevCrankAngle") : 0F;
-        float current = compoundtag != null ? (float) compoundtag.getFloat("CrankAngle") : 0F;
+        CompoundTag compoundtag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        float prev = compoundtag.getFloat("PrevCrankAngle");
+        float current = compoundtag.getFloat("CrankAngle");
         return prev + f * (current - prev);
     }
 
     public static int getShootTime(ItemStack stack) {
-        CompoundTag compoundtag = stack.getTag();
-        return compoundtag != null ? compoundtag.getInt("ShootTime") : 0;
+        CompoundTag compoundtag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return compoundtag.getInt("ShootTime");
     }
 
     public static void setShootTime(ItemStack stack, int i) {
-        CompoundTag compoundtag = stack.getOrCreateTag();
+        CompoundTag compoundtag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         compoundtag.putInt("ShootTime", i);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(compoundtag));
     }
 
     public static float getCrankAngle(ItemStack stack) {
-        CompoundTag compoundtag = stack.getTag();
-        return compoundtag != null ? compoundtag.getFloat("CrankAngle") : 0;
+        CompoundTag compoundtag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return compoundtag.getFloat("CrankAngle");
     }
 
     public static void setCrankAngle(ItemStack stack, float angle) {
-        CompoundTag compoundtag = stack.getOrCreateTag();
+        CompoundTag compoundtag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         compoundtag.putFloat("CrankAngle", angle);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(compoundtag));
     }
 
     public static int getGumballsLeft(ItemStack stack) {
-        CompoundTag compoundtag = stack.getTag();
-        return compoundtag != null && compoundtag.contains("Gumballs") ? compoundtag.getInt("Gumballs") : MAX_AMMO;
+        CompoundTag compoundtag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return compoundtag.contains("Gumballs") ? compoundtag.getInt("Gumballs") : MAX_AMMO;
     }
 
     public static void setGumballsLeft(ItemStack stack, int i) {
-        CompoundTag compoundtag = stack.getOrCreateTag();
+        CompoundTag compoundtag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         compoundtag.putInt("Gumballs", i);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(compoundtag));
     }
 
     public static boolean isShooting(ItemStack stack) {
-        CompoundTag compoundtag = stack.getTag();
-        return compoundtag != null && compoundtag.getBoolean("Shooting");
+        CompoundTag compoundtag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return compoundtag.getBoolean("Shooting");
     }
 
     public static void setShooting(ItemStack stack, boolean shooting) {
-        CompoundTag compoundtag = stack.getOrCreateTag();
+        CompoundTag compoundtag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         compoundtag.putBoolean("Shooting", shooting);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(compoundtag));
     }
 
     public static boolean hasAmmo(ItemStack stack) {
@@ -132,7 +139,8 @@ public class ShotGumItem extends Item implements UpdatesStackTags, AlwaysCombina
         }
     }
 
-    public int getUseDuration(ItemStack stack) {
+    @Override
+    public int getUseDuration(ItemStack stack, LivingEntity entity) {
         return 72000;
     }
 
@@ -140,22 +148,28 @@ public class ShotGumItem extends Item implements UpdatesStackTags, AlwaysCombina
         super.inventoryTick(stack, level, entity, i, held);
         boolean shooting = isShooting(stack);
         int shootTime = getShootTime(stack);
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        boolean tagModified = false;
         if (tag.getInt("PrevShootTime") != tag.getInt("ShootTime")) {
             tag.putInt("PrevShootTime", getShootTime(stack));
+            tagModified = true;
         }
         if (tag.getFloat("PrevCrankAngle") != tag.getFloat("CrankAngle")) {
             tag.putFloat("PrevCrankAngle", getCrankAngle(stack));
+            tagModified = true;
+        }
+        if (tagModified) {
+            stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         }
 
         if(shootTime == 5 && shooting){
             level.playSound((Player) null, entity.getX(), entity.getY(), entity.getZ(), ACSoundRegistry.SHOTGUM_SHOOT.get(), entity.getSoundSource(), 1.0F, 1.0F);
             setShooting(stack, false);
             boolean leftHand = false;
-            boolean ricochetEnchant = stack.getEnchantmentLevel(ACEnchantmentRegistry.TARGETED_RICOCHET.get()) > 0;
-            boolean splitEnchant = stack.getEnchantmentLevel(ACEnchantmentRegistry.TRIPLE_SPLIT.get()) > 0;
-            boolean explosiveEnchant = stack.getEnchantmentLevel(ACEnchantmentRegistry.EXPLOSIVE_FLAVOR.get()) > 0;
-            int maximumBounces = 4 + stack.getEnchantmentLevel(ACEnchantmentRegistry.BOUNCY_BALL.get()) * 2;
+            boolean ricochetEnchant = ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.TARGETED_RICOCHET, stack) > 0;
+            boolean splitEnchant = ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.TRIPLE_SPLIT, stack) > 0;
+            boolean explosiveEnchant = ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.EXPLOSIVE_FLAVOR, stack) > 0;
+            int maximumBounces = 4 + ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.BOUNCY_BALL, stack) * 2;
             if(entity instanceof LivingEntity living){
                 boolean mainHand = living.getItemInHand(InteractionHand.MAIN_HAND) == stack;
                 boolean offHand = living.getItemInHand(InteractionHand.OFF_HAND) == stack;

@@ -3,6 +3,7 @@ package com.github.alexmodguy.alexscaves.client.render.entity;
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.client.model.FerrouslimeModel;
 import com.github.alexmodguy.alexscaves.client.render.ACRenderTypes;
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexmodguy.alexscaves.server.entity.living.FerrouslimeEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -69,9 +70,9 @@ public class FerrouslimeRenderer extends EntityRenderer<FerrouslimeEntity> imple
         poseStack.mulPose(Axis.ZP.rotationDegrees(180));
         FERROUSLIME_MODEL.setupAnim(entity, 0, 0, entity.tickCount + partialTicks, headYaw, headPitch);
         VertexConsumer textureConsumer = source.getBuffer(sepia ? ACRenderTypes.getBookWidget(TEXTURE, true) : RenderType.entityCutoutNoCull(TEXTURE));
-        FERROUSLIME_MODEL.renderToBuffer(poseStack, textureConsumer, packedLight, LivingEntityRenderer.getOverlayCoords(entity, 0.0F), 1.0F, 1.0F, 1.0F, 1.0F);
+        FERROUSLIME_MODEL.renderToBuffer(poseStack, textureConsumer, packedLight, LivingEntityRenderer.getOverlayCoords(entity, 0.0F), -1);
         VertexConsumer eyesConsumer = source.getBuffer(sepia ? ACRenderTypes.getBookWidget(TEXTURE_EYES, true) : RenderType.eyes(TEXTURE_EYES));
-        FERROUSLIME_MODEL.renderToBuffer(poseStack, eyesConsumer, packedLight, LivingEntityRenderer.getOverlayCoords(entity, 0.0F), 1.0F, 1.0F, 1.0F, 1.0F);
+        FERROUSLIME_MODEL.renderToBuffer(poseStack, eyesConsumer, packedLight, LivingEntityRenderer.getOverlayCoords(entity, 0.0F), -1);
         poseStack.popPose();
     }
 
@@ -95,9 +96,9 @@ public class FerrouslimeRenderer extends EntityRenderer<FerrouslimeEntity> imple
     private void spikeCubeFace(FerrouslimeEntity entity, Matrix4f matrix4f, Matrix3f matrix3f, VertexConsumer vertexConsumer, float offset, float length, float width, int packedLightIn) {
         int overlayCoords = LivingEntityRenderer.getOverlayCoords(entity, 0.0F);
         int hurtColor = entity.hurtTime > 0 || entity.deathTime > 0 ? 10 : 255;
-        vertexConsumer.vertex(matrix4f, 0, 0, offset + length).color(255, hurtColor, hurtColor, 255).uv((float) 0, (float) 0).overlayCoords(overlayCoords).uv2(packedLightIn).normal(matrix3f, 0.0F, -1.0F, 0.0F).endVertex();
-        vertexConsumer.vertex(matrix4f, 0, width, offset).color(255, hurtColor, hurtColor, 255).uv((float) width, (float) length).overlayCoords(overlayCoords).uv2(packedLightIn).normal(matrix3f, 0.0F, -1.0F, 0.0F).endVertex();
-        vertexConsumer.vertex(matrix4f, 0, -width, offset).color(255, hurtColor, hurtColor, 255).uv((float) 0, (float) length).overlayCoords(overlayCoords).uv2(packedLightIn).normal(matrix3f, 0.0F, -1.0F, 0.0F).endVertex();
+        vertexConsumer.addVertex(matrix4f, 0, 0, offset + length).setColor(255, hurtColor, hurtColor, 255).setUv((float) 0, (float) 0).setOverlay(overlayCoords).setLight(packedLightIn).setNormal(0.0F, -1.0F, 0.0F);
+        vertexConsumer.addVertex(matrix4f, 0, width, offset).setColor(255, hurtColor, hurtColor, 255).setUv((float) width, (float) length).setOverlay(overlayCoords).setLight(packedLightIn).setNormal(0.0F, -1.0F, 0.0F);
+        vertexConsumer.addVertex(matrix4f, 0, -width, offset).setColor(255, hurtColor, hurtColor, 255).setUv((float) 0, (float) length).setOverlay(overlayCoords).setLight(packedLightIn).setNormal(0.0F, -1.0F, 0.0F);
 
     }
 
@@ -119,10 +120,10 @@ public class FerrouslimeRenderer extends EntityRenderer<FerrouslimeEntity> imple
     private void renderCubeFace(FerrouslimeEntity entity, Matrix4f matrix4f, Matrix3f matrix3f, VertexConsumer vertexConsumer, int packedLightIn, float f1, float f2, float f3, float f4, float f5, float f6, float f7, float f8, float textureScale) {
         int overlayCoords = LivingEntityRenderer.getOverlayCoords(entity, 0.0F);
         int hurtColor = entity.hurtTime > 0 || entity.deathTime > 0 ? 10 : 255;
-        vertexConsumer.vertex(matrix4f, f1, f3, f5).color(255, hurtColor, hurtColor, 255).uv((float) 0, (float) textureScale).overlayCoords(overlayCoords).uv2(packedLightIn).normal(matrix3f, 0.0F, -1.0F, 0.0F).endVertex();
-        vertexConsumer.vertex(matrix4f, f2, f3, f6).color(255, hurtColor, hurtColor, 255).uv((float) textureScale, (float) textureScale).overlayCoords(overlayCoords).uv2(packedLightIn).normal(matrix3f, 0.0F, -1.0F, 0.0F).endVertex();
-        vertexConsumer.vertex(matrix4f, f2, f4, f7).color(255, hurtColor, hurtColor, 255).uv((float) textureScale, (float) 0).overlayCoords(overlayCoords).uv2(packedLightIn).normal(matrix3f, 0.0F, -1.0F, 0.0F).endVertex();
-        vertexConsumer.vertex(matrix4f, f1, f4, f8).color(255, hurtColor, hurtColor, 255).uv((float) 0, (float) 0).overlayCoords(overlayCoords).uv2(packedLightIn).normal(matrix3f, 0.0F, -1.0F, 0.0F).endVertex();
+        vertexConsumer.addVertex(matrix4f, f1, f3, f5).setColor(255, hurtColor, hurtColor, 255).setUv((float) 0, (float) textureScale).setOverlay(overlayCoords).setLight(packedLightIn).setNormal(0.0F, -1.0F, 0.0F);
+        vertexConsumer.addVertex(matrix4f, f2, f3, f6).setColor(255, hurtColor, hurtColor, 255).setUv((float) textureScale, (float) textureScale).setOverlay(overlayCoords).setLight(packedLightIn).setNormal(0.0F, -1.0F, 0.0F);
+        vertexConsumer.addVertex(matrix4f, f2, f4, f7).setColor(255, hurtColor, hurtColor, 255).setUv((float) textureScale, (float) 0).setOverlay(overlayCoords).setLight(packedLightIn).setNormal(0.0F, -1.0F, 0.0F);
+        vertexConsumer.addVertex(matrix4f, f1, f4, f8).setColor(255, hurtColor, hurtColor, 255).setUv((float) 0, (float) 0).setOverlay(overlayCoords).setLight(packedLightIn).setNormal(0.0F, -1.0F, 0.0F);
     }
 
     public ResourceLocation getTextureLocation(FerrouslimeEntity entity) {

@@ -7,20 +7,26 @@ import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
 import com.github.alexmodguy.alexscaves.server.potion.ACEffectRegistry;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
 import javax.annotation.Nullable;
 
 public class RainbounceBootsItem extends ArmorItem implements CustomArmorPostRender {
+
+    private final ACArmorMaterial acMaterial;
+
     public RainbounceBootsItem(ACArmorMaterial rainbounceArmorMaterial) {
-        super(rainbounceArmorMaterial, Type.BOOTS, new Properties());
+        super(rainbounceArmorMaterial.getHolder(), Type.BOOTS, new Properties().durability(rainbounceArmorMaterial.getDurabilityForType(Type.BOOTS)));
+        this.acMaterial = rainbounceArmorMaterial;
     }
 
     @Override
@@ -28,9 +34,10 @@ public class RainbounceBootsItem extends ArmorItem implements CustomArmorPostRen
         consumer.accept((IClientItemExtensions) AlexsCaves.PROXY.getArmorProperties());
     }
 
+    @Override
     @Nullable
-    public String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, String type) {
-        return AlexsCaves.MODID + ":textures/armor/rainbounce_boots.png";
+    public ResourceLocation getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, ArmorMaterial.Layer layer, boolean innerModel) {
+        return ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "textures/armor/rainbounce_boots.png");
     }
 
     public static void onEntityLand(LivingEntity living, Vec3 vec3) {
@@ -42,7 +49,7 @@ public class RainbounceBootsItem extends ArmorItem implements CustomArmorPostRen
             if(blockstate.is(ACTagRegistry.REDUCE_RAINBOUNCE_BOOTS_EFFECT_ON)){
                 f2 *= 0.15F;
             }
-            float xzInertia = living.hasEffect(ACEffectRegistry.SUGAR_RUSH.get()) ? 1.2F : 1.9F;
+            float xzInertia = living.hasEffect(ACEffectRegistry.SUGAR_RUSH) ? 1.2F : 1.9F;
             living.setDeltaMovement(living.getDeltaMovement().multiply(xzInertia, 1F, xzInertia).add(0, f2, 0));
             living.fallDistance = 0.0F;
             living.playSound(ACSoundRegistry.RAINBOUNCE_BOOTS_BOUNCE.get());

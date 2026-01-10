@@ -31,7 +31,6 @@ public class NuclearFurnaceScreen extends AbstractContainerScreen<NuclearFurnace
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float f, int x, int y) {
-        this.renderBackground(guiGraphics);
         int i = this.leftPos;
         int j = this.topPos;
         guiGraphics.blit(TEXTURE, i, j, 0, 0, this.imageWidth, this.imageHeight);

@@ -100,14 +100,14 @@ public class GumbeeperEntity extends Monster implements PowerableMob, PossessedB
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(EXPLODING, false);
-        this.entityData.define(ATTACK_CHARGE, 0.0F);
-        this.entityData.define(GUMBALLS_LEFT, DEFAULT_GUMBALLS);
-        this.entityData.define(SHOOTING, false);
-        this.entityData.define(CHARGED, false);
-        this.entityData.define(POSSESSOR_LICOWITCH_ID, -1);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(EXPLODING, false);
+        builder.define(ATTACK_CHARGE, 0.0F);
+        builder.define(GUMBALLS_LEFT, DEFAULT_GUMBALLS);
+        builder.define(SHOOTING, false);
+        builder.define(CHARGED, false);
+        builder.define(POSSESSOR_LICOWITCH_ID, -1);
     }
 
     @Override
@@ -194,9 +194,7 @@ public class GumbeeperEntity extends Monster implements PowerableMob, PossessedB
             this.level().playSound(player, this.getX(), this.getY(), this.getZ(), soundevent, this.getSoundSource(), 1.0F, this.random.nextFloat() * 0.4F + 0.8F);
             if (!this.level().isClientSide) {
                 this.setExploding(true);
-                itemstack.hurtAndBreak(1, player, (p_32290_) -> {
-                    p_32290_.broadcastBreakEvent(hand);
-                });
+                itemstack.hurtAndBreak(1, player, hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
             }
 
             return InteractionResult.sidedSuccess(this.level().isClientSide);
@@ -348,8 +346,8 @@ public class GumbeeperEntity extends Monster implements PowerableMob, PossessedB
     }
 
     @Override
-    protected void dropCustomDeathLoot(DamageSource damageSource, int experience, boolean idk) {
-        super.dropCustomDeathLoot(damageSource, experience, idk);
+    protected void dropCustomDeathLoot(ServerLevel level, DamageSource damageSource, boolean recentlyHit) {
+        super.dropCustomDeathLoot(level, damageSource, recentlyHit);
         if (damageSource.getEntity() instanceof CaniacEntity) {
             this.spawnAtLocation(ACItemRegistry.MUSIC_DISC_TASTY_FRAGMENT.get());
         }

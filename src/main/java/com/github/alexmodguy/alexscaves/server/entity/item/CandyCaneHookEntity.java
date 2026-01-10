@@ -3,13 +3,12 @@ package com.github.alexmodguy.alexscaves.server.entity.item;
 import com.github.alexmodguy.alexscaves.server.enchantment.ACEnchantmentRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.ACEntityDataRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.ACEntityRegistry;
+import net.minecraft.core.registries.Registries;
 import com.github.alexmodguy.alexscaves.server.entity.living.GumWormEntity;
 import com.github.alexmodguy.alexscaves.server.entity.living.GumWormSegmentEntity;
 import com.github.alexmodguy.alexscaves.server.item.CandyCaneHookItem;
 import com.github.alexmodguy.alexscaves.server.misc.ACDamageTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -33,8 +32,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -88,7 +85,7 @@ public class CandyCaneHookEntity extends ThrowableProjectile {
         this.moveTo(d0 + armOffset.x, d1, d2 + armOffset.z, f1, f);
         Vec3 vec3 = new Vec3(-f3, Mth.clamp(-(f5 / f4), -5.0F, 5.0F), -f2);
         double d3 = vec3.length();
-        double launchDist = 0.5D + itemstack.getEnchantmentLevel(ACEnchantmentRegistry.FAR_FLUNG.get()) * 0.2D;
+        double launchDist = 0.5D + ACEnchantmentRegistry.getEnchantmentLevel(level, itemstack, ACEnchantmentRegistry.FAR_FLUNG) * 0.2D;
         vec3 = vec3.multiply(launchDist / d3 + 0.5D + this.random.nextGaussian() * 0.0045D, launchDist / d3 + 0.5D + this.random.nextGaussian() * 0.0045D, launchDist / d3 + 0.5D + this.random.nextGaussian() * 0.0045D);
         this.setDeltaMovement(vec3);
         this.setYRot((float) (Mth.atan2(vec3.x, vec3.z) * (double) (180F / (float) Math.PI)));
@@ -96,23 +93,12 @@ public class CandyCaneHookEntity extends ThrowableProjectile {
         this.setOffhand(offhand);
         this.yRotO = this.getYRot();
         this.xRotO = this.getXRot();
-        this.setDamage(itemstack.getEnchantmentLevel(ACEnchantmentRegistry.SHARP_CANE.get()) * 3.0F);
-        if(itemstack.getEnchantmentLevel(ACEnchantmentRegistry.STRAIGHT_HOOK.get()) > 0){
+        this.setDamage(ACEnchantmentRegistry.getEnchantmentLevel(level, itemstack, ACEnchantmentRegistry.SHARP_CANE) * 3.0F);
+        if(ACEnchantmentRegistry.getEnchantmentLevel(level, itemstack, ACEnchantmentRegistry.STRAIGHT_HOOK) > 0){
             this.entityData.set(RESISTS_GRAVITY, true);
         }
     }
 
-    public CandyCaneHookEntity(PlayMessages.SpawnEntity spawnEntity, Level world) {
-        this(ACEntityRegistry.CANDY_CANE_HOOK.get(), world);
-        this.setInvulnerable(true);
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
-    }
-
-    @Override
     public void lerpTo(double x, double y, double z, float yr, float xr, int steps, boolean b) {
         this.lx = x;
         this.ly = y;
@@ -131,15 +117,15 @@ public class CandyCaneHookEntity extends ThrowableProjectile {
         this.setDeltaMovement(this.lxd, this.lyd, this.lzd);
     }
 
-    protected void defineSynchedData() {
-        this.getEntityData().define(OWNER_ID, -1);
-        this.getEntityData().define(REELING, false);
-        this.getEntityData().define(OFFHAND, false);
-        this.getEntityData().define(HOOKED_POSITION, Optional.empty());
-        this.getEntityData().define(HOOKED_ENTITY_ID, -1);
-        this.getEntityData().define(HOOKED_ENTITY_UUID, Optional.empty());
-        this.getEntityData().define(DAMAGE, 0.0F);
-        this.getEntityData().define(RESISTS_GRAVITY, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(OWNER_ID, -1);
+        builder.define(REELING, false);
+        builder.define(OFFHAND, false);
+        builder.define(HOOKED_POSITION, Optional.empty());
+        builder.define(HOOKED_ENTITY_ID, -1);
+        builder.define(HOOKED_ENTITY_UUID, Optional.empty());
+        builder.define(DAMAGE, 0.0F);
+        builder.define(RESISTS_GRAVITY, false);
     }
 
     public void tick() {
@@ -326,8 +312,7 @@ public class CandyCaneHookEntity extends ThrowableProjectile {
         super.remove(removalReason);
     }
 
-    @Override
-    protected float getGravity() {
+    public float getCustomGravity() {
         return isReeling() || this.entityData.get(RESISTS_GRAVITY) && this.getDeltaMovement().horizontalDistance() > 0.05F ? 0 : 0.08F;
     }
 

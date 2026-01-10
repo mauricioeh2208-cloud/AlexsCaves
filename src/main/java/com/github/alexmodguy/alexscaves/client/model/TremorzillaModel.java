@@ -1,6 +1,7 @@
 package com.github.alexmodguy.alexscaves.client.model;
 
 import com.github.alexmodguy.alexscaves.client.model.misc.HideableModelBoxWithChildren;
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexmodguy.alexscaves.server.entity.living.TremorzillaEntity;
 import com.github.alexmodguy.alexscaves.server.entity.util.TremorzillaLegSolver;
 import com.github.alexmodguy.alexscaves.server.misc.ACMath;
@@ -272,14 +273,14 @@ public class TremorzillaModel extends AdvancedEntityModel<TremorzillaEntity> {
             matrixStackIn.scale(0.15F, 0.15F, 0.15F);
             matrixStackIn.translate(0.0D, 8.55F, 0D);
             parts().forEach((p_228292_8_) -> {
-                p_228292_8_.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
+                p_228292_8_.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, ColorUtil.packColor(red, green, blue, alpha));
             });
             matrixStackIn.popPose();
             head.setScale(1, 1, 1);
         } else {
             matrixStackIn.pushPose();
             parts().forEach((p_228290_8_) -> {
-                p_228290_8_.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
+                p_228290_8_.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, ColorUtil.packColor(red, green, blue, alpha));
             });
             matrixStackIn.popPose();
         }

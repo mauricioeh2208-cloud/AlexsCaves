@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.ACBlockEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.VolcanicCoreBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -11,6 +12,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -28,6 +31,13 @@ import net.minecraft.world.level.material.MapColor;
 import javax.annotation.Nullable;
 
 public class VolcanicCoreBlock extends BaseEntityBlock {
+    public static final MapCodec<VolcanicCoreBlock> CODEC = simpleCodec((properties) -> new VolcanicCoreBlock());
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
+    }
+
     public VolcanicCoreBlock() {
         super(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).instrument(NoteBlockInstrument.BASEDRUM).requiresCorrectToolForDrops().lightLevel((state) -> {
             return 8;
@@ -37,9 +47,12 @@ public class VolcanicCoreBlock extends BaseEntityBlock {
     }
 
     public void stepOn(Level level, BlockPos blockPos, BlockState blockState, Entity entity) {
-        if (!entity.isSteppingCarefully() && entity instanceof LivingEntity && !EnchantmentHelper.hasFrostWalker((LivingEntity) entity)) {
-            entity.hurt(level.damageSources().hotFloor(), 1.0F);
-            entity.setSecondsOnFire(3);
+        if (!entity.isSteppingCarefully() && entity instanceof LivingEntity livingEntity) {
+            var frostWalker = level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FROST_WALKER);
+            if (EnchantmentHelper.getEnchantmentLevel(frostWalker, livingEntity) == 0) {
+                entity.hurt(level.damageSources().hotFloor(), 1.0F);
+                entity.igniteForSeconds(3);
+            }
         }
         super.stepOn(level, blockPos, blockState, entity);
     }

@@ -118,12 +118,12 @@ public class TremorsaurusEntity extends DinosaurEntity implements KeybindUsingMo
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(RUNNING, false);
-        this.entityData.define(HELD_MOB_ID, -1);
-        this.entityData.define(TAME_ATTEMPTS, 0);
-        this.entityData.define(METER_AMOUNT, 1.0F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(RUNNING, false);
+        builder.define(HELD_MOB_ID, -1);
+        builder.define(TAME_ATTEMPTS, 0);
+        builder.define(METER_AMOUNT, 1.0F);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -378,7 +378,7 @@ public class TremorsaurusEntity extends DinosaurEntity implements KeybindUsingMo
 
     @Override
     public boolean wantsToAttack(LivingEntity living, LivingEntity owner) {
-        if(living instanceof TremorsaurusEntity tremorsaurus && (tremorsaurus.getTameAttempts() > 0 || tremorsaurus.hasEffect(ACEffectRegistry.STUNNED.get()))){
+        if(living instanceof TremorsaurusEntity tremorsaurus && (tremorsaurus.getTameAttempts() > 0 || tremorsaurus.hasEffect(ACEffectRegistry.STUNNED))){
             return false;
         }
         return super.wantsToAttack(living, owner);
@@ -525,6 +525,10 @@ public class TremorsaurusEntity extends DinosaurEntity implements KeybindUsingMo
         }
     }
 
+    public double getPassengersRidingOffset() {
+        return this.getBbHeight() * 0.75D;
+    }
+
     @Override
     public Vec3 getDismountLocationForPassenger(LivingEntity p_20123_) {
         return new Vec3(this.getX(), this.getBoundingBox().minY, this.getZ());
@@ -544,8 +548,8 @@ public class TremorsaurusEntity extends DinosaurEntity implements KeybindUsingMo
 
     @Override
     public boolean onFeedMixture(ItemStack itemStack, Player player) {
-        if (itemStack.is(ACItemRegistry.SERENE_SALAD.get()) && this.hasEffect(ACEffectRegistry.STUNNED.get())) {
-            this.removeEffect(ACEffectRegistry.STUNNED.get());
+        if (itemStack.is(ACItemRegistry.SERENE_SALAD.get()) && this.hasEffect(ACEffectRegistry.STUNNED)) {
+            this.removeEffect(ACEffectRegistry.STUNNED);
             AlexsCaves.sendMSGToAll(new UpdateEffectVisualityEntityMessage(this.getId(), this.getId(), 3, 0, true));
             if (!level().isClientSide) {
                 this.setTameAttempts(this.getTameAttempts() + 1);

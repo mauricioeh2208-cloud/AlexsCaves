@@ -17,7 +17,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.ForgeHooksClient;
+import net.neoforged.neoforge.client.ClientHooks;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -56,7 +56,7 @@ public abstract class HumanoidArmorLayerMixin extends RenderLayer {
                 if (armorItem.getEquipmentSlot() == equipmentSlot) {
                     boolean legs = equipmentSlot == EquipmentSlot.LEGS;
                     HumanoidModel model = this.getParentModel() instanceof HumanoidModel humanoidModel1 ? humanoidModel1 : humanoidModel;
-                    Model armorModel = ForgeHooksClient.getArmorModel(livingEntity, itemstack, equipmentSlot, model);
+                    Model armorModel = ClientHooks.getArmorModel(livingEntity, itemstack, equipmentSlot, model);
                     setPartVisibility((HumanoidModel) armorModel, equipmentSlot);
                     ResourceLocation texture = getACArmorResource(livingEntity, itemstack, equipmentSlot, null);
                     ACArmorRenderProperties.renderCustomArmor(poseStack, multiBufferSource, light, lastArmorItemStackRendered, armorItem, armorModel, legs, texture);
@@ -66,26 +66,31 @@ public abstract class HumanoidArmorLayerMixin extends RenderLayer {
     }
 
 
-    /* copy of forge method */
+    /* Updated for 1.21 ArmorMaterial.Layer system */
     private ResourceLocation getACArmorResource(LivingEntity entity, ItemStack stack, EquipmentSlot slot, @Nullable String type) {
         ArmorItem item = (ArmorItem) stack.getItem();
-        String texture = item.getMaterial().getName();
-        String domain = "minecraft";
-        int idx = texture.indexOf(':');
-        if (idx != -1) {
-            domain = texture.substring(0, idx);
-            texture = texture.substring(idx + 1);
+        // In 1.21, armor textures are handled via the ArmorMaterial.Layer system
+        net.minecraft.world.item.ArmorMaterial material = item.getMaterial().value();
+        boolean innerModel = slot == EquipmentSlot.LEGS;
+        
+        // Get the first layer (most armor materials have only one layer, leather has two for dyeing)
+        if (!material.layers().isEmpty()) {
+            net.minecraft.world.item.ArmorMaterial.Layer layer = material.layers().get(0);
+            // Use the new ClientHooks.getArmorTexture with ArmorMaterial.Layer
+            return ClientHooks.getArmorTexture(entity, stack, layer, innerModel, slot);
         }
-        String s1 = String.format(java.util.Locale.ROOT, "%s:textures/models/armor/%s_layer_%d%s.png", domain, texture, (slot == EquipmentSlot.LEGS ? 2 : 1), type == null ? "" : String.format(java.util.Locale.ROOT, "_%s", type));
-
-        s1 = net.minecraftforge.client.ForgeHooksClient.getArmorTexture(entity, stack, s1, slot, type);
+        
+        // Fallback: construct texture path manually if no layers defined
+        ResourceLocation materialName = item.getMaterial().unwrapKey().get().location();
+        String domain = materialName.getNamespace();
+        String texture = materialName.getPath();
+        String s1 = String.format(java.util.Locale.ROOT, "%s:textures/models/armor/%s_layer_%d%s.png", domain, texture, (innerModel ? 2 : 1), type == null ? "" : String.format(java.util.Locale.ROOT, "_%s", type));
+        
         ResourceLocation resourcelocation = AC_ARMOR_LOCATION_CACHE.get(s1);
-
         if (resourcelocation == null) {
             resourcelocation = ResourceLocation.parse(s1);
             AC_ARMOR_LOCATION_CACHE.put(s1, resourcelocation);
         }
-
         return resourcelocation;
     }
 }

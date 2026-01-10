@@ -19,6 +19,8 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -30,7 +32,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.minecraft.world.level.material.MapColor;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -56,9 +58,12 @@ public class FissurePrimalMagmaBlock extends Block {
     }
 
     public void stepOn(Level level, BlockPos blockPos, BlockState blockState, Entity entity) {
-        if (!entity.isSteppingCarefully() && entity instanceof LivingEntity && !EnchantmentHelper.hasFrostWalker((LivingEntity) entity)) {
-            entity.hurt(level.damageSources().hotFloor(), 1.0F);
-            entity.setSecondsOnFire(6);
+        if (!entity.isSteppingCarefully() && entity instanceof LivingEntity livingEntity) {
+            var frostWalker = level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FROST_WALKER);
+            if (EnchantmentHelper.getEnchantmentLevel(frostWalker, livingEntity) == 0) {
+                entity.hurt(level.damageSources().hotFloor(), 1.0F);
+                entity.igniteForSeconds(6);
+            }
         }
         super.stepOn(level, blockPos, blockState, entity);
     }
@@ -67,7 +72,7 @@ public class FissurePrimalMagmaBlock extends Block {
         if (!(entity instanceof LuxtructosaurusEntity)) {
             entity.setDeltaMovement(entity.getDeltaMovement().multiply(0.9D, 0.1D, 0.9D));
             entity.hurt(level.damageSources().hotFloor(), 1.0F);
-            entity.setSecondsOnFire(6);
+            entity.igniteForSeconds(6);
         }
     }
 
@@ -165,8 +170,8 @@ public class FissurePrimalMagmaBlock extends Block {
     }
 
     @Override
-    public BlockPathTypes getAdjacentBlockPathType(BlockState state, BlockGetter level, BlockPos pos, @Nullable Mob mob, BlockPathTypes originalType) {
-        return BlockPathTypes.DANGER_FIRE;
+    public PathType getAdjacentBlockPathType(BlockState state, BlockGetter level, BlockPos pos, @Nullable Mob mob, PathType originalType) {
+        return PathType.DANGER_FIRE;
     }
 
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {

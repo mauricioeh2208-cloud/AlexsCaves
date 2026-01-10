@@ -34,7 +34,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.EnumSet;
@@ -73,10 +73,10 @@ public class FerrouslimeEntity extends Monster {
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(HEADS, 1);
-        this.entityData.define(ATTACK_TICK, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(HEADS, 1);
+        builder.define(ATTACK_TICK, 0);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -181,7 +181,7 @@ public class FerrouslimeEntity extends Monster {
     }
 
     protected float getStandingEyeHeight(Pose p_33614_, EntityDimensions dimensions) {
-        return 0.625F * dimensions.height;
+        return 0.625F * dimensions.height();
     }
 
     public void onSyncedDataUpdated(EntityDataAccessor<?> entityDataAccessor) {
@@ -230,8 +230,9 @@ public class FerrouslimeEntity extends Monster {
         }
     }
 
-    public EntityDimensions getDimensions(Pose p_33597_) {
-        return super.getDimensions(p_33597_).scale(getSlimeSize(1.0F));
+    @Override
+    public EntityDimensions getDefaultDimensions(Pose poseIn) {
+        return super.getDefaultDimensions(poseIn).scale(getSlimeSize(1.0F));
     }
 
     public float getSlimeSize(float partialTicks) {
@@ -267,12 +268,12 @@ public class FerrouslimeEntity extends Monster {
     }
 
     @javax.annotation.Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn, @javax.annotation.Nullable CompoundTag dataTag) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn) {
         this.setHeadCount(1 + random.nextInt(2));
-        return super.finalizeSpawn(level, difficultyIn, reason, spawnDataIn, dataTag);
+        return super.finalizeSpawn(level, difficultyIn, reason, spawnDataIn);
     }
 
-    public boolean canCutCorner(BlockPathTypes types) {
+    public boolean canCutCorner(PathType types) {
         return true;
     }
 
@@ -294,7 +295,7 @@ public class FerrouslimeEntity extends Monster {
     }
 
     public boolean canBeAffected(MobEffectInstance effectInstance) {
-        return super.canBeAffected(effectInstance) && effectInstance.getEffect() != ACEffectRegistry.MAGNETIZING.get();
+        return super.canBeAffected(effectInstance) && effectInstance.getEffect() != ACEffectRegistry.MAGNETIZING;
     }
 
     protected SoundEvent getHurtSound(DamageSource damageSource) {

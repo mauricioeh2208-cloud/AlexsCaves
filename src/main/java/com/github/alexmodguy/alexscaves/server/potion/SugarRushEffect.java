@@ -4,6 +4,7 @@ import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexthe666.citadel.server.tick.ServerTickRateTracker;
 import com.github.alexthe666.citadel.server.tick.modifier.LocalEntityTickRateModifier;
 import com.github.alexthe666.citadel.server.tick.modifier.TickRateModifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
@@ -18,17 +19,20 @@ public class SugarRushEffect extends MobEffect {
 
     protected SugarRushEffect() {
         super(MobEffectCategory.BENEFICIAL, 0XFFA4EB);
-        this.addAttributeModifier(Attributes.MOVEMENT_SPEED, "91AEAA56-376B-4498-935B-2F7F68020638", 0.7F, AttributeModifier.Operation.MULTIPLY_TOTAL);
+        this.addAttributeModifier(Attributes.MOVEMENT_SPEED, ResourceLocation.parse("alexscaves:sugar_rush_speed"), 0.7F, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
     }
 
-    public boolean isDurationEffectTick(int duration, int amplifier) {
+    @Override
+    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
         return duration > 0;
     }
 
-    public void applyEffectTick(LivingEntity entity, int amplifier) {
+    @Override
+    public boolean applyEffectTick(LivingEntity entity, int amplifier) {
         if(entity.level().isClientSide){
             AlexsCaves.PROXY.playWorldSound(entity, (byte)18);
         }
+        return true;
     }
 
     public static void enterSlowMotion(Player entity, Level level, int duration, float speed) {

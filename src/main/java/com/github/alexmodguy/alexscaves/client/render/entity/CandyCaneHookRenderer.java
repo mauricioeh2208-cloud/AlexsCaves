@@ -68,7 +68,7 @@ public class CandyCaneHookRenderer extends EntityRenderer<CandyCaneHookEntity> {
         RenderType renderType = RenderType.entityCutoutNoCull(this.getTextureLocation(entity));
         VertexConsumer vertexconsumer = bufferSource.getBuffer(renderType);
         MODEL.setupAnim(entity, 0.0F, 0.0F, ageInTicks, 0.0F, 0.0F);
-        MODEL.renderToBuffer(poseStack, vertexconsumer, lighting, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+        MODEL.renderToBuffer(poseStack, vertexconsumer, lighting, OverlayTexture.NO_OVERLAY, -1);
         poseStack.popPose();
 
         //fishng rod stuff
@@ -165,8 +165,8 @@ public class CandyCaneHookRenderer extends EntityRenderer<CandyCaneHookEntity> {
         float f5 = x * f;
         float f6 = y < 0.0F ? y * f * f : y - y * (1.0F - f) * (1.0F - f);
         float f7 = z * f;
-        vertexConsumer.vertex(matrix4f, f5 - xWidth, f6 + yWidth, f7 + zWidth).color(f2, f3, f4, 1.0F).uv2(k).endVertex();
-        vertexConsumer.vertex(matrix4f, f5 + xWidth, f6 + height - yWidth, f7 - zWidth).color(f2, f3, f4, 1.0F).uv2(k).endVertex();
+        vertexConsumer.addVertex(matrix4f, f5 - xWidth, f6 + yWidth, f7 + zWidth).setColor(f2, f3, f4, 1.0F).setLight(k);
+        vertexConsumer.addVertex(matrix4f, f5 + xWidth, f6 + height - yWidth, f7 - zWidth).setColor(f2, f3, f4, 1.0F).setLight(k);
     }
 
     @Override

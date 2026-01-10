@@ -61,12 +61,12 @@ public abstract class DinosaurEntity extends TamableAnimal implements IDancesToJ
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DANCING, false);
-        this.entityData.define(HAS_EGG, false);
-        this.entityData.define(COMMAND, 0);
-        this.entityData.define(ALT_SKIN, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DANCING, false);
+        builder.define(HAS_EGG, false);
+        builder.define(COMMAND, 0);
+        builder.define(ALT_SKIN, 0);
     }
 
     public static boolean checkPrehistoricSpawnRules(EntityType<? extends Animal> type, LevelAccessor levelAccessor, MobSpawnType mobType, BlockPos pos, RandomSource randomSource) {
@@ -343,7 +343,7 @@ public abstract class DinosaurEntity extends TamableAnimal implements IDancesToJ
             if (nearbyDinosaurEntityTypes.size() >= 5) {
                 for (Player player : level().getEntitiesOfClass(Player.class, this.getBoundingBox().inflate(advancementRange))) {
                     if (player.distanceTo(this) < advancementRange) {
-                        ACAdvancementTriggerRegistry.DINOSAURS_MINECART.triggerForEntity(player);
+                        ACAdvancementTriggerRegistry.DINOSAURS_MINECART.get().triggerForEntity(player);
                     }
                 }
 

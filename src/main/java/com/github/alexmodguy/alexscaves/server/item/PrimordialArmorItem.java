@@ -1,20 +1,24 @@
 package com.github.alexmodguy.alexscaves.server.item;
 
 import com.github.alexmodguy.alexscaves.AlexsCaves;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
 import javax.annotation.Nullable;
 
 public class PrimordialArmorItem extends ArmorItem {
 
-    public PrimordialArmorItem(ArmorMaterial armorMaterial, Type slot) {
-        super(armorMaterial, slot, new Properties());
+    private final ACArmorMaterial acMaterial;
+
+    public PrimordialArmorItem(ACArmorMaterial armorMaterial, Type slot) {
+        super(armorMaterial.getHolder(), slot, new Properties().durability(armorMaterial.getDurabilityForType(slot)));
+        this.acMaterial = armorMaterial;
     }
 
     @Override
@@ -22,12 +26,13 @@ public class PrimordialArmorItem extends ArmorItem {
         consumer.accept((IClientItemExtensions) AlexsCaves.PROXY.getArmorProperties());
     }
 
+    @Override
     @Nullable
-    public String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, String type) {
+    public ResourceLocation getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, ArmorMaterial.Layer layer, boolean innerModel) {
         if (slot == EquipmentSlot.LEGS) {
-            return AlexsCaves.MODID + ":textures/armor/primordial_armor_1.png";
+            return ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "textures/armor/primordial_armor_1.png");
         } else {
-            return AlexsCaves.MODID + ":textures/armor/primordial_armor_0.png";
+            return ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "textures/armor/primordial_armor_0.png");
         }
     }
 

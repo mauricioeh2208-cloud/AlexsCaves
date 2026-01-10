@@ -123,13 +123,13 @@ public class WatcherEntity extends Monster implements IAnimatedEntity, Possesses
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(RUNNING, false);
-        this.entityData.define(SHADE_MODE, false);
-        this.entityData.define(POSSESSED_ENTITY_UUID, Optional.empty());
-        this.entityData.define(POSSESSED_ENTITY_ID, -1);
-        this.entityData.define(POSSESSION_STRENGTH, 0.0F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(RUNNING, false);
+        builder.define(SHADE_MODE, false);
+        builder.define(POSSESSED_ENTITY_UUID, Optional.empty());
+        builder.define(POSSESSED_ENTITY_ID, -1);
+        builder.define(POSSESSION_STRENGTH, 0.0F);
     }
 
     public boolean isRunning() {
@@ -276,7 +276,7 @@ public class WatcherEntity extends Monster implements IAnimatedEntity, Possesses
                 isPossessionBreakable = true;
             }
             if (living instanceof Player player && isPossessionBreakable) {
-                player.jumping = false;
+                player.setJumping(false);
                 Player clientSidePlayer = AlexsCaves.PROXY.getClientSidePlayer();
                 if (AlexsCaves.PROXY.isKeyDown(-1) && player == clientSidePlayer) {
                     AlexsCaves.sendMSGToServer(new PossessionKeyMessage(this.getId(), player.getId(), 0));

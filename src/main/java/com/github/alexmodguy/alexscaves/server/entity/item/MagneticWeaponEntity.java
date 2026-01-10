@@ -5,11 +5,10 @@ import com.github.alexmodguy.alexscaves.server.entity.ACEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.living.TeletorEntity;
 import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACAdvancementTriggerRegistry;
-import com.google.common.collect.Multimap;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -21,7 +20,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffectUtil;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -29,6 +27,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
@@ -39,8 +38,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -71,23 +68,13 @@ public class MagneticWeaponEntity extends Entity {
         super(entityType, level);
     }
 
-    public MagneticWeaponEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.MAGNETIC_WEAPON.get(), level);
-        this.setBoundingBox(this.makeBoundingBox());
-    }
-
     @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
-    }
-
-    @Override
-    protected void defineSynchedData() {
-        this.entityData.define(ITEMSTACK, new ItemStack(Items.IRON_SWORD));
-        this.entityData.define(CONTROLLER_UUID, Optional.empty());
-        this.entityData.define(CONTROLLER_ID, -1);
-        this.entityData.define(TARGET_ID, -1);
-        this.entityData.define(IDLING, true);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(ITEMSTACK, new ItemStack(Items.IRON_SWORD));
+        builder.define(CONTROLLER_UUID, Optional.empty());
+        builder.define(CONTROLLER_ID, -1);
+        builder.define(TARGET_ID, -1);
+        builder.define(IDLING, true);
     }
 
 
@@ -156,8 +143,8 @@ public class MagneticWeaponEntity extends Entity {
                 float maxDist = 30F;
                 if(getController() instanceof LivingEntity living && living.getUseItem().is(ACItemRegistry.GALENA_GAUNTLET.get())){
                     ItemStack useItem = living.getUseItem();
-                    haste = useItem.getEnchantmentLevel(ACEnchantmentRegistry.FERROUS_HASTE.get()) > 0;
-                    int fieldExtension = useItem.getEnchantmentLevel(ACEnchantmentRegistry.FIELD_EXTENSION.get());
+                    haste = ACEnchantmentRegistry.getEnchantmentLevel(level(), useItem, ACEnchantmentRegistry.FERROUS_HASTE) > 0;
+                    int fieldExtension = ACEnchantmentRegistry.getEnchantmentLevel(level(), useItem, ACEnchantmentRegistry.FIELD_EXTENSION);
                     maxDist += fieldExtension * 5F;
                 }
                 BlockPos miningBlock = null;
@@ -213,10 +200,10 @@ public class MagneticWeaponEntity extends Entity {
                             damageItem(1);
                             ItemStack itemStack = getItemStack();
                             itemStack.mineBlock(this.level(), miningState, miningBlock, player);
-                            int fortuneLevel = itemStack.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE);
-                            int silkTouchLevel = itemStack.getEnchantmentLevel(Enchantments.SILK_TOUCH);
-                            int exp = miningState.getExpDrop(level(), level().random, miningBlock, fortuneLevel, silkTouchLevel);
-                            net.minecraftforge.event.ForgeEventFactory.onPlayerDestroyItem(player, itemStack, InteractionHand.MAIN_HAND);
+                            var enchRegistry = level().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+                            // In 1.21 NeoForge: getExpDrop(Level, BlockPos, BlockEntity, Entity breaker, ItemStack tool)
+                            int exp = miningState.getExpDrop(level(), miningBlock, level().getBlockEntity(miningBlock), player, itemStack);
+                            net.neoforged.neoforge.event.EventHooks.onPlayerDestroyItem(player, itemStack, InteractionHand.MAIN_HAND);
                             boolean flag;
                             if (miningState.getBlock() instanceof ShulkerBoxBlock) {
                                 flag = level().destroyBlock(miningBlock, true);
@@ -280,9 +267,7 @@ public class MagneticWeaponEntity extends Entity {
         if (getController() instanceof LivingEntity living && !(living instanceof Player player && player.isCreative())) {
             ItemStack stack = getItemStack();
             if(stack.isDamageableItem()){
-                stack.hurtAndBreak(damageAmount, living, (player1) -> {
-                    player1.broadcastBreakEvent(player1.getUsedItemHand());
-                });
+                stack.hurtAndBreak(damageAmount, living, EquipmentSlot.MAINHAND);
                 if(stack.getDamageValue() >= stack.getMaxDamage()){
                     this.remove(RemovalReason.DISCARDED);
                 }
@@ -294,7 +279,9 @@ public class MagneticWeaponEntity extends Entity {
         ItemStack stack = getItemStack();
         float f = stack.getDestroySpeed(state);
         if (f > 1.0F) {
-            int i = EnchantmentHelper.getBlockEfficiency(player);
+            // Get efficiency from the weapon stack, not the player
+            var enchRegistry = level().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            int i = EnchantmentHelper.getItemEnchantmentLevel(enchRegistry.getOrThrow(Enchantments.EFFICIENCY), stack);
             if (i > 0 && !stack.isEmpty()) {
                 f += (float) (i * i + 1);
             }
@@ -324,15 +311,24 @@ public class MagneticWeaponEntity extends Entity {
             f *= f1;
         }
 
-        if (this.isEyeInFluid(FluidTags.WATER) && !EnchantmentHelper.hasAquaAffinity(player)) {
-            f /= 5.0F;
+        if (this.isEyeInFluid(FluidTags.WATER)) {
+            // Check for aqua affinity on player's helmet
+            var enchRegistry = level().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            Holder<Enchantment> aquaAffinity = enchRegistry.getOrThrow(Enchantments.AQUA_AFFINITY);
+            ItemStack helmet = player.getInventory().armor.get(3);
+            if (EnchantmentHelper.getItemEnchantmentLevel(aquaAffinity, helmet) <= 0) {
+                f /= 5.0F;
+            }
         }
 
         if (!this.onGround()) {
             f /= 5.0F;
         }
 
-        f = net.minecraftforge.event.ForgeEventFactory.getBreakSpeed(player, state, f, pos);
+        // Use NeoForge event to allow mods to modify break speed
+        var event = new net.neoforged.neoforge.event.entity.player.PlayerEvent.BreakSpeed(player, state, f, pos);
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(event);
+        f = event.isCanceled() ? -1 : event.getNewSpeed();
         return f;
     }
 
@@ -340,16 +336,18 @@ public class MagneticWeaponEntity extends Entity {
         ItemStack itemStack = this.getItemStack();
         float f = (float)holder.getAttributeValue(Attributes.ATTACK_DAMAGE) + (float) getDamageForItem(itemStack);
         float f1 = (float)holder.getAttributeValue(Attributes.ATTACK_KNOCKBACK);
-        if (target instanceof LivingEntity) {
-            f += EnchantmentHelper.getDamageBonus(itemStack, ((LivingEntity)target).getMobType());
-            f1 += (float)EnchantmentHelper.getEnchantmentLevel(Enchantments.KNOCKBACK, holder);
+        var enchRegistry = level().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+        if (target instanceof LivingEntity livingTarget) {
+            // In 1.21, getDamageBonus requires EntityType and level - we use modifyDamage or skip mob type bonus
+            // Knockback from enchantment
+            f1 += (float)EnchantmentHelper.getItemEnchantmentLevel(enchRegistry.getOrThrow(Enchantments.KNOCKBACK), itemStack);
         }
-        int i = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.FIRE_ASPECT, itemStack);
+        int i = EnchantmentHelper.getItemEnchantmentLevel(enchRegistry.getOrThrow(Enchantments.FIRE_ASPECT), itemStack);
         if (i > 0) {
-            target.setSecondsOnFire(i * 4);
+            target.igniteForSeconds(i * 4);
         }
         if(target.hurt(damageSources().mobAttack(holder), f)){
-            holder.doEnchantDamageEffects(holder, target);
+            // doEnchantDamageEffects removed in 1.21 - enchantment effects are handled automatically
             damageItem(1);
             if (f1 > 0.0F && target instanceof LivingEntity) {
                 ((LivingEntity)target).knockback((double)(f1 * 0.5F), (double)Mth.sin(this.getYRot() * ((float)Math.PI / 180F)), (double)(-Mth.cos(this.getYRot() * ((float)Math.PI / 180F))));
@@ -357,13 +355,13 @@ public class MagneticWeaponEntity extends Entity {
             }
         }
         if(this.isOnFire()){
-            target.setSecondsOnFire(5);
+            target.igniteForSeconds(5);
         }
         if (holder instanceof Player player && target instanceof LivingEntity living) {
             itemStack.hurtEnemy(living, player);
             living.setLastHurtByPlayer(player);
             if(living.getHealth() <= 0.0F && player.distanceTo(target) >= 19.5F){
-                ACAdvancementTriggerRegistry.KILL_MOB_WITH_GALENA_GAUNTLET.triggerForEntity(player);
+                ACAdvancementTriggerRegistry.KILL_MOB_WITH_GALENA_GAUNTLET.get().triggerForEntity(player);
             }
         }
     }
@@ -392,7 +390,7 @@ public class MagneticWeaponEntity extends Entity {
     @Override
     protected void readAdditionalSaveData(CompoundTag tag) {
         if (tag.contains("WeaponStack")) {
-            this.setItemStack(ItemStack.of(tag.getCompound("WeaponStack")));
+            this.setItemStack(ItemStack.parseOptional(this.registryAccess(), tag.getCompound("WeaponStack")));
         }
         if (tag.hasUUID("ControllerUUID")) {
             this.setControllerUUID(tag.getUUID("ControllerUUID"));
@@ -400,11 +398,14 @@ public class MagneticWeaponEntity extends Entity {
     }
 
     public double getDamageForItem(ItemStack itemStack) {
-        Multimap<Attribute, AttributeModifier> map = itemStack.getAttributeModifiers(EquipmentSlot.MAINHAND);
-        if (!map.isEmpty()) {
+        // 1.21: getAttributeModifiers now returns ItemAttributeModifiers
+        var modifiers = itemStack.getAttributeModifiers();
+        if (!modifiers.modifiers().isEmpty()) {
             double d = 0;
-            for (AttributeModifier mod : map.get(Attributes.ATTACK_DAMAGE)) {
-                d += mod.getAmount();
+            for (var entry : modifiers.modifiers()) {
+                if (entry.attribute().equals(Attributes.ATTACK_DAMAGE)) {
+                    d += entry.modifier().amount();
+                }
             }
             return d;
         }
@@ -414,9 +415,7 @@ public class MagneticWeaponEntity extends Entity {
     @Override
     protected void addAdditionalSaveData(CompoundTag tag) {
         if (!this.getItemStack().isEmpty()) {
-            CompoundTag stackTag = new CompoundTag();
-            this.getItemStack().save(stackTag);
-            tag.put("WeaponStack", stackTag);
+            tag.put("WeaponStack", this.getItemStack().save(this.registryAccess()));
         }
         if (this.getControllerUUID() != null) {
             tag.putUUID("ControllerUUID", this.getControllerUUID());

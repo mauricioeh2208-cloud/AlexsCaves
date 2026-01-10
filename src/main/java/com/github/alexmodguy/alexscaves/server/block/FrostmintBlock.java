@@ -73,8 +73,8 @@ public class FrostmintBlock extends SlabBlock implements Fallable {
             FrostmintExplosion explosion = new FrostmintExplosion(level, fallingBlockEntity, blockPos.getX() + 0.5F, blockPos.getY() + 0.5F, blockPos.getZ() + 0.5F, 4.0F, Explosion.BlockInteraction.DESTROY_WITH_DECAY, false);
             explosion.explode();
             explosion.finalizeExplosion(true);
-            for (Player player : level.getEntitiesOfClass(Player.class, new AABB(blockPos.offset(-32, -16, -32), blockPos.offset(32, 16, 32)))) {
-                ACAdvancementTriggerRegistry.FROSTMINT_EXPLOSION.triggerForEntity(player);
+            for (Player player : level.getEntitiesOfClass(Player.class, new AABB(blockPos.getCenter().add(-32, -16, -32), blockPos.getCenter().add(32, 16, 32)))) {
+                ACAdvancementTriggerRegistry.FROSTMINT_EXPLOSION.get().triggerForEntity(player);
             }
         }
     }

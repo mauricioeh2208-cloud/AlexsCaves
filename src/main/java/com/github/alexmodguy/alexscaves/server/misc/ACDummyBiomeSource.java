@@ -1,33 +1,30 @@
 package com.github.alexmodguy.alexscaves.server.misc;
 
-import com.google.common.collect.ImmutableList;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.Holder;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeSource;
-import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.biome.Climate;
-import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Stream;
 
+/**
+ * A dummy BiomeSource that doesn't provide any biomes.
+ * Used as a placeholder in the registration system.
+ */
 public class ACDummyBiomeSource extends BiomeSource {
 
+    public static final MapCodec<ACDummyBiomeSource> CODEC = MapCodec.unit(ACDummyBiomeSource::new);
 
     @Override
-    protected Codec<? extends BiomeSource> codec() {
-        return null;
+    protected MapCodec<? extends BiomeSource> codec() {
+        return CODEC;
     }
 
     @Override
     protected Stream<Holder<Biome>> collectPossibleBiomes() {
-        List<Holder<Biome>> biomes = new ArrayList<>();
-        for(Biome biome : ForgeRegistries.BIOMES.getValues()){
-            biomes.add(Holder.direct(biome));
-        }
-        return biomes.stream();
+        // Return empty stream - this is a dummy source
+        return Stream.empty();
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.github.alexmodguy.alexscaves.client.render.entity;
 
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.client.model.GumWormSegmentModel;
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexmodguy.alexscaves.server.entity.living.GumWormEntity;
 import com.github.alexmodguy.alexscaves.server.entity.living.GumWormSegmentEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -60,7 +61,7 @@ public class GumWormSegmentRenderer extends EntityRenderer<GumWormSegmentEntity>
         MODEL.setGumVisible(frontAttachedEntity != null, backAttachedEntity != null);
         MODEL.setupAnim(entity, 0.0F, 0.0F, entity.tickCount + partialTicks, 0.0F, 0.0F);
         VertexConsumer ivertexbuilder = bufferIn.getBuffer(RenderType.entityCutoutNoCull(getTextureLocation(entity)));
-        MODEL.renderToBuffer(poseStack, ivertexbuilder, packedLightIn, getOverlayCoords(entity, 0.0F), 1.0F, 1.0F, 1.0F, 1.0F);
+        MODEL.renderToBuffer(poseStack, ivertexbuilder, packedLightIn, getOverlayCoords(entity, 0.0F), -1);
         super.render(entity, entityYaw, partialTicks, poseStack, bufferIn, packedLightIn);
         poseStack.popPose();
         if(frontAttachedEntity != null){
@@ -97,10 +98,10 @@ public class GumWormSegmentRenderer extends EntityRenderer<GumWormSegmentEntity>
         PoseStack.Pose posestack$pose = poseStack.last();
         Matrix4f matrix4f = posestack$pose.pose();
         Matrix3f matrix3f = posestack$pose.normal();
-        gumConsumer.vertex(matrix4f, 0, 0, -0.5F).color(255, 255, 255, 255).uv((float) 0, (float) 0).overlayCoords(overlayCoords).uv2(packedLightIn).normal(matrix3f, 0.0F, -1.0F, 0.0F).endVertex();
-        gumConsumer.vertex(matrix4f, 0, 0, 0.5F).color(255, 255, 255, 255).uv((float) 1, (float) 0).overlayCoords(overlayCoords).uv2(packedLightIn).normal(matrix3f, 0.0F, -1.0F, 0.0F).endVertex();
-        gumConsumer.vertex(matrix4f, 0, length, 0.5F).color(255, 255, 255, 255).uv((float) 1, (float)1).overlayCoords(overlayCoords).uv2(packedLightIn).normal(matrix3f, 0.0F, -1.0F, 0.0F).endVertex();
-        gumConsumer.vertex(matrix4f, 0, length, -0.5F).color(255, 255, 255, 255).uv((float) 0, (float)1).overlayCoords(overlayCoords).uv2(packedLightIn).normal(matrix3f, 0.0F, -1.0F, 0.0F).endVertex();
+        gumConsumer.addVertex(matrix4f, 0, 0, -0.5F).setColor(255, 255, 255, 255).setUv((float) 0, (float) 0).setOverlay(overlayCoords).setLight(packedLightIn).setNormal(0.0F, -1.0F, 0.0F);
+        gumConsumer.addVertex(matrix4f, 0, 0, 0.5F).setColor(255, 255, 255, 255).setUv((float) 1, (float) 0).setOverlay(overlayCoords).setLight(packedLightIn).setNormal(0.0F, -1.0F, 0.0F);
+        gumConsumer.addVertex(matrix4f, 0, length, 0.5F).setColor(255, 255, 255, 255).setUv((float) 1, (float)1).setOverlay(overlayCoords).setLight(packedLightIn).setNormal(0.0F, -1.0F, 0.0F);
+        gumConsumer.addVertex(matrix4f, 0, length, -0.5F).setColor(255, 255, 255, 255).setUv((float) 0, (float)1).setOverlay(overlayCoords).setLight(packedLightIn).setNormal(0.0F, -1.0F, 0.0F);
         poseStack.popPose();
     }
 

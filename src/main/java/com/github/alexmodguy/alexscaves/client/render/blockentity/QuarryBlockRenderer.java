@@ -2,6 +2,7 @@ package com.github.alexmodguy.alexscaves.client.render.blockentity;
 
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.client.model.QuarryGrinderModel;
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexmodguy.alexscaves.server.block.QuarryBlock;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.QuarryBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -38,7 +39,7 @@ public class QuarryBlockRenderer<T extends QuarryBlockEntity> implements BlockEn
         poseStack.mulPose(dir.getOpposite().getRotation());
         float spin = valve.getGrindRotation(partialTicks);
         GRINDER_MODEL.setupAnim(null, spin, 0, 0, 0, 0);
-        GRINDER_MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(RenderType.entityCutoutNoCull(GRINDER_TEXTURE)), combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1);
+        GRINDER_MODEL.renderToBuffer(poseStack, bufferIn.getBuffer(RenderType.entityCutoutNoCull(GRINDER_TEXTURE)), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(1.0F, 1.0F, 1.0F, 1.0F));
         poseStack.popPose();
     }
 }

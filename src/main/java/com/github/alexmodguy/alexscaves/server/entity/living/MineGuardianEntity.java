@@ -33,7 +33,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -66,7 +66,7 @@ public class MineGuardianEntity extends Monster {
     public MineGuardianEntity(EntityType<? extends Monster> entityType, Level level) {
         super(entityType, level);
         this.moveControl = new VerticalSwimmingMoveControl(this, 0.7F, 30);
-        this.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
+        this.setPathfindingMalus(PathType.WATER, 0.0F);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -74,14 +74,14 @@ public class MineGuardianEntity extends Monster {
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(ANCHOR_UUID, Optional.empty());
-        this.entityData.define(ANCHOR_ID, -1);
-        this.entityData.define(MAX_CHAIN_LENGTH, 8);
-        this.entityData.define(EXPLODING, false);
-        this.entityData.define(EYE_CLOSED, false);
-        this.entityData.define(SCANNING, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(ANCHOR_UUID, Optional.empty());
+        builder.define(ANCHOR_ID, -1);
+        builder.define(MAX_CHAIN_LENGTH, 8);
+        builder.define(EXPLODING, false);
+        builder.define(EYE_CLOSED, false);
+        builder.define(SCANNING, false);
     }
 
     protected void registerGoals() {
@@ -169,13 +169,9 @@ public class MineGuardianEntity extends Monster {
         this.entityData.set(MAX_CHAIN_LENGTH, length);
     }
 
-    public boolean canBreatheUnderwater() {
-        return true;
-    }
-
-    public MobType getMobType() {
-        return MobType.WATER;
-    }
+    // 1.21: canBreatheUnderwater() is now final in LivingEntity.
+    // Underwater breathing is handled via EntityType configuration or mob type tags.
+    // For aquatic mobs, use MobType.WATER or configure via entity type tags.
 
     public boolean checkSpawnObstruction(LevelReader levelReader) {
         return levelReader.isUnobstructed(this);
@@ -200,7 +196,7 @@ public class MineGuardianEntity extends Monster {
         if (this.isExploding()) {
             if (explodeProgress >= 10.0F) {
                 this.remove(RemovalReason.KILLED);
-                Explosion.BlockInteraction blockinteraction = net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(level(), this) ? level().getGameRules().getBoolean(GameRules.RULE_MOB_EXPLOSION_DROP_DECAY) ? Explosion.BlockInteraction.DESTROY_WITH_DECAY : Explosion.BlockInteraction.DESTROY : Explosion.BlockInteraction.KEEP;
+                Explosion.BlockInteraction blockinteraction = net.neoforged.neoforge.event.EventHooks.canEntityGrief(level(), this) ? level().getGameRules().getBoolean(GameRules.RULE_MOB_EXPLOSION_DROP_DECAY) ? Explosion.BlockInteraction.DESTROY_WITH_DECAY : Explosion.BlockInteraction.DESTROY : Explosion.BlockInteraction.KEEP;
                 MineExplosion explosion = new MineExplosion(level(), this, this.getX(), this.getY(0.5), this.getZ(), 5.0F, this.isInWaterOrBubble(), blockinteraction);
                 explosion.explode();
                 explosion.finalizeExplosion(true);
@@ -355,16 +351,16 @@ public class MineGuardianEntity extends Monster {
     }
 
     @javax.annotation.Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor worldIn, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn, @javax.annotation.Nullable CompoundTag dataTag) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor worldIn, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn) {
         this.setEyeClosed(true);
         timeSinceHadTarget = 10;
-        return super.finalizeSpawn(worldIn, difficultyIn, reason, spawnDataIn, dataTag);
+        return super.finalizeSpawn(worldIn, difficultyIn, reason, spawnDataIn);
     }
 
     @Override
-    protected void dropAllDeathLoot(DamageSource damageSource) {
-        super.dropAllDeathLoot(damageSource);
-        if (!level().isClientSide && damageSource.getEntity() instanceof Player player) {
+    protected void dropAllDeathLoot(ServerLevel serverLevel, DamageSource damageSource) {
+        super.dropAllDeathLoot(serverLevel, damageSource);
+        if (!serverLevel.isClientSide && damageSource.getEntity() instanceof Player player) {
             ACWorldData worldData = ACWorldData.get(level());
             int relations = worldData.getDeepOneReputation(player.getUUID());
             if (relations < 0) {

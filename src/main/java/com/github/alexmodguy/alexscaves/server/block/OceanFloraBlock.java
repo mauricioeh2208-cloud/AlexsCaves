@@ -1,9 +1,11 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
@@ -21,7 +23,13 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import javax.annotation.Nullable;
 
 public class OceanFloraBlock extends BushBlock implements LiquidBlockContainer {
+    public static final MapCodec<OceanFloraBlock> CODEC = simpleCodec((properties) -> new OceanFloraBlock());
     public static final VoxelShape SHAPE = Block.box(1, 0, 1, 15, 12, 15);
+
+    @Override
+    public MapCodec<? extends BushBlock> codec() {
+        return CODEC;
+    }
 
     public OceanFloraBlock() {
         super(Properties.of().mapColor(DyeColor.WHITE).dynamicShape().instabreak().sound(SoundType.WET_GRASS).offsetType(OffsetType.XZ));
@@ -80,7 +88,8 @@ public class OceanFloraBlock extends BushBlock implements LiquidBlockContainer {
     }
 
 
-    public boolean canPlaceLiquid(BlockGetter p_154505_, BlockPos p_154506_, BlockState p_154507_, Fluid p_154508_) {
+    @Override
+    public boolean canPlaceLiquid(Player player, BlockGetter level, BlockPos pos, BlockState state, Fluid fluid) {
         return false;
     }
 

@@ -1,7 +1,7 @@
 package com.github.alexmodguy.alexscaves.server.level.structure.processor;
 
 import com.github.alexmodguy.alexscaves.server.block.ACBlockRegistry;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
@@ -20,7 +20,7 @@ public class SodaBottleProcessor extends StructureProcessor {
 
     public static final SodaBottleProcessor INSTANCE = new SodaBottleProcessor();
 
-    public static final Codec<SodaBottleProcessor> CODEC = Codec.unit(() -> {
+    public static final MapCodec<SodaBottleProcessor> CODEC = MapCodec.unit(() -> {
         return SodaBottleProcessor.INSTANCE;
     });
 

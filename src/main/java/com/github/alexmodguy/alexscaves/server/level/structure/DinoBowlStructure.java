@@ -2,7 +2,7 @@ package com.github.alexmodguy.alexscaves.server.level.structure;
 
 import com.github.alexmodguy.alexscaves.server.level.biome.ACBiomeRegistry;
 import com.github.alexmodguy.alexscaves.server.level.structure.piece.DinoBowlStructurePiece;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
@@ -16,7 +16,7 @@ public class DinoBowlStructure extends AbstractCaveGenerationStructure {
 
     public static final int BOWL_Y_CENTER = -1;
 
-    public static final Codec<DinoBowlStructure> CODEC = simpleCodec((settings) -> new DinoBowlStructure(settings));
+    public static final MapCodec<DinoBowlStructure> CODEC = simpleCodec((settings) -> new DinoBowlStructure(settings));
 
     public DinoBowlStructure(StructureSettings settings) {
         super(settings, ACBiomeRegistry.PRIMORDIAL_CAVES);

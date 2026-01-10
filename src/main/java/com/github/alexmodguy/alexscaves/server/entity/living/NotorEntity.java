@@ -86,13 +86,13 @@ public class NotorEntity extends PathfinderMob {
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.getEntityData().define(HOLOGRAM_POS, Optional.empty());
-        this.entityData.define(SHOWING_HOLOGRAM, false);
-        this.entityData.define(SCANNING_ID, -1);
-        this.entityData.define(HOLOGRAM_ENTITY_UUID, Optional.empty());
-        this.entityData.define(HOLOGRAM_ENTITY_ID, -1);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(HOLOGRAM_POS, Optional.empty());
+        builder.define(SHOWING_HOLOGRAM, false);
+        builder.define(SCANNING_ID, -1);
+        builder.define(HOLOGRAM_ENTITY_UUID, Optional.empty());
+        builder.define(HOLOGRAM_ENTITY_ID, -1);
     }
 
     public static boolean checkNotorSpawnRules(EntityType<NotorEntity> notor, LevelAccessor level, MobSpawnType spawnType, BlockPos blockPos, RandomSource randomSource) {
@@ -295,7 +295,7 @@ public class NotorEntity extends PathfinderMob {
     }
 
     public boolean canBeAffected(MobEffectInstance effectInstance) {
-        return super.canBeAffected(effectInstance) && effectInstance.getEffect() != ACEffectRegistry.MAGNETIZING.get();
+        return super.canBeAffected(effectInstance) && effectInstance.getEffect() != ACEffectRegistry.MAGNETIZING;
     }
 
     protected SoundEvent getAmbientSound() {

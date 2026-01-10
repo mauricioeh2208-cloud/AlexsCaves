@@ -49,7 +49,7 @@ public class MineGuardianAnchorRenderer extends EntityRenderer<MineGuardianAncho
         poseStack.mulPose(Axis.XP.rotationDegrees(Mth.lerp(partialTicks, entity.xRotO, entity.getXRot()) + 180));
         MODEL.setupAnim(entity, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
         VertexConsumer ivertexbuilder = bufferIn.getBuffer(RenderType.entityCutoutNoCull(TEXTURE));
-        MODEL.renderToBuffer(poseStack, ivertexbuilder, packedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+        MODEL.renderToBuffer(poseStack, ivertexbuilder, packedLightIn, OverlayTexture.NO_OVERLAY, -1);
         super.render(entity, entityYaw, partialTicks, poseStack, bufferIn, packedLightIn);
         poseStack.popPose();
 

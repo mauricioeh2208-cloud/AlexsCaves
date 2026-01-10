@@ -6,6 +6,7 @@ import com.github.alexmodguy.alexscaves.client.model.GingerbreadManModel;
 import com.github.alexmodguy.alexscaves.client.model.GumbeeperModel;
 import com.github.alexmodguy.alexscaves.client.model.LicowitchModel;
 import com.github.alexmodguy.alexscaves.client.render.ACRenderTypes;
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexmodguy.alexscaves.client.render.entity.layer.LicowitchPossessionLayer;
 import com.github.alexmodguy.alexscaves.server.entity.living.*;
 import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
@@ -139,7 +140,7 @@ public class GingerbreadManRenderer extends MobRenderer<GingerbreadManEntity, Gi
                 float r = (float) ((color & 16711680) >> 16) / 255.0F;
                 float g = (float) ((color & '\uff00') >> 8) / 255.0F;
                 float b = (float) ((color & 255) >> 0) / 255.0F;
-                this.getParentModel().renderToBuffer(poseStack, ivertexbuilder2, packedLightIn, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), r, g, b, 1.0F);
+                this.getParentModel().renderToBuffer(poseStack, ivertexbuilder2, packedLightIn, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), ColorUtil.packColor(r, g, b, 1.0F));
             }
 
         }
@@ -157,7 +158,7 @@ public class GingerbreadManRenderer extends MobRenderer<GingerbreadManEntity, Gi
         @Override
         protected void renderArmWithItem(LivingEntity livingEntity, ItemStack itemStack, ItemDisplayContext displayContext, HumanoidArm humanoidArm, PoseStack poseStack, MultiBufferSource multiBufferSource, int packedLight) {
             if (!itemStack.isEmpty() && livingEntity instanceof GingerbreadManEntity gingerbreadMan) {
-                float partialTicks = Minecraft.getInstance().getPartialTick();
+                float partialTicks = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(false);
                 float carryItemProgress = gingerbreadMan.getCarryItemProgress(partialTicks);
                 boolean flag = humanoidArm == HumanoidArm.LEFT;
                 poseStack.pushPose();

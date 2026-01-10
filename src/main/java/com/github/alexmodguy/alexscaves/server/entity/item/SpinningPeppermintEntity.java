@@ -5,8 +5,6 @@ import com.github.alexmodguy.alexscaves.server.entity.ACEntityDataRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.ACEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.living.LicowitchEntity;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -19,8 +17,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -60,24 +56,15 @@ public class SpinningPeppermintEntity extends Entity {
         super(entityType, level);
     }
 
-    public SpinningPeppermintEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.SPINNING_PEPPERMINT.get(), level);
-    }
-
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(SPIN_AROUND, Optional.empty());
-        this.entityData.define(SPIN_RADIUS, 1.0F);
-        this.entityData.define(SPIN_SPEED, 1.0F);
-        this.entityData.define(START_ANGLE, 0.0F);
-        this.entityData.define(STRAIGHT, false);
-        this.entityData.define(LIFESPAN, 200);
-        this.entityData.define(SEEKING_ENTITY, -1);
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(SPIN_AROUND, Optional.empty());
+        builder.define(SPIN_RADIUS, 1.0F);
+        builder.define(SPIN_SPEED, 1.0F);
+        builder.define(START_ANGLE, 0.0F);
+        builder.define(STRAIGHT, false);
+        builder.define(LIFESPAN, 200);
+        builder.define(SEEKING_ENTITY, -1);
     }
 
     public void setOwner(@javax.annotation.Nullable LivingEntity living) {
@@ -302,7 +289,7 @@ public class SpinningPeppermintEntity extends Entity {
     }
 
     @Override
-    public void lerpTo(double x, double y, double z, float yr, float xr, int steps, boolean b) {
+    public void lerpTo(double x, double y, double z, float yr, float xr, int steps) {
         this.lx = x;
         this.ly = y;
         this.lz = z;

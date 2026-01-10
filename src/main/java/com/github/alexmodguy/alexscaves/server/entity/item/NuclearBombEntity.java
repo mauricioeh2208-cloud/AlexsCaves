@@ -10,8 +10,6 @@ import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import com.google.common.base.Predicates;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -24,13 +22,12 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.ai.village.poi.PoiManager;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.Tags;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
 
 import java.util.stream.Stream;
 
@@ -44,11 +41,6 @@ public class NuclearBombEntity extends Entity {
         super(entityType, level);
     }
 
-    public NuclearBombEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.NUCLEAR_BOMB.get(), level);
-        this.setBoundingBox(this.makeBoundingBox());
-    }
-
     public NuclearBombEntity(Level level, double x, double y, double z) {
         this(ACEntityRegistry.NUCLEAR_BOMB.get(), level);
         this.setPos(x, y, z);
@@ -57,11 +49,6 @@ public class NuclearBombEntity extends Entity {
         this.xo = x;
         this.yo = y;
         this.zo = z;
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
     }
 
     public void tick() {
@@ -123,8 +110,8 @@ public class NuclearBombEntity extends Entity {
 
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(TIME, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(TIME, 0);
     }
 
     public int getTime() {
@@ -165,13 +152,13 @@ public class NuclearBombEntity extends Entity {
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
         ItemStack itemStack = player.getItemInHand(hand);
-        if (itemStack.is(Tags.Items.SHEARS)) {
+        if (itemStack.is(Items.SHEARS)) {
             player.swing(hand);
             this.playSound(ACSoundRegistry.NUCLEAR_BOMB_DEFUSE.get());
             this.remove(RemovalReason.KILLED);
             this.spawnAtLocation(new ItemStack(ACBlockRegistry.NUCLEAR_BOMB.get()));
             if (!player.getAbilities().instabuild) {
-                itemStack.hurtAndBreak(1, player, e -> e.broadcastBreakEvent(hand));
+                itemStack.hurtAndBreak(1, player, hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
             }
             return InteractionResult.SUCCESS;
         } else if (player.isSecondaryUseActive()) {
@@ -189,7 +176,7 @@ public class NuclearBombEntity extends Entity {
             float expandScale = 1F + (float) Math.sin(progress * progress * Math.PI) * 0.5F;
             float f1 = -(this.getXRot() / 40F);
             float j = expandScale - progress * 0.3F;
-            double d0 = this.getY() + j + passenger.getMyRidingOffset() - 0.2F;
+            double d0 = this.getY() + j + 0.5F - 0.2F;
             moveFunction.accept(passenger, this.getX(), d0, this.getZ());
             passenger.fallDistance = 0.0F;
         } else {

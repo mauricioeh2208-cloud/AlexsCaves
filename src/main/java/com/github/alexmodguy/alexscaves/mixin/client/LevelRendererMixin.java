@@ -46,29 +46,42 @@ public abstract class LevelRendererMixin {
     @Nullable
     private ViewArea viewArea;
 
-    @Shadow @Final private Minecraft minecraft;
+    @Shadow
+    @Final
+    private Minecraft minecraft;
 
-    @Shadow protected abstract void renderEndSky(PoseStack p_109781_);
+    @Shadow
+    protected abstract void renderEndSky(PoseStack p_109781_);
 
-    @Shadow protected abstract boolean doesMobEffectBlockSky(Camera p_234311_);
+    @Shadow
+    protected abstract boolean doesMobEffectBlockSky(Camera p_234311_);
 
-    @Shadow @Nullable private VertexBuffer skyBuffer;
+    @Shadow
+    @Nullable
+    private VertexBuffer skyBuffer;
 
-    @Shadow @Final private static ResourceLocation SUN_LOCATION;
+    @Shadow
+    @Final
+    private static ResourceLocation SUN_LOCATION;
 
-    @Shadow @Final private static ResourceLocation MOON_LOCATION;
+    @Shadow
+    @Final
+    private static ResourceLocation MOON_LOCATION;
 
-    @Shadow @Nullable private VertexBuffer starBuffer;
+    @Shadow
+    @Nullable
+    private VertexBuffer starBuffer;
 
-    @Shadow @Nullable private VertexBuffer darkBuffer;
+    @Shadow
+    @Nullable
+    private VertexBuffer darkBuffer;
 
-    @Inject(method = "Lnet/minecraft/client/renderer/LevelRenderer;setupRender(Lnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/culling/Frustum;ZZ)V",
-            at = @At(
-                    value = "HEAD"
-            ),
-            allow = 1)
+    @Inject(method = "Lnet/minecraft/client/renderer/LevelRenderer;setupRender(Lnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/culling/Frustum;ZZ)V", at = @At(value = "HEAD"), allow = 1)
     private void ac_setupRender(Camera camera, Frustum frustum, boolean b1, boolean b2, CallbackInfo ci) {
-        if (Minecraft.getInstance().cameraEntity != null && Minecraft.getInstance().cameraEntity != Minecraft.getInstance().player) { // fixes chunks being too far to load when not the player
+        if (Minecraft.getInstance().cameraEntity != null
+                && Minecraft.getInstance().cameraEntity != Minecraft.getInstance().player) { // fixes chunks being too
+                                                                                             // far to load when not the
+                                                                                             // player
             double d0 = Minecraft.getInstance().cameraEntity.getX();
             double d1 = Minecraft.getInstance().cameraEntity.getY();
             double d2 = Minecraft.getInstance().cameraEntity.getZ();
@@ -84,23 +97,25 @@ public abstract class LevelRendererMixin {
         }
     }
 
-    @Inject(method = "Lnet/minecraft/client/renderer/LevelRenderer;renderSky(Lcom/mojang/blaze3d/vertex/PoseStack;Lorg/joml/Matrix4f;FLnet/minecraft/client/Camera;ZLjava/lang/Runnable;)V",
-            at = @At(
-                    value = "HEAD"
-            ),
-            cancellable = true)
-    //have to completely override this method for compatibility reasons
-    private void ac_renderSky(PoseStack poseStack, Matrix4f matrix4f2, float partialTick, Camera camera, boolean foggy, Runnable runnable, CallbackInfo ci) {
-        //AC CODE START
+    // In 1.21, renderSky signature changed:
+    // Old: renderSky(PoseStack, Matrix4f, F, Camera, Z, Runnable)
+    // New: renderSky(Matrix4f frustumMatrix, Matrix4f projectionMatrix, F, Camera, Z, Runnable)
+    @Inject(method = "Lnet/minecraft/client/renderer/LevelRenderer;renderSky(Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;FLnet/minecraft/client/Camera;ZLjava/lang/Runnable;)V", at = @At(value = "HEAD"), cancellable = true)
+    // have to completely override this method for compatibility reasons
+    private void ac_renderSky(Matrix4f frustumMatrix, Matrix4f projectionMatrix, float partialTick, Camera camera, boolean foggy,
+            Runnable runnable, CallbackInfo ci) {
+        // AC CODE START
         float override = ClientProxy.acSkyOverrideAmount;
         float primordialBoss = AlexsCaves.PROXY.getPrimordialBossActiveAmount(partialTick);
-        if(!AlexsCaves.CLIENT_CONFIG.biomeSkyOverrides.get() || override <= 0.0F && primordialBoss <= 0.0F){
-           return;
+        if (!AlexsCaves.CLIENT_CONFIG.biomeSkyOverrides.get() || override <= 0.0F && primordialBoss <= 0.0F) {
+            return;
         }
         ci.cancel();
         // AC CODE END
-        if (level.effects().renderSky(level, ticks, partialTick, poseStack, camera, matrix4f2, foggy, runnable))
-            return;
+        
+        // In 1.21, we need to create our own PoseStack since it's no longer passed
+        PoseStack poseStack = new PoseStack();
+        
         runnable.run();
         if (!foggy) {
             FogType fogtype = camera.getFluidInCamera();
@@ -108,26 +123,27 @@ public abstract class LevelRendererMixin {
                 if (this.minecraft.level.effects().skyType() == DimensionSpecialEffects.SkyType.END) {
                     this.renderEndSky(poseStack);
                 } else if (this.minecraft.level.effects().skyType() == DimensionSpecialEffects.SkyType.NORMAL) {
-                    Vec3 vec3 = this.level.getSkyColor(this.minecraft.gameRenderer.getMainCamera().getPosition(), partialTick);
-                    //AC CODE START
+                    Vec3 vec3 = this.level.getSkyColor(this.minecraft.gameRenderer.getMainCamera().getPosition(),
+                            partialTick);
+                    // AC CODE START
                     vec3 = ClientProxy.processSkyColor(vec3, partialTick);
                     // AC CODE END
-                    float f = (float)vec3.x;
-                    float f1 = (float)vec3.y;
-                    float f2 = (float)vec3.z;
+                    float f = (float) vec3.x;
+                    float f1 = (float) vec3.y;
+                    float f2 = (float) vec3.z;
                     FogRenderer.levelFogColor();
-                    BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
                     RenderSystem.depthMask(false);
                     RenderSystem.setShaderColor(f, f1, f2, 1.0F);
                     ShaderInstance shaderinstance = RenderSystem.getShader();
                     this.skyBuffer.bind();
-                    this.skyBuffer.drawWithShader(poseStack.last().pose(), matrix4f2, shaderinstance);
+                    this.skyBuffer.drawWithShader(poseStack.last().pose(), projectionMatrix, shaderinstance);
                     VertexBuffer.unbind();
                     RenderSystem.enableBlend();
-                    float[] afloat = this.level.effects().getSunriseColor(this.level.getTimeOfDay(partialTick), partialTick);
+                    float[] afloat = this.level.effects().getSunriseColor(this.level.getTimeOfDay(partialTick),
+                            partialTick);
 
                     // AC CODE START
-                    //remove sunrises inside cave biomes.
+                    // remove sunrises inside cave biomes.
                     if (afloat != null && afloat.length >= 4 && AlexsCaves.CLIENT_CONFIG.biomeSkyOverrides.get()) {
                         afloat[3] = afloat[3] * (1F - override);
                     }
@@ -145,25 +161,28 @@ public abstract class LevelRendererMixin {
                         float f5 = afloat[1];
                         float f6 = afloat[2];
                         Matrix4f matrix4f = poseStack.last().pose();
-                        bufferbuilder.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
-                        bufferbuilder.vertex(matrix4f, 0.0F, 100.0F, 0.0F).color(f4, f5, f6, afloat[3]).endVertex();
+                        BufferBuilder bufferbuilder = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLE_FAN,
+                                DefaultVertexFormat.POSITION_COLOR);
+                        bufferbuilder.addVertex(matrix4f, 0.0F, 100.0F, 0.0F).setColor(f4, f5, f6, afloat[3]);
                         int i = 16;
 
-                        for(int j = 0; j <= 16; ++j) {
-                            float f7 = (float)j * ((float)Math.PI * 2F) / 16.0F;
+                        for (int j = 0; j <= 16; ++j) {
+                            float f7 = (float) j * ((float) Math.PI * 2F) / 16.0F;
                             float f8 = Mth.sin(f7);
                             float f9 = Mth.cos(f7);
-                            bufferbuilder.vertex(matrix4f, f8 * 120.0F, f9 * 120.0F, -f9 * 40.0F * afloat[3]).color(afloat[0], afloat[1], afloat[2], 0.0F).endVertex();
+                            bufferbuilder.addVertex(matrix4f, f8 * 120.0F, f9 * 120.0F, -f9 * 40.0F * afloat[3])
+                                    .setColor(afloat[0], afloat[1], afloat[2], 0.0F);
                         }
 
-                        BufferUploader.drawWithShader(bufferbuilder.end());
+                        BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
                         poseStack.popPose();
                     }
 
-                    RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+                    RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE,
+                            GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
                     poseStack.pushPose();
                     // AC CODE START
-                    //use the "rain level" to hide the sun and moon in the cave biomes.
+                    // use the "rain level" to hide the sun and moon in the cave biomes.
                     float rainLevel = this.level.getRainLevel(partialTick);
 
                     rainLevel = Math.max(override, rainLevel);
@@ -177,33 +196,36 @@ public abstract class LevelRendererMixin {
                     float f12 = 30.0F;
                     RenderSystem.setShader(GameRenderer::getPositionTexShader);
                     RenderSystem.setShaderTexture(0, SUN_LOCATION);
-                    bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-                    bufferbuilder.vertex(matrix4f1, -f12, 100.0F, -f12).uv(0.0F, 0.0F).endVertex();
-                    bufferbuilder.vertex(matrix4f1, f12, 100.0F, -f12).uv(1.0F, 0.0F).endVertex();
-                    bufferbuilder.vertex(matrix4f1, f12, 100.0F, f12).uv(1.0F, 1.0F).endVertex();
-                    bufferbuilder.vertex(matrix4f1, -f12, 100.0F, f12).uv(0.0F, 1.0F).endVertex();
-                    BufferUploader.drawWithShader(bufferbuilder.end());
+                    BufferBuilder sunBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS,
+                            DefaultVertexFormat.POSITION_TEX);
+                    sunBuilder.addVertex(matrix4f1, -f12, 100.0F, -f12).setUv(0.0F, 0.0F);
+                    sunBuilder.addVertex(matrix4f1, f12, 100.0F, -f12).setUv(1.0F, 0.0F);
+                    sunBuilder.addVertex(matrix4f1, f12, 100.0F, f12).setUv(1.0F, 1.0F);
+                    sunBuilder.addVertex(matrix4f1, -f12, 100.0F, f12).setUv(0.0F, 1.0F);
+                    BufferUploader.drawWithShader(sunBuilder.buildOrThrow());
                     f12 = 20.0F;
                     RenderSystem.setShaderTexture(0, MOON_LOCATION);
                     int k = this.level.getMoonPhase();
                     int l = k % 4;
                     int i1 = k / 4 % 2;
-                    float f13 = (float)(l + 0) / 4.0F;
-                    float f14 = (float)(i1 + 0) / 2.0F;
-                    float f15 = (float)(l + 1) / 4.0F;
-                    float f16 = (float)(i1 + 1) / 2.0F;
-                    bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-                    bufferbuilder.vertex(matrix4f1, -f12, -100.0F, f12).uv(f15, f16).endVertex();
-                    bufferbuilder.vertex(matrix4f1, f12, -100.0F, f12).uv(f13, f16).endVertex();
-                    bufferbuilder.vertex(matrix4f1, f12, -100.0F, -f12).uv(f13, f14).endVertex();
-                    bufferbuilder.vertex(matrix4f1, -f12, -100.0F, -f12).uv(f15, f14).endVertex();
-                    BufferUploader.drawWithShader(bufferbuilder.end());
+                    float f13 = (float) (l + 0) / 4.0F;
+                    float f14 = (float) (i1 + 0) / 2.0F;
+                    float f15 = (float) (l + 1) / 4.0F;
+                    float f16 = (float) (i1 + 1) / 2.0F;
+                    BufferBuilder moonBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS,
+                            DefaultVertexFormat.POSITION_TEX);
+                    moonBuilder.addVertex(matrix4f1, -f12, -100.0F, f12).setUv(f15, f16);
+                    moonBuilder.addVertex(matrix4f1, f12, -100.0F, f12).setUv(f13, f16);
+                    moonBuilder.addVertex(matrix4f1, f12, -100.0F, -f12).setUv(f13, f14);
+                    moonBuilder.addVertex(matrix4f1, -f12, -100.0F, -f12).setUv(f15, f14);
+                    BufferUploader.drawWithShader(moonBuilder.buildOrThrow());
                     float f10 = this.level.getStarBrightness(partialTick) * f11;
                     if (f10 > 0.0F) {
                         RenderSystem.setShaderColor(f10, f10, f10, f10);
                         FogRenderer.setupNoFog();
                         this.starBuffer.bind();
-                        this.starBuffer.drawWithShader(poseStack.last().pose(), matrix4f2, GameRenderer.getPositionShader());
+                        this.starBuffer.drawWithShader(poseStack.last().pose(), projectionMatrix,
+                                GameRenderer.getPositionShader());
                         VertexBuffer.unbind();
                         runnable.run();
                     }
@@ -219,7 +241,7 @@ public abstract class LevelRendererMixin {
                         poseStack.pushPose();
                         poseStack.translate(0.0F, 12.0F, 0.0F);
                         this.darkBuffer.bind();
-                        this.darkBuffer.drawWithShader(poseStack.last().pose(), matrix4f2, shaderinstance);
+                        this.darkBuffer.drawWithShader(poseStack.last().pose(), projectionMatrix, shaderinstance);
                         VertexBuffer.unbind();
                         poseStack.popPose();
                     }
@@ -230,10 +252,10 @@ public abstract class LevelRendererMixin {
             }
         }
     }
-    @Inject(method = "Lnet/minecraft/client/renderer/LevelRenderer;getLightColor(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)I",
-            at = @At("HEAD"),
-            cancellable = true)
-    private static void ac_getLightColor(BlockAndTintGetter level, BlockState state, BlockPos pos, CallbackInfoReturnable<Integer> cir) {
+
+    @Inject(method = "Lnet/minecraft/client/renderer/LevelRenderer;getLightColor(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)I", at = @At("HEAD"), cancellable = true)
+    private static void ac_getLightColor(BlockAndTintGetter level, BlockState state, BlockPos pos,
+            CallbackInfoReturnable<Integer> cir) {
         if (state.getBlock() instanceof EnergizedGalenaBlock) {
             int i = level.getBrightness(LightLayer.SKY, pos);
             int j = level.getBrightness(LightLayer.BLOCK, pos);

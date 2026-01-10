@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.ACBlockEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.AmberMonolithBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -17,6 +18,11 @@ public class AmberMonolithBlock extends BaseEntityBlock {
 
     protected AmberMonolithBlock() {
         super(Properties.of().mapColor(MapColor.COLOR_ORANGE).requiresCorrectToolForDrops().strength(3F, 12.0F).sound(ACSoundTypes.AMBER_MONOLITH).lightLevel(block -> 5).noOcclusion());
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return MapCodec.unit(this);
     }
 
     public RenderShape getRenderShape(BlockState state) {

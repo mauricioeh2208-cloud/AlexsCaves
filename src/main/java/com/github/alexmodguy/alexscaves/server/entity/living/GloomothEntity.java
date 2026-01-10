@@ -68,9 +68,9 @@ public class GloomothEntity extends PathfinderMob implements UnderzealotSacrific
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(FLYING, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(FLYING, false);
     }
 
     private void switchNavigator(boolean onLand) {
@@ -164,7 +164,7 @@ public class GloomothEntity extends PathfinderMob implements UnderzealotSacrific
                 WatcherEntity watcherEntity = this.convertTo(ACEntityRegistry.WATCHER.get(), true);
                 this.playSound(ACSoundRegistry.WATCHER_SPAWN.get(), 8.0F, 1.0F);
                 if (watcherEntity != null) {
-                    net.minecraftforge.event.ForgeEventFactory.onLivingConvert(this, watcherEntity);
+                    net.neoforged.neoforge.event.EventHooks.onLivingConvert(this, watcherEntity);
                     watcherEntity.stopRiding();
                 }
             }
@@ -255,10 +255,6 @@ public class GloomothEntity extends PathfinderMob implements UnderzealotSacrific
         this.walkAnimation.update(f2, 0.4F);
     }
 
-    public MobType getMobType() {
-        return MobType.ARTHROPOD;
-    }
-
     @Override
     protected void dropFromLootTable(DamageSource damageSource, boolean idk) {
         if(!(damageSource.getEntity() instanceof ForsakenEntity || damageSource.getEntity() instanceof VesperEntity)){
@@ -334,11 +330,11 @@ public class GloomothEntity extends PathfinderMob implements UnderzealotSacrific
     }
 
     @javax.annotation.Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor worldIn, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn, @javax.annotation.Nullable CompoundTag dataTag) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor worldIn, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn) {
         if (reason == MobSpawnType.NATURAL) {
             doInitialPosing(worldIn);
         }
-        return super.finalizeSpawn(worldIn, difficultyIn, reason, spawnDataIn, dataTag);
+        return super.finalizeSpawn(worldIn, difficultyIn, reason, spawnDataIn);
     }
 
 

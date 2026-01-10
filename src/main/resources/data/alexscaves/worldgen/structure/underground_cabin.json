@@ -1,12 +1,11 @@
 {
   "type": "alexscaves:underground_cabin",
   "biomes": {
-    "type": "forge:and",
-    "values":
-    [
+    "type": "neoforge:and",
+    "values": [
       "#alexscaves:has_underground_cabins",
       {
-        "type": "forge:not",
+        "type": "neoforge:not",
         "value": "#alexscaves:has_no_underground_cabins"
       }
     ]

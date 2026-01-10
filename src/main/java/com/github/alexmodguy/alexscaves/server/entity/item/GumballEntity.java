@@ -8,8 +8,6 @@ import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -23,8 +21,6 @@ import net.minecraft.world.entity.projectile.ThrowableProjectile;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,28 +61,19 @@ public class GumballEntity extends ThrowableProjectile {
             this.setOwner(shooter);
         }
 
-        public GumballEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-            this(ACEntityRegistry.GUMBALL.get(), level);
-        }
-
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(MAXIMUM_BOUNCES, 5);
-        this.entityData.define(BOUNCES, 0);
-        this.entityData.define(COLOR, 0);
-        this.entityData.define(DAMAGE, 2F);
-        this.entityData.define(TARGETS_ON_BOUNCE, false);
-        this.entityData.define(SPLITS_ON_HIT, false);
-        this.entityData.define(EXPLOSIVE, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(MAXIMUM_BOUNCES, 5);
+        builder.define(BOUNCES, 0);
+        builder.define(COLOR, 0);
+        builder.define(DAMAGE, 2F);
+        builder.define(TARGETS_ON_BOUNCE, false);
+        builder.define(SPLITS_ON_HIT, false);
+        builder.define(EXPLOSIVE, false);
     }
 
     @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
-    }
-
-    @Override
-    public void lerpTo(double x, double y, double z, float yr, float xr, int steps, boolean b) {
+    public void lerpTo(double x, double y, double z, float yr, float xr, int steps) {
         this.lx = x;
         this.ly = y;
         this.lz = z;
@@ -255,10 +242,6 @@ public class GumballEntity extends ThrowableProjectile {
 
     public void setExplosive(boolean explosive){
         this.entityData.set(EXPLOSIVE, explosive);
-    }
-
-    protected float getGravity() {
-        return 0.08F;
     }
 
     protected void onHit(HitResult hitResult) {

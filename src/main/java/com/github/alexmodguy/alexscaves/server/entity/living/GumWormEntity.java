@@ -52,8 +52,8 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.common.ForgeMod;
-import net.minecraftforge.entity.PartEntity;
+import net.neoforged.neoforge.common.NeoForgeMod;
+import net.neoforged.neoforge.entity.PartEntity;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -123,7 +123,7 @@ public class GumWormEntity extends Monster implements ICustomCollisions, KaijuMo
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Monster.createMonsterAttributes().add(Attributes.MOVEMENT_SPEED, 0.25D).add(ForgeMod.ENTITY_GRAVITY.get(), 0.15D).add(Attributes.MAX_HEALTH, 150.0D).add(Attributes.ARMOR, 10.0D).add(Attributes.ATTACK_DAMAGE, 9.0D).add(Attributes.FOLLOW_RANGE, 128.0D);
+        return Monster.createMonsterAttributes().add(Attributes.MOVEMENT_SPEED, 0.25D).add(Attributes.GRAVITY, 0.15D).add(Attributes.MAX_HEALTH, 150.0D).add(Attributes.ARMOR, 10.0D).add(Attributes.ATTACK_DAMAGE, 9.0D).add(Attributes.FOLLOW_RANGE, 128.0D);
     }
 
     public static boolean checkGumWormSpawnRules(EntityType<? extends Monster> entityType, ServerLevelAccessor levelAccessor, MobSpawnType mobSpawnType, BlockPos blockPos, RandomSource randomSource) {
@@ -131,26 +131,26 @@ public class GumWormEntity extends Monster implements ICustomCollisions, KaijuMo
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(Z_ROT_DIRECTION, false);
-        this.entityData.define(LEAPING, false);
-        this.entityData.define(BITING, false);
-        this.entityData.define(TARGET_DIG_PITCH, 0.0F);
-        this.entityData.define(TEMP_SUMMON, false);
-        this.entityData.define(GOBTHUMPER_POS, Optional.empty());
-        this.entityData.define(RIDING_SEGMENT_ID, -1);
-        this.entityData.define(RIDING_SEGMENT_UUID, Optional.empty());
-        this.entityData.define(LEFT_HOOK_ID, -1);
-        this.entityData.define(RIGHT_HOOK_ID, -1);
-        this.entityData.define(RIDER_LEAP_TIME_MAX, 1);
-        this.entityData.define(RIDER_LEAP_TIME, 0);
-        this.entityData.define(DIGGING, false);
-        this.entityData.define(VALID_RIDER, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(Z_ROT_DIRECTION, false);
+        builder.define(LEAPING, false);
+        builder.define(BITING, false);
+        builder.define(TARGET_DIG_PITCH, 0.0F);
+        builder.define(TEMP_SUMMON, false);
+        builder.define(GOBTHUMPER_POS, Optional.empty());
+        builder.define(RIDING_SEGMENT_ID, -1);
+        builder.define(RIDING_SEGMENT_UUID, Optional.empty());
+        builder.define(LEFT_HOOK_ID, -1);
+        builder.define(RIGHT_HOOK_ID, -1);
+        builder.define(RIDER_LEAP_TIME_MAX, 1);
+        builder.define(RIDER_LEAP_TIME, 0);
+        builder.define(DIGGING, false);
+        builder.define(VALID_RIDER, false);
     }
 
     protected float getStandingEyeHeight(Pose pose, EntityDimensions dimensions) {
-        return 0.4F * dimensions.height;
+        return 0.4F * dimensions.height();
     }
 
     protected PathNavigation createNavigation(Level level) {
@@ -348,9 +348,8 @@ public class GumWormEntity extends Monster implements ICustomCollisions, KaijuMo
         return this.entityData.get(DIGGING);
     }
 
-    @Override
     public float getStepHeight() {
-        return isRidingMode() ? 5.0F : super.getStepHeight();
+        return isRidingMode() ? 5.0F : 1.0F;
     }
 
     public void remove(Entity.RemovalReason removalReason) {
@@ -358,24 +357,24 @@ public class GumWormEntity extends Monster implements ICustomCollisions, KaijuMo
         super.remove(removalReason);
     }
 
-    @Override
     protected void dropAllDeathLoot(DamageSource damageSource) {
         Entity entity = damageSource.getEntity();
 
-        int i = net.minecraftforge.common.ForgeHooks.getLootingLevel(this, entity, damageSource);
+        // In 1.21, getLootingLevel is removed from CommonHooks
         this.captureDrops(new java.util.ArrayList<>());
 
         boolean flag = this.lastHurtByPlayerTime > 0;
         if (this.shouldDropLoot() && this.level().getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)) {
             this.dropFromLootTable(damageSource, flag);
-            this.dropCustomDeathLoot(damageSource, i, flag);
+            this.dropCustomDeathLoot((ServerLevel) this.level(), damageSource, flag);
         }
 
         this.dropEquipment();
-        this.dropExperience();
+        this.dropExperience(entity);
 
         Collection<ItemEntity> drops = captureDrops(null);
-        if (!net.minecraftforge.common.ForgeHooks.onLivingDrops(this, damageSource, drops, i, lastHurtByPlayerTime > 0)){
+        // In 1.21, onLivingDrops takes 4 params: (entity, source, drops, recentlyHit)
+        if (!net.neoforged.neoforge.common.CommonHooks.onLivingDrops(this, damageSource, drops, lastHurtByPlayerTime > 0)){
             drops.forEach(e -> dropItemAtSurface(e));
         }
     }
@@ -437,7 +436,6 @@ public class GumWormEntity extends Monster implements ICustomCollisions, KaijuMo
         }
     }
 
-    @Override
     public void lerpTo(double x, double y, double z, float yr, float xr, int steps, boolean b) {
         this.lx = x;
         this.ly = y;
@@ -589,12 +587,12 @@ public class GumWormEntity extends Monster implements ICustomCollisions, KaijuMo
 
 
     @javax.annotation.Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn, @javax.annotation.Nullable CompoundTag dataTag) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn) {
         if (reason == MobSpawnType.NATURAL) {
             doInitialPosing(level);
         }
         GumWormSegmentEntity.createWormSegmentsFor(this, 15 + random.nextInt(5));
-        return super.finalizeSpawn(level, difficultyIn, reason, spawnDataIn, dataTag);
+        return super.finalizeSpawn(level, difficultyIn, reason, spawnDataIn);
     }
 
     private void doInitialPosing(LevelAccessor world) {

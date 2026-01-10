@@ -1,6 +1,7 @@
 package com.github.alexmodguy.alexscaves.server.potion;
 
 import com.github.alexmodguy.alexscaves.client.particle.ACParticleRegistry;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
@@ -13,10 +14,11 @@ public class StunnedEffect extends MobEffect {
 
     protected StunnedEffect() {
         super(MobEffectCategory.HARMFUL, 0XFFFBC5);
-        this.addAttributeModifier(Attributes.MOVEMENT_SPEED, "7107DE5E-7CE8-4030-940E-514C1F160892", (double) -1.0F, AttributeModifier.Operation.MULTIPLY_BASE);
+        this.addAttributeModifier(Attributes.MOVEMENT_SPEED, ResourceLocation.parse("alexscaves:stunned_speed"), (double) -1.0F, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
     }
 
-    public void applyEffectTick(LivingEntity entity, int amplifier) {
+    @Override
+    public boolean applyEffectTick(LivingEntity entity, int amplifier) {
         if (entity.getDeltaMovement().y > 0) {
             entity.setDeltaMovement(entity.getDeltaMovement().multiply(1, 0.1D, 1));
         }
@@ -32,10 +34,11 @@ public class StunnedEffect extends MobEffect {
                 mob.goalSelector.setControlFlag(Goal.Flag.LOOK, false);
             }
         }
-
+        return true;
     }
 
-    public boolean isDurationEffectTick(int duration, int amplifier) {
+    @Override
+    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
         return duration > 0;
     }
 }

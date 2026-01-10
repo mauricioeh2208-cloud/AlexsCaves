@@ -9,8 +9,9 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.entity.PartEntity;
+import net.neoforged.neoforge.entity.PartEntity;
 
 public abstract class ACMultipartEntity<T extends Entity> extends PartEntity<T> {
 
@@ -31,7 +32,7 @@ public abstract class ACMultipartEntity<T extends Entity> extends PartEntity<T> 
             return InteractionResult.PASS;
         } else {
             if (player.level().isClientSide) {
-                AlexsCaves.sendMSGToServer(new MultipartEntityMessage(parent.getId(), player.getId(), 0, 0));
+                AlexsCaves.sendMSGToServer(new MultipartEntityMessage(parent.getId(), player.getId(), 0));
             }
             return parent.interact(player, hand);
         }
@@ -61,26 +62,29 @@ public abstract class ACMultipartEntity<T extends Entity> extends PartEntity<T> 
     public boolean hurt(DamageSource source, float amount) {
         Entity parent = this.getParent();
         if (!this.isInvulnerableTo(source) && parent != null) {
-            Entity player = source.getEntity();
-            if (player != null && player.level().isClientSide) {
-                AlexsCaves.sendMSGToServer(new MultipartEntityMessage(parent.getId(), player.getId(), 1, amount));
+            Entity attacker = source.getEntity();
+            if (attacker != null && attacker.level().isClientSide) {
+                // Client-side: send packet to server to handle the attack
+                AlexsCaves.sendMSGToServer(new MultipartEntityMessage(parent.getId(), attacker.getId(), 1));
+                return true;
+            } else if (attacker == null || !attacker.level().isClientSide) {
+                // Server-side: directly apply damage to parent
+                return parent.hurt(source, amount);
             }
         }
         return false;
     }
 
-    @Override
     public boolean is(Entity entityIn) {
         return this == entityIn || this.getParent() == entityIn;
     }
 
-    @Override
     public Packet<ClientGamePacketListener> getAddEntityPacket() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected void defineSynchedData() {
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
 
     }
 

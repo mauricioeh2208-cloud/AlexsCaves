@@ -4,9 +4,11 @@ import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.server.block.ConversionCrucibleBlock;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.ConversionCrucibleBlockEntity;
 import com.github.alexmodguy.alexscaves.server.level.biome.ACBiomeRegistry;
+import com.github.alexmodguy.alexscaves.server.misc.ACDataComponentRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.CaveBookProgress;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -20,10 +22,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 
-import javax.annotation.Nullable;
 import java.awt.*;
 import java.util.List;
 
@@ -39,7 +41,8 @@ public class CaveInfoItem extends Item {
     }
 
     public static int getBiomeColorOf(Level level, ItemStack stack, boolean darken) {
-        if (stack.getTag() != null && stack.getTag().getBoolean("Rainbow")) {
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData != null && customData.copyTag().getBoolean("Rainbow")) {
             float hue = (System.currentTimeMillis() % 4000) / 4000f;
             int rainbow = Color.HSBtoRGB(hue, 1f, 0.8f);
             return rainbow;
@@ -111,28 +114,34 @@ public class CaveInfoItem extends Item {
 
     public static ItemStack create(Item item, ResourceKey<Biome> biomeResourceKey) {
         ItemStack map = new ItemStack(item);
-        CompoundTag tag = new CompoundTag();
         if(biomeResourceKey != null){
-            tag.putString("CaveBiome", biomeResourceKey.location().toString());
+            map.set(ACDataComponentRegistry.CAVE_BIOME.get(), biomeResourceKey);
         }
-        map.setTag(tag);
         return map;
     }
 
 
-    public void appendHoverText(ItemStack stack, @Nullable Level worldIn, List<Component> tooltip, TooltipFlag flagIn) {
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
         ResourceKey<Biome> biomeResourceKey = getCaveBiome(stack);
         if (biomeResourceKey != null && !this.hideCaveId) {
             String biomeName = "biome." + biomeResourceKey.location().toString().replace(":", ".");
             tooltip.add(Component.translatable(biomeName).withStyle(ChatFormatting.GRAY));
         }
-        super.appendHoverText(stack, worldIn, tooltip, flagIn);
+        super.appendHoverText(stack, context, tooltip, flagIn);
     }
 
     public static ResourceKey<Biome> getCaveBiome(ItemStack stack) {
-        if (stack.getTag() != null) {
-            String s = stack.getTag().getString("CaveBiome");
-            return s == null ? null : ResourceKey.create(Registries.BIOME, ResourceLocation.parse(s));
+        // First try the new DataComponent
+        if (stack.has(ACDataComponentRegistry.CAVE_BIOME.get())) {
+            return stack.get(ACDataComponentRegistry.CAVE_BIOME.get());
+        }
+        // Fallback for legacy items using CustomData
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData != null) {
+            CompoundTag tag = customData.copyTag();
+            String s = tag.getString("CaveBiome");
+            return s == null || s.isEmpty() ? null : ResourceKey.create(Registries.BIOME, ResourceLocation.parse(s));
         }
         return null;
     }

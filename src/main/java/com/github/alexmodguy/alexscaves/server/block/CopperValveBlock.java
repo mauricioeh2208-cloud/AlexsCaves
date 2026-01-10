@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.ACBlockEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.CopperValveBlockEntity;
 import com.github.alexmodguy.alexscaves.server.misc.ACMath;
@@ -71,6 +72,11 @@ public class CopperValveBlock extends BaseEntityBlock implements SimpleWaterlogg
         this.registerDefaultState(this.defaultBlockState().setValue(FACING, Direction.UP).setValue(TURNED, Boolean.valueOf(false)));
     }
 
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return MapCodec.unit(this);
+    }
+
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
         Direction direction = state.getValue(FACING);
         BlockPos blockpos = pos.relative(direction.getOpposite());
@@ -140,7 +146,8 @@ public class CopperValveBlock extends BaseEntityBlock implements SimpleWaterlogg
     }
 
 
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
         if (worldIn.getBlockEntity(pos) instanceof CopperValveBlockEntity copperValve && !player.isShiftKeyDown()) {
             if (state.getValue(TURNED)) {
                 copperValve.moveDown(false);
@@ -149,7 +156,7 @@ public class CopperValveBlock extends BaseEntityBlock implements SimpleWaterlogg
             }
             return InteractionResult.SUCCESS;
         }
-        return InteractionResult.PASS;
+        return super.useWithoutItem(state, worldIn, pos, player, hit);
     }
 
     @Nullable

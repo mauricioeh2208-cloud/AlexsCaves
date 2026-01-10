@@ -49,7 +49,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.entity.PartEntity;
+import net.neoforged.neoforge.entity.PartEntity;
 
 public class CorrodentEntity extends Monster implements ICustomCollisions, IAnimatedEntity {
     public static final int LIGHT_THRESHOLD = 7;
@@ -84,11 +84,11 @@ public class CorrodentEntity extends Monster implements ICustomCollisions, IAnim
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DIGGING, false);
-        this.entityData.define(AFRAID, false);
-        this.entityData.define(DIG_PITCH, 0.0F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DIGGING, false);
+        builder.define(AFRAID, false);
+        builder.define(DIG_PITCH, 0.0F);
     }
 
     protected void switchNavigator(boolean onLand) {
@@ -190,7 +190,7 @@ public class CorrodentEntity extends Monster implements ICustomCollisions, IAnim
         if (isDigging() && surfacePosition != null) {
             if (level().isClientSide && isMoving()) {
                 BlockState surfaceState = this.level().getBlockState(BlockPos.containing(surfacePosition).below());
-                BlockState onState = this.getFeetBlockState();
+                BlockState onState = this.getBlockStateOn();
                 if (surfaceState.isSolid()) {
                     Vec3 head = new Vec3(0, 0, 0.7F).yRot(-this.yBodyRot * ((float) Math.PI / 180F)).add(this.getX(), surfacePosition.y, this.getZ());
                     level().addParticle(new BlockParticleOption(ParticleTypes.BLOCK, surfaceState), true, head.x, head.y, head.z, random.nextFloat() - 0.5F, random.nextFloat() + 0.5F, random.nextFloat() - 0.5F);
@@ -327,7 +327,8 @@ public class CorrodentEntity extends Monster implements ICustomCollisions, IAnim
     }
 
     public Vec3 collide(Vec3 vec3) {
-        return !isDigging() ? super.collide(vec3) : ICustomCollisions.getAllowedMovementForEntity(this, vec3);
+        // super.collide() removed in 1.21, use ICustomCollisions for both cases
+        return ICustomCollisions.getAllowedMovementForEntity(this, vec3);
     }
 
     public void remove(Entity.RemovalReason removalReason) {
@@ -479,12 +480,15 @@ public class CorrodentEntity extends Monster implements ICustomCollisions, IAnim
 
     static class DiggingNodeEvaluator extends FlyNodeEvaluator {
 
-        protected BlockPathTypes evaluateBlockPathType(BlockGetter level, BlockPos pos, BlockPathTypes typeIn) {
-            BlockPathTypes def = getBlockPathTypeStatic(level, pos.mutable());
-            if (def == BlockPathTypes.LAVA || def == BlockPathTypes.OPEN || def == BlockPathTypes.WATER || def == BlockPathTypes.WATER_BORDER || def == BlockPathTypes.DANGER_OTHER || def == BlockPathTypes.DAMAGE_FIRE || def == BlockPathTypes.DANGER_POWDER_SNOW) {
-                return BlockPathTypes.BLOCKED;
+        // evaluateBlockPathType signature changed in 1.21 - use getPathType with PathfindingContext
+        @Override
+        public PathType getPathType(PathfindingContext context, int x, int y, int z) {
+            BlockPos pos = new BlockPos(x, y, z);
+            PathType def = super.getPathType(context, x, y, z);
+            if (def == PathType.LAVA || def == PathType.OPEN || def == PathType.WATER || def == PathType.WATER_BORDER || def == PathType.DANGER_OTHER || def == PathType.DAMAGE_FIRE || def == PathType.DANGER_POWDER_SNOW) {
+                return PathType.BLOCKED;
             }
-            return isSafeDig(level, pos) && pos.getY() > level.getMinBuildHeight() ? BlockPathTypes.WALKABLE : BlockPathTypes.BLOCKED;
+            return isSafeDig(context.level(), pos) && pos.getY() > context.level().getMinBuildHeight() ? PathType.WALKABLE : PathType.BLOCKED;
         }
     }
 

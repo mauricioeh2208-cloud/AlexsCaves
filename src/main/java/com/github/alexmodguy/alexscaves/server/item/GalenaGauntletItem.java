@@ -2,11 +2,13 @@ package com.github.alexmodguy.alexscaves.server.item;
 
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.server.block.ACBlockRegistry;
+import com.github.alexmodguy.alexscaves.server.enchantment.ACEnchantmentHelper;
 import com.github.alexmodguy.alexscaves.server.enchantment.ACEnchantmentRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.ACEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.item.MagneticWeaponEntity;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -18,8 +20,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
 public class GalenaGauntletItem extends Item {
     public GalenaGauntletItem() {
@@ -34,12 +37,10 @@ public class GalenaGauntletItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand interactionHand) {
         ItemStack itemstack = player.getItemInHand(interactionHand);
         ItemStack otherHand = interactionHand == InteractionHand.MAIN_HAND ? player.getItemInHand(InteractionHand.OFF_HAND) : player.getItemInHand(InteractionHand.MAIN_HAND);
-        boolean crystallization = itemstack.getEnchantmentLevel(ACEnchantmentRegistry.CRYSTALLIZATION.get()) > 0;
+        boolean crystallization = ACEnchantmentHelper.hasEnchantment(level, ACEnchantmentRegistry.CRYSTALLIZATION, itemstack);
         if (otherHand.is(crystallization ? ACTagRegistry.GALENA_GAUNTLET_CRYSTALLIZATION_ITEMS : ACTagRegistry.MAGNETIC_ITEMS)) {
             if (!player.isCreative()) {
-                itemstack.hurtAndBreak(1, player, (player1) -> {
-                    player1.broadcastBreakEvent(player1.getUsedItemHand());
-                });
+                itemstack.hurtAndBreak(1, player, interactionHand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
             }
             player.startUsingItem(interactionHand);
             return InteractionResultHolder.consume(itemstack);
@@ -66,7 +67,8 @@ public class GalenaGauntletItem extends Item {
         return UseAnim.NONE;
     }
 
-    public int getUseDuration(ItemStack stack) {
+    @Override
+    public int getUseDuration(ItemStack stack, LivingEntity entity) {
         return 72000;
     }
 
@@ -92,7 +94,7 @@ public class GalenaGauntletItem extends Item {
         AlexsCaves.PROXY.playWorldSound(living, (byte) 11);
         ItemStack otherStack = living.getItemInHand(otherHand);
         boolean otherMagneticWeaponsInUse = false;
-        boolean crystallization = stack.getEnchantmentLevel(ACEnchantmentRegistry.CRYSTALLIZATION.get()) > 0;
+        boolean crystallization = ACEnchantmentHelper.hasEnchantment(level, ACEnchantmentRegistry.CRYSTALLIZATION, stack);
         if (otherStack.is(crystallization ? ACTagRegistry.GALENA_GAUNTLET_CRYSTALLIZATION_ITEMS : ACTagRegistry.MAGNETIC_ITEMS)) {
             for(MagneticWeaponEntity magneticWeapon : level.getEntitiesOfClass(MagneticWeaponEntity.class, living.getBoundingBox().inflate(64, 64, 64))){
                 Entity controller = magneticWeapon.getController();
@@ -120,9 +122,10 @@ public class GalenaGauntletItem extends Item {
         boolean using = entity instanceof LivingEntity living && living.getUseItem().equals(stack);
         if (level.isClientSide) {
             int useTime = getUseTime(stack);
-            CompoundTag tag = stack.getOrCreateTag();
+            CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
             if (tag.getInt("PrevUseTime") != tag.getInt("UseTime")) {
                 tag.putInt("PrevUseTime", getUseTime(stack));
+                stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
             }
             if (using && useTime < 5.0F) {
                 setUseTime(stack, useTime + 1);
@@ -134,20 +137,21 @@ public class GalenaGauntletItem extends Item {
     }
 
     public static void setUseTime(ItemStack stack, int useTime) {
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         tag.putInt("PrevUseTime", getUseTime(stack));
         tag.putInt("UseTime", useTime);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
     public static int getUseTime(ItemStack stack) {
-        CompoundTag compoundtag = stack.getTag();
-        return compoundtag != null ? compoundtag.getInt("UseTime") : 0;
+        CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
+        return customData.copyTag().getInt("UseTime");
     }
 
     public static float getLerpedUseTime(ItemStack stack, float f) {
-        CompoundTag compoundtag = stack.getTag();
-        float prev = compoundtag != null ? (float) compoundtag.getInt("PrevUseTime") : 0F;
-        float current = compoundtag != null ? (float) compoundtag.getInt("UseTime") : 0F;
+        CompoundTag compoundtag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        float prev = (float) compoundtag.getInt("PrevUseTime");
+        float current = (float) compoundtag.getInt("UseTime");
         return prev + f * (current - prev);
     }
 

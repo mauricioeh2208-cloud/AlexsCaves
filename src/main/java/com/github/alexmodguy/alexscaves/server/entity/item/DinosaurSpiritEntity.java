@@ -17,7 +17,6 @@ import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.PlayMessages;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -51,20 +50,16 @@ public class DinosaurSpiritEntity extends Entity {
         super(entityType, level);
     }
 
-    public DinosaurSpiritEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.BEHOLDER_EYE.get(), level);
-    }
-
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(PLAYER_ID, Optional.empty());
-        this.entityData.define(DINOSAUR_TYPE, 0);
-        this.entityData.define(ATTACKING_ENTITY_ID, -1);
-        this.entityData.define(DELAY_SPAWN, 0);
-        this.entityData.define(FADING, false);
-        this.entityData.define(USING_ABILITY, false);
-        this.entityData.define(ENCHANTMENT_LEVEL, 0);
-        this.entityData.define(ROTATE_OFFSET, 0F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(PLAYER_ID, Optional.empty());
+        builder.define(DINOSAUR_TYPE, 0);
+        builder.define(ATTACKING_ENTITY_ID, -1);
+        builder.define(DELAY_SPAWN, 0);
+        builder.define(FADING, false);
+        builder.define(USING_ABILITY, false);
+        builder.define(ENCHANTMENT_LEVEL, 0);
+        builder.define(ROTATE_OFFSET, 0F);
     }
 
     public void tick() {
@@ -129,7 +124,6 @@ public class DinosaurSpiritEntity extends Entity {
         }
     }
 
-    @Override
     public void lerpTo(double x, double y, double z, float yr, float xr, int steps, boolean b) {
         this.lx = x;
         this.ly = y;

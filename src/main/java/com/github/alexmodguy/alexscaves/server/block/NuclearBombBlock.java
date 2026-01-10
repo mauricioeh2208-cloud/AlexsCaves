@@ -7,8 +7,9 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
@@ -76,26 +77,23 @@ public class NuclearBombBlock extends Block {
         return false;
     }
 
-    public InteractionResult use(BlockState state, Level level, BlockPos blockPos, Player player, InteractionHand hand, BlockHitResult result) {
-        ItemStack itemstack = player.getItemInHand(hand);
+    public ItemInteractionResult useItemOn(ItemStack itemstack, BlockState state, Level level, BlockPos blockPos, Player player, InteractionHand hand, BlockHitResult result) {
         if (!itemstack.is(Items.FLINT_AND_STEEL) && !itemstack.is(Items.FIRE_CHARGE)) {
-            return super.use(state, level, blockPos, player, hand, result);
+            return super.useItemOn(itemstack, state, level, blockPos, player, hand, result);
         } else {
             onCaughtFire(state, level, blockPos, result.getDirection(), player);
             level.setBlock(blockPos, Blocks.AIR.defaultBlockState(), 11);
             Item item = itemstack.getItem();
             if (!player.isCreative()) {
                 if (itemstack.is(Items.FLINT_AND_STEEL)) {
-                    itemstack.hurtAndBreak(1, player, (p_57425_) -> {
-                        p_57425_.broadcastBreakEvent(hand);
-                    });
+                    itemstack.hurtAndBreak(1, player, hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
                 } else {
                     itemstack.shrink(1);
                 }
             }
 
             player.awardStat(Stats.ITEM_USED.get(item));
-            return InteractionResult.sidedSuccess(level.isClientSide);
+            return ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
     }
 

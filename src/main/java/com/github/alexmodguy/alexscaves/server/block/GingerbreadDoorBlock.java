@@ -24,7 +24,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.*;
 import net.minecraft.world.level.gameevent.GameEvent;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -82,8 +82,8 @@ public class GingerbreadDoorBlock extends Block {
         }
     }
 
-    public BlockPathTypes getBlockPathType(BlockState state, BlockGetter level, BlockPos pos, @org.jetbrains.annotations.Nullable Mob mob) {
-        return state.getValue(OPEN) ? BlockPathTypes.DOOR_WOOD_CLOSED : BlockPathTypes.DOOR_OPEN;
+    public PathType getBlockPathType(BlockState state, BlockGetter level, BlockPos pos, @org.jetbrains.annotations.Nullable Mob mob) {
+        return state.getValue(OPEN) ? PathType.DOOR_WOOD_CLOSED : PathType.DOOR_OPEN;
     }
 
     @Nullable
@@ -128,7 +128,8 @@ public class GingerbreadDoorBlock extends Block {
         }
     }
 
-    public InteractionResult use(BlockState blockState, Level level, BlockPos blockPos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    @Override
+    protected InteractionResult useWithoutItem(BlockState blockState, Level level, BlockPos blockPos, Player player, BlockHitResult hitResult) {
         blockState = blockState.cycle(OPEN);
         level.setBlock(blockPos, blockState, 10);
         this.playSound(player, level, blockPos, blockState.getValue(OPEN));

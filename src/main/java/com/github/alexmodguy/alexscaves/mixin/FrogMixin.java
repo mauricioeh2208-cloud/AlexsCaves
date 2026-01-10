@@ -28,7 +28,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class FrogMixin extends Animal {
 
     @Shadow
-    public abstract void setVariant(FrogVariant variant);
+    public abstract void setVariant(Holder<FrogVariant> variant);
 
     protected FrogMixin(EntityType<? extends Animal> animal, Level level) {
         super(animal, level);
@@ -47,14 +47,15 @@ public abstract class FrogMixin extends Animal {
     }
 
     @Inject(
-            method = {"Lnet/minecraft/world/entity/animal/frog/Frog;finalizeSpawn(Lnet/minecraft/world/level/ServerLevelAccessor;Lnet/minecraft/world/DifficultyInstance;Lnet/minecraft/world/entity/MobSpawnType;Lnet/minecraft/world/entity/SpawnGroupData;Lnet/minecraft/nbt/CompoundTag;)Lnet/minecraft/world/entity/SpawnGroupData;"},
+            method = {"Lnet/minecraft/world/entity/animal/frog/Frog;finalizeSpawn(Lnet/minecraft/world/level/ServerLevelAccessor;Lnet/minecraft/world/DifficultyInstance;Lnet/minecraft/world/entity/MobSpawnType;Lnet/minecraft/world/entity/SpawnGroupData;)Lnet/minecraft/world/entity/SpawnGroupData;"},
             remap = true,
             at = @At(value = "TAIL")
     )
-    private void ac_finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn, @javax.annotation.Nullable CompoundTag dataTag, CallbackInfoReturnable<SpawnGroupData> cir) {
+    private void ac_finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn, CallbackInfoReturnable<SpawnGroupData> cir) {
         Holder<Biome> holder = level.getBiome(this.blockPosition());
         if (holder.is(ACBiomeRegistry.PRIMORDIAL_CAVES)) {
-            setVariant(ACFrogRegistry.PRIMORDIAL.get());
+            // In 1.21, setVariant takes Holder<FrogVariant> - DeferredHolder already implements Holder
+            setVariant(ACFrogRegistry.PRIMORDIAL);
         }
     }
 }

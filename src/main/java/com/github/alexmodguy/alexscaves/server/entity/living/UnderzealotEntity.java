@@ -102,14 +102,14 @@ public class UnderzealotEntity extends Monster implements PackAnimal, IAnimatedE
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(BURIED, false);
-        this.entityData.define(CARRYING, false);
-        this.entityData.define(PRAYING, false);
-        this.entityData.define(SACRIFICE_POS, Optional.empty());
-        this.entityData.define(PARTICLE_POS, Optional.empty());
-        this.entityData.define(WORSHIP_TIME, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(BURIED, false);
+        builder.define(CARRYING, false);
+        builder.define(PRAYING, false);
+        builder.define(SACRIFICE_POS, Optional.empty());
+        builder.define(PARTICLE_POS, Optional.empty());
+        builder.define(WORSHIP_TIME, 0);
     }
 
     public void calculateEntityAnimation(boolean flying) {
@@ -422,11 +422,11 @@ public class UnderzealotEntity extends Monster implements PackAnimal, IAnimatedE
     }
 
     @javax.annotation.Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor worldIn, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn, @javax.annotation.Nullable CompoundTag dataTag) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor worldIn, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn) {
         if (reason == MobSpawnType.NATURAL) {
             spawnReinforcements(worldIn);
         }
-        return super.finalizeSpawn(worldIn, difficultyIn, reason, spawnDataIn, dataTag);
+        return super.finalizeSpawn(worldIn, difficultyIn, reason, spawnDataIn);
     }
 
     private void spawnReinforcements(ServerLevelAccessor worldIn) {
@@ -498,7 +498,7 @@ public class UnderzealotEntity extends Monster implements PackAnimal, IAnimatedE
         float advancementRange = 64.0F;
         for (Player player : level().getEntitiesOfClass(Player.class, this.getBoundingBox().inflate(advancementRange))) {
             if (player.distanceTo(this) < advancementRange) {
-                ACAdvancementTriggerRegistry.UNDERZEALOT_SACRIFICE.triggerForEntity(player);
+                ACAdvancementTriggerRegistry.UNDERZEALOT_SACRIFICE.get().triggerForEntity(player);
             }
         }
     }

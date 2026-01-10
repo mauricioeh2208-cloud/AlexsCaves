@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.core.registries.Registries;
 
 import javax.annotation.Nullable;
 
@@ -24,7 +25,8 @@ public class AcidicRadrockBlock extends Block {
 
     public void playerDestroy(Level level, Player player, BlockPos blockPos, BlockState state, @Nullable BlockEntity entity, ItemStack itemStack) {
         super.playerDestroy(level, player, blockPos, state, entity, itemStack);
-        if (EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SILK_TOUCH, itemStack) == 0 && level.random.nextInt(3) == 0) {
+        var silkTouchEnchantment = level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SILK_TOUCH);
+        if (EnchantmentHelper.getItemEnchantmentLevel(silkTouchEnchantment, itemStack) == 0 && level.random.nextInt(3) == 0) {
             level.setBlockAndUpdate(blockPos, ACBlockRegistry.ACID.get().defaultBlockState());
         }
     }

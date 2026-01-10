@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -41,6 +42,11 @@ public class CycadBlock extends BushBlock implements BonemealableBlock {
     public CycadBlock() {
         super(Properties.of().mapColor(MapColor.COLOR_LIGHT_GREEN).dynamicShape().strength(1F, 2.0F).sound(SoundType.WOOD).offsetType(OffsetType.XZ));
         this.registerDefaultState(this.defaultBlockState().setValue(TOP, Boolean.valueOf(true)));
+    }
+
+    @Override
+    protected MapCodec<? extends BushBlock> codec() {
+        return MapCodec.unit(this);
     }
 
     public boolean propagatesSkylightDown(BlockState state, BlockGetter getter, BlockPos blockPos) {
@@ -106,7 +112,7 @@ public class CycadBlock extends BushBlock implements BonemealableBlock {
         return false;
     }
 
-    public boolean isValidBonemealTarget(LevelReader level, BlockPos blockPos, BlockState blockState, boolean idk) {
+    public boolean isValidBonemealTarget(LevelReader level, BlockPos blockPos, BlockState blockState) {
         if(blockState.getValue(TOP)){
             int size = 0;
             BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();

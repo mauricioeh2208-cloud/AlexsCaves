@@ -25,7 +25,7 @@ public class MovingMetalBlockRenderer extends EntityRenderer<MovingMetalBlockEnt
     public void render(MovingMetalBlockEntity entity, float f1, float f2, PoseStack stack, MultiBufferSource source, int i) {
         for (MovingBlockData data : entity.getData()) {
             BlockState blockstate = data.getState();
-            if (blockstate.getRenderShape() != RenderShape.INVISIBLE) {
+            if (blockstate.getRenderShape() != net.minecraft.world.level.block.RenderShape.INVISIBLE) {
                 stack.pushPose();
                 stack.translate(-0.5D, -0.5D, -0.5D);
                 stack.translate(data.getOffset().getX(), data.getOffset().getY(), data.getOffset().getZ());

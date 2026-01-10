@@ -5,8 +5,6 @@ import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
@@ -16,17 +14,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
 
 public class CinderBrickEntity extends ThrowableItemProjectile {
 
     public CinderBrickEntity(EntityType entityType, Level level) {
         super(entityType, level);
-    }
-
-    public CinderBrickEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(ACEntityRegistry.CINDER_BRICK.get(), level);
     }
 
     public CinderBrickEntity(Level level, LivingEntity thrower) {
@@ -35,11 +27,6 @@ public class CinderBrickEntity extends ThrowableItemProjectile {
 
     public CinderBrickEntity(Level level, double x, double y, double z) {
         super(ACEntityRegistry.CINDER_BRICK.get(), x, y, z, level);
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
     }
 
     public void handleEntityEvent(byte message) {

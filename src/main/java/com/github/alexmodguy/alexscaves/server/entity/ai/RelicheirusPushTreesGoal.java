@@ -84,7 +84,7 @@ public class RelicheirusPushTreesGoal extends MoveToBlockGoal {
                                     BlockState moveState = relicheirus.level().getBlockState(pos);
                                     BlockEntity te = relicheirus.level().getBlockEntity(pos);
                                     BlockPos offset = pos.subtract(blockPos);
-                                    MovingBlockData data = new MovingBlockData(moveState, moveState.getShape(relicheirus.level(), pos), offset, te == null ? null : te.saveWithoutMetadata());
+                                    MovingBlockData data = new MovingBlockData(moveState, moveState.getShape(relicheirus.level(), pos), offset, te == null ? null : te.saveWithoutMetadata(relicheirus.level().registryAccess()));
                                     relicheirus.level().removeBlockEntity(pos);
                                     allData.add(data);
                                 }

@@ -5,6 +5,7 @@ import com.github.alexmodguy.alexscaves.server.level.storage.ACWorldData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -14,6 +15,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -24,7 +26,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.minecraft.world.level.material.MapColor;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -48,9 +50,12 @@ public class PrimalMagmaBlock extends Block {
     }
 
     public void stepOn(Level level, BlockPos blockPos, BlockState blockState, Entity entity) {
-        if (!entity.isSteppingCarefully() && entity instanceof LivingEntity && !EnchantmentHelper.hasFrostWalker((LivingEntity) entity)) {
-            entity.hurt(level.damageSources().hotFloor(), 1.0F);
-            entity.setSecondsOnFire(3);
+        if (!entity.isSteppingCarefully() && entity instanceof LivingEntity livingEntity) {
+            var frostWalker = level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FROST_WALKER);
+            if (EnchantmentHelper.getEnchantmentLevel(frostWalker, livingEntity) == 0) {
+                entity.hurt(level.damageSources().hotFloor(), 1.0F);
+                entity.igniteForSeconds(3);
+            }
         }
         super.stepOn(level, blockPos, blockState, entity);
     }
@@ -61,7 +66,7 @@ public class PrimalMagmaBlock extends Block {
                 if(!(entity instanceof ItemEntity)){
                     entity.setDeltaMovement(entity.getDeltaMovement().multiply(0.9D, 0.1D, 0.9D));
                     entity.hurt(level.damageSources().hotFloor(), 1.0F);
-                    entity.setSecondsOnFire(3);
+                    entity.igniteForSeconds(3);
                 }
             }else{
                 entity.setDeltaMovement(entity.getDeltaMovement().add(0, 0.1D, 0));
@@ -133,8 +138,8 @@ public class PrimalMagmaBlock extends Block {
     }
 
     @Override
-    public BlockPathTypes getAdjacentBlockPathType(BlockState state, BlockGetter level, BlockPos pos, @Nullable Mob mob, BlockPathTypes originalType) {
-        return BlockPathTypes.DANGER_FIRE;
+    public PathType getAdjacentBlockPathType(BlockState state, BlockGetter level, BlockPos pos, @Nullable Mob mob, PathType originalType) {
+        return PathType.DANGER_FIRE;
     }
 
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {

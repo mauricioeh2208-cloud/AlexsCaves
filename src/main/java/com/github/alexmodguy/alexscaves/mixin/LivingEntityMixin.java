@@ -2,7 +2,9 @@ package com.github.alexmodguy.alexscaves.mixin;
 
 import com.github.alexmodguy.alexscaves.server.entity.util.*;
 import com.github.alexmodguy.alexscaves.server.potion.ACEffectRegistry;
+import com.github.alexthe666.citadel.CitadelConstants;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
@@ -35,7 +37,7 @@ public abstract class LivingEntityMixin extends Entity implements HeadRotationEn
     public float yHeadRotO;
 
     @Shadow
-    public abstract boolean hasEffect(MobEffect p_21024_);
+    public abstract boolean hasEffect(Holder<MobEffect> p_21024_);
 
     @Shadow
     @Final
@@ -58,6 +60,9 @@ public abstract class LivingEntityMixin extends Entity implements HeadRotationEn
     public LivingEntityMixin(EntityType<?> entityType, Level level) {
         super(entityType, level);
     }
+
+    // Magnetic data is now handled via NeoForge Attachment API in EntityMixin
+    // No longer need to define synched data here
 
     @Inject(
             method = {"Lnet/minecraft/world/entity/LivingEntity;calculateEntityAnimation(Z)V"},
@@ -102,7 +107,7 @@ public abstract class LivingEntityMixin extends Entity implements HeadRotationEn
             at = @At(value = "HEAD")
     )
     protected void ac_increaseAirSupply(int air, CallbackInfoReturnable<Integer> cir) {
-        if (this.hasEffect(ACEffectRegistry.BUBBLED.get())) {
+        if (this.hasEffect(ACEffectRegistry.BUBBLED)) {
             cir.setReturnValue(air);
         }
     }

@@ -15,7 +15,8 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.registries.RegistryObject;
+import net.minecraft.world.entity.EntityType;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 import javax.annotation.Nullable;
 
@@ -28,7 +29,7 @@ public class MultipleDinosaurEggsBlock extends DinosaurEggBlock {
     private static final VoxelShape ONE_EGG_SHAPE = Block.box(4.0D, 0.0D, 4.0D, 12.0D, 9.0D, 12.0D);
     private static final VoxelShape MULTI_EGG_SHAPE = Block.box(1.0D, 0.0D, 1.0D, 15.0D, 7.0D, 15.0D);
 
-    public MultipleDinosaurEggsBlock(Properties properties, RegistryObject births, int maxEggs) {
+    public MultipleDinosaurEggsBlock(Properties properties, DeferredHolder<EntityType<?>, ? extends EntityType<?>> births, int maxEggs) {
         super(properties, births, Shapes.block());
         this.maxEggs = maxEggs;
         this.registerDefaultState(this.defaultBlockState().setValue(HATCH, Integer.valueOf(0)).setValue(EGGS, 1).setValue(NEEDS_PLAYER, false));

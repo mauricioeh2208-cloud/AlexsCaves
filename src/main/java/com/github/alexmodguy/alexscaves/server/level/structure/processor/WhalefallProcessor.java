@@ -4,7 +4,7 @@ import com.github.alexmodguy.alexscaves.server.block.ACBlockRegistry;
 import com.github.alexmodguy.alexscaves.server.block.BaleenBoneBlock;
 import com.github.alexmodguy.alexscaves.server.block.ThinBoneBlock;
 import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
@@ -19,11 +19,11 @@ import javax.annotation.Nullable;
 
 public class WhalefallProcessor extends StructureProcessor {
 
-    public static final Codec<WhalefallProcessor> CODEC = Codec.unit(() -> {
+    public static final MapCodec<WhalefallProcessor> CODEC = MapCodec.unit(() -> {
         return WhalefallProcessor.INSTANCE_GRAVITY;
     });
 
-    public static final Codec<WhalefallProcessor> CODEC_SKULL = Codec.unit(() -> {
+    public static final MapCodec<WhalefallProcessor> CODEC_SKULL = MapCodec.unit(() -> {
         return WhalefallProcessor.INSTANCE_NO_GRAVITY;
     });
     public static final WhalefallProcessor INSTANCE_GRAVITY = new WhalefallProcessor(true);

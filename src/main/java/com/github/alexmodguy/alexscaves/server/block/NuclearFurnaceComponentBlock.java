@@ -7,7 +7,6 @@ import com.github.alexmodguy.alexscaves.server.potion.ACEffectRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.stats.Stats;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.WorldlyContainerHolder;
@@ -87,7 +86,7 @@ public class NuclearFurnaceComponentBlock extends Block implements WorldlyContai
             BlockPos corner = getCornerForFurnace(level, blockPos, true);
             if (corner != null && corner.getY() == blockPos.getY() - 1 && level.getBlockEntity(corner) instanceof NuclearFurnaceBlockEntity furnace && furnace.isUndergoingFission()) { //top
                 if(entity instanceof LivingEntity living && !entity.getType().is(ACTagRegistry.RESISTS_RADIATION)){
-                    living.addEffect(new MobEffectInstance(ACEffectRegistry.IRRADIATED.get(), 2000, 3));
+                    living.addEffect(new MobEffectInstance(ACEffectRegistry.IRRADIATED, 2000, 3));
                 }
             }
         }
@@ -218,7 +217,7 @@ public class NuclearFurnaceComponentBlock extends Block implements WorldlyContai
         }
     }
 
-    public InteractionResult use(BlockState state, Level level, BlockPos blockPos, Player player, InteractionHand hand, BlockHitResult result) {
+    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos blockPos, Player player, BlockHitResult result) {
         if(state.getValue(ACTIVE) && !player.isShiftKeyDown()){
             BlockPos corner = getCornerForFurnace(level, blockPos, true);
             if(corner != null && level.getBlockState(corner).is(ACBlockRegistry.NUCLEAR_FURNACE.get()) && isCornerForFurnace(level, corner, false, true) && level.getBlockEntity(corner) instanceof NuclearFurnaceBlockEntity nuclearFurnaceBlockEntity){
@@ -232,7 +231,7 @@ public class NuclearFurnaceComponentBlock extends Block implements WorldlyContai
                 }
             }
         }
-        return super.use(state, level, blockPos, player, hand, result);
+        return super.useWithoutItem(state, level, blockPos, player, result);
     }
 
     @Override

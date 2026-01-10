@@ -2,7 +2,7 @@ package com.github.alexmodguy.alexscaves.server.potion;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraftforge.common.brewing.BrewingRecipe;
+import net.neoforged.neoforge.common.brewing.BrewingRecipe;
 
 import javax.annotation.Nonnull;
 
@@ -25,7 +25,7 @@ class ProperBrewingRecipe extends BrewingRecipe {
                 return stack.isEmpty();
             } else {
                 for (ItemStack itemstack : matchingStacks) {
-                    if (ItemStack.isSameItemSameTags(itemstack, stack)) {
+                    if (ItemStack.isSameItemSameComponents(itemstack, stack)) {
                         return true;
                     }
                 }

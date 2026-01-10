@@ -3,8 +3,8 @@ package com.github.alexmodguy.alexscaves.server.block.blockentity;
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
@@ -15,9 +15,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import java.util.UUID;
 import java.util.function.Function;
@@ -82,11 +84,11 @@ public class HologramProjectorBlockEntity extends BlockEntity {
         }
     }
 
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         if (tag.contains("EntityType")) {
             String str = tag.getString("EntityType");
-            this.entityType = ForgeRegistries.ENTITY_TYPES.getValue(ResourceLocation.parse(str));
+            this.entityType = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.parse(str));
         }
         if (tag.contains("EntityTag")) {
             this.entityTag = tag.getCompound("EntityTag");
@@ -97,10 +99,10 @@ public class HologramProjectorBlockEntity extends BlockEntity {
         }
     }
 
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
         if (this.entityType != null) {
-            tag.putString("EntityType", ForgeRegistries.ENTITY_TYPES.getKey(this.entityType).toString());
+            tag.putString("EntityType", BuiltInRegistries.ENTITY_TYPE.getKey(this.entityType).toString());
         }
         if (this.entityTag != null) {
             tag.put("EntityTag", this.entityTag);
@@ -115,7 +117,7 @@ public class HologramProjectorBlockEntity extends BlockEntity {
     public AABB getRenderBoundingBox() {
         BlockPos pos = this.getBlockPos();
         float f = displayEntity == null ? 1.0F : Math.max(displayEntity.getBbWidth(), displayEntity.getBbHeight());
-        return new AABB(pos.offset(-1, -1, -1), pos.offset(2, 2, 2)).inflate(Math.max(f - 0.5F, 1F));
+        return new AABB(pos.getX() - 1, pos.getY() - 1, pos.getZ() - 1, pos.getX() + 2, pos.getY() + 2, pos.getZ() + 2).inflate(Math.max(f - 0.5F, 1F));
     }
 
     @Override
@@ -124,24 +126,22 @@ public class HologramProjectorBlockEntity extends BlockEntity {
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet) {
-        if (packet != null && packet.getTag() != null) {
-            if (packet.getTag().contains("EntityType")) {
-                String str = packet.getTag().getString("EntityType");
-                this.entityType = ForgeRegistries.ENTITY_TYPES.getValue(ResourceLocation.parse(str));
-            }
-            this.entityTag = packet.getTag().getCompound("EntityTag");
-            this.rotation = packet.getTag().getFloat("Rotation");
-            if (packet.getTag().contains("LastPlayerUUID")) {
-                this.lastPlayerUUID = packet.getTag().getUUID("LastPlayerUUID");
-            }
+    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider registries) {
+        if (tag.contains("EntityType")) {
+            String str = tag.getString("EntityType");
+            this.entityType = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.parse(str));
+        }
+        this.entityTag = tag.getCompound("EntityTag");
+        this.rotation = tag.getFloat("Rotation");
+        if (tag.contains("LastPlayerUUID")) {
+            this.lastPlayerUUID = tag.getUUID("LastPlayerUUID");
         }
     }
 
     public CompoundTag getUpdateTag() {
         CompoundTag compoundtag = new CompoundTag();
         if (this.entityType != null) {
-            compoundtag.putString("EntityType", ForgeRegistries.ENTITY_TYPES.getKey(this.entityType).toString());
+            compoundtag.putString("EntityType", BuiltInRegistries.ENTITY_TYPE.getKey(this.entityType).toString());
         }
         if (this.entityTag != null) {
             compoundtag.put("EntityTag", this.entityTag);

@@ -11,13 +11,14 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 public class RadioactiveBlockItem extends BlockItemWithSupplier {
 
     private final float randomChanceOfRadiation;
 
-    public RadioactiveBlockItem(RegistryObject<Block> blockSupplier, Properties props, float randomChanceOfRadiation) {
+    public RadioactiveBlockItem(DeferredHolder<Block, Block> blockSupplier, Properties props, float randomChanceOfRadiation) {
         super(blockSupplier, props);
         this.randomChanceOfRadiation = randomChanceOfRadiation;
     }
@@ -27,8 +28,8 @@ public class RadioactiveBlockItem extends BlockItemWithSupplier {
         if (!level.isClientSide && entity instanceof LivingEntity living && !(living instanceof Player player && player.isCreative())) {
             float stackChance = stack.getCount() * randomChanceOfRadiation;
             float hazmatMultiplier = 1F - HazmatArmorItem.getWornAmount(living) / 4F;
-            if (!living.hasEffect(ACEffectRegistry.IRRADIATED.get()) && level.random.nextFloat() < stackChance * hazmatMultiplier) {
-                MobEffectInstance instance = new MobEffectInstance(ACEffectRegistry.IRRADIATED.get(), 1800);
+            if (!living.hasEffect(ACEffectRegistry.IRRADIATED) && level.random.nextFloat() < stackChance * hazmatMultiplier) {
+                MobEffectInstance instance = new MobEffectInstance(ACEffectRegistry.IRRADIATED, 1800);
                 living.addEffect(instance);
                 AlexsCaves.sendMSGToAll(new UpdateEffectVisualityEntityMessage(entity.getId(), entity.getId(), 0, instance.getDuration()));
             }

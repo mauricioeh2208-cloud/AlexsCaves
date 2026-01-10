@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -18,14 +19,19 @@ import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.common.ToolAction;
-import net.minecraftforge.common.ToolActions;
+import net.neoforged.neoforge.common.ItemAbility;
+import net.neoforged.neoforge.common.ItemAbilities;
 
 public class CandyCanePoleBlock extends CrossCollisionBlock {
 
     public CandyCanePoleBlock() {
         super(2.0F, 2.0F, 16.0F, 16.0F, 16.0F, BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).noOcclusion().noCollission().pushReaction(PushReaction.DESTROY).instabreak().sound(ACSoundTypes.HARD_CANDY).dynamicShape());
         this.registerDefaultState(this.defaultBlockState().setValue(WATERLOGGED, false).setValue(NORTH, false).setValue(EAST, false).setValue(SOUTH, false).setValue(WEST, false));
+    }
+
+    @Override
+    protected MapCodec<? extends CrossCollisionBlock> codec() {
+        return MapCodec.unit(this);
     }
 
     @Override
@@ -83,11 +89,11 @@ public class CandyCanePoleBlock extends CrossCollisionBlock {
         return PROPERTY_BY_DIRECTION.get(direction);
     }
 
-    public BlockState getToolModifiedState(BlockState state, UseOnContext context, ToolAction toolAction, boolean simulate) {
+    public BlockState getToolModifiedState(BlockState state, UseOnContext context, ItemAbility toolAction, boolean simulate) {
         ItemStack itemStack = context.getItemInHand();
         if (!itemStack.canPerformAction(toolAction))
             return null;
-        if (ToolActions.AXE_STRIP == toolAction && this == ACBlockRegistry.CANDY_CANE_POLE.get()) {
+        if (ItemAbilities.AXE_STRIP == toolAction && this == ACBlockRegistry.CANDY_CANE_POLE.get()) {
             return ACBlockRegistry.STRIPPED_CANDY_CANE_POLE.get().defaultBlockState().setValue(WATERLOGGED, state.getValue(WATERLOGGED)).setValue(NORTH, state.getValue(NORTH)).setValue(EAST, state.getValue(EAST)).setValue(WEST, state.getValue(WEST)).setValue(SOUTH, state.getValue(SOUTH));
         }
         return super.getToolModifiedState(state, context, toolAction, simulate);

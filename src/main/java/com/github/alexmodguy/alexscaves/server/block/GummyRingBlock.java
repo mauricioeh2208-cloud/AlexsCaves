@@ -1,10 +1,12 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import com.github.alexmodguy.alexscaves.server.block.fluid.ACFluidRegistry;
 import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -28,8 +30,14 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class GummyRingBlock extends DirectionalBlock implements BucketPickup, LiquidBlockContainer {
+    public static final MapCodec<GummyRingBlock> CODEC = simpleCodec((properties) -> new GummyRingBlock());
     public static final IntegerProperty LIQUID_LOGGED = IntegerProperty.create("liquid_logged", 0, 2);
     public static final BooleanProperty FLOATING = BooleanProperty.create("floating");
+
+    @Override
+    protected MapCodec<? extends DirectionalBlock> codec() {
+        return CODEC;
+    }
     private static final VoxelShape SHAPE_UP = Shapes.join(
             box(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D),
             box(5.0D, 0.0D, 5.0D, 11.0D, 8.0D, 11.0D), BooleanOp.ONLY_FIRST);
@@ -128,7 +136,8 @@ public class GummyRingBlock extends DirectionalBlock implements BucketPickup, Li
         return liquidType == 1 ? Fluids.WATER.getSource(false) : liquidType == 2 ? ACFluidRegistry.PURPLE_SODA_FLUID_SOURCE.get().getSource(false) : super.getFluidState(state);
     }
 
-    public boolean canPlaceLiquid(BlockGetter getter, BlockPos blockPos, BlockState blockState, Fluid fluid) {
+    @Override
+    public boolean canPlaceLiquid(Player player, BlockGetter getter, BlockPos blockPos, BlockState blockState, Fluid fluid) {
         return fluid == Fluids.WATER || fluid.getFluidType() == ACFluidRegistry.PURPLE_SODA_FLUID_TYPE.get();
     }
 
@@ -149,7 +158,8 @@ public class GummyRingBlock extends DirectionalBlock implements BucketPickup, Li
         }
     }
 
-    public ItemStack pickupBlock(LevelAccessor levelAccessor, BlockPos blockPos, BlockState state) {
+    @Override
+    public ItemStack pickupBlock(@javax.annotation.Nullable Player player, LevelAccessor levelAccessor, BlockPos blockPos, BlockState state) {
         int liquidType = state.getValue(LIQUID_LOGGED);
         levelAccessor.setBlock(blockPos, state.setValue(LIQUID_LOGGED, 0), 3);
         if (liquidType > 0) {

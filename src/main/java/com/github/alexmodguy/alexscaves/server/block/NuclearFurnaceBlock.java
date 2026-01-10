@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.block;
 
+import com.mojang.serialization.MapCodec;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.ACBlockEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.NuclearFurnaceBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -31,7 +32,14 @@ import org.jetbrains.annotations.Nullable;
 
 public class NuclearFurnaceBlock extends BaseEntityBlock {
 
+    public static final MapCodec<NuclearFurnaceBlock> CODEC = simpleCodec((properties) -> new NuclearFurnaceBlock());
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
+    }
+
     public NuclearFurnaceBlock() {
         super(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(5, 1001).sound(ACSoundTypes.NUCLEAR_BOMB).noOcclusion());
         this.registerDefaultState(this.defaultBlockState().setValue(FACING, Direction.NORTH));
@@ -64,7 +72,8 @@ public class NuclearFurnaceBlock extends BaseEntityBlock {
         return super.updateShape(state, direction, state1, levelAccessor, blockPos, blockPos1);
     }
 
-    public InteractionResult use(BlockState state, Level level, BlockPos blockPos, Player player, InteractionHand hand, BlockHitResult result) {
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos blockPos, Player player, BlockHitResult result) {
         if(!player.isShiftKeyDown()){
             if (level.isClientSide) {
                 return InteractionResult.SUCCESS;
@@ -78,7 +87,7 @@ public class NuclearFurnaceBlock extends BaseEntityBlock {
                 return InteractionResult.CONSUME;
             }
         }
-        return InteractionResult.PASS;
+        return super.useWithoutItem(state, level, blockPos, player, result);
     }
 
     public void playerDestroy(Level level, Player player, BlockPos blockPos, BlockState state, @javax.annotation.Nullable BlockEntity entity, ItemStack itemStack) {

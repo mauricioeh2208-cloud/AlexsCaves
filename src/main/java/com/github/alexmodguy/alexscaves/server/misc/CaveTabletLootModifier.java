@@ -9,26 +9,26 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
-import net.minecraft.world.level.storage.loot.predicates.LootItemConditions;
-import net.minecraftforge.common.loot.IGlobalLootModifier;
+import net.neoforged.neoforge.common.loot.IGlobalLootModifier;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 public class CaveTabletLootModifier implements IGlobalLootModifier {
 
     private static final MapCodec<ResourceKey<Biome>> ENTRY_CODEC = ResourceKey.codec(Registries.BIOME).fieldOf("biome");
 
-    public static final Supplier<Codec<CaveTabletLootModifier>> CODEC = () ->
-            RecordCodecBuilder.create(inst ->
+    public static final MapCodec<CaveTabletLootModifier> CODEC =
+            RecordCodecBuilder.mapCodec(inst ->
                     inst.group(
                                     ENTRY_CODEC.forGetter((configuration) -> configuration.biome),
                                     Codec.BOOL.fieldOf("replace").forGetter((configuration) -> configuration.replace),
@@ -47,7 +47,12 @@ public class CaveTabletLootModifier implements IGlobalLootModifier {
         this.biome = biome;
         this.replace = replace;
         this.conditions = conditionsIn;
-        this.orConditions = LootItemConditions.orConditions(conditionsIn);
+        this.orConditions = (context) -> {
+            for (LootItemCondition condition : conditionsIn) {
+                if (condition.test(context)) return true;
+            }
+            return false;
+        };
     }
 
     @NotNull
@@ -100,12 +105,12 @@ public class CaveTabletLootModifier implements IGlobalLootModifier {
         }
         tag.putString("CaveBiome", key.location().toString());
         ItemStack stack = new ItemStack(ACItemRegistry.CAVE_TABLET.get());
-        stack.setTag(tag);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         return stack;
     }
 
     @Override
-    public Codec<? extends IGlobalLootModifier> codec() {
-        return CODEC.get();
+    public MapCodec<? extends IGlobalLootModifier> codec() {
+        return CODEC;
     }
 }

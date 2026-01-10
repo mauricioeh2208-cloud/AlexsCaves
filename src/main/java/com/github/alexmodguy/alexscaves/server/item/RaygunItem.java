@@ -3,6 +3,7 @@ package com.github.alexmodguy.alexscaves.server.item;
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.client.particle.ACParticleRegistry;
 import com.github.alexmodguy.alexscaves.server.block.ACBlockRegistry;
+import com.github.alexmodguy.alexscaves.server.enchantment.ACEnchantmentHelper;
 import com.github.alexmodguy.alexscaves.server.enchantment.ACEnchantmentRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.living.TremorzillaEntity;
 import com.github.alexmodguy.alexscaves.server.message.UpdateEffectVisualityEntityMessage;
@@ -15,6 +16,8 @@ import com.github.alexmodguy.alexscaves.server.potion.IrradiatedEffect;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -33,7 +36,7 @@ import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -110,7 +113,8 @@ public class RaygunItem extends Item implements UpdatesStackTags, AlwaysCombinab
         return UseAnim.NONE;
     }
 
-    public int getUseDuration(ItemStack stack) {
+    @Override
+    public int getUseDuration(ItemStack stack, LivingEntity entity) {
         return 72000;
     }
 
@@ -119,7 +123,7 @@ public class RaygunItem extends Item implements UpdatesStackTags, AlwaysCombinab
         boolean using = entity instanceof LivingEntity living && living.getUseItem().equals(stack);
         int useTime = getUseTime(stack);
         if(!level.isClientSide){
-            if (stack.getEnchantmentLevel(ACEnchantmentRegistry.SOLAR.get()) > 0 && !using) {
+            if (ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.SOLAR, stack) > 0 && !using) {
                 int charge = getCharge(stack);
                 if (charge > 0 && level.random.nextFloat() < 0.02F) {
                     BlockPos playerPos = entity.blockPosition().above();
@@ -131,9 +135,10 @@ public class RaygunItem extends Item implements UpdatesStackTags, AlwaysCombinab
                 }
             }
         }else{
-            CompoundTag tag = stack.getOrCreateTag();
+            CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
             if (tag.getInt("PrevUseTime") != tag.getInt("UseTime")) {
                 tag.putInt("PrevUseTime", getUseTime(stack));
+                stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
             }
             if (using && useTime < 5.0F) {
                 setUseTime(stack, useTime + 1);
@@ -145,11 +150,11 @@ public class RaygunItem extends Item implements UpdatesStackTags, AlwaysCombinab
     }
 
     public void onUseTick(Level level, LivingEntity living, ItemStack stack, int timeUsing) {
-        int i = getUseDuration(stack) - timeUsing;
+        int i = getUseDuration(stack, living) - timeUsing;
         int realStart = 15;
         float time = i < realStart ? i / (float) realStart : 1F;
         float maxDist = 25.0F * time;
-        boolean xRay = stack.getEnchantmentLevel(ACEnchantmentRegistry.X_RAY.get()) > 0;
+        boolean xRay = ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.X_RAY, stack) > 0;
         HitResult realHitResult = ProjectileUtil.getHitResultOnViewVector(living, Entity::canBeHitByProjectile, maxDist);
         HitResult blockOnlyHitResult = living.pick(maxDist, 0.0F, false);
         Vec3 xRayVec = living.getViewVector(0.0F).scale(maxDist).add(living.getEyePosition());
@@ -166,7 +171,7 @@ public class RaygunItem extends Item implements UpdatesStackTags, AlwaysCombinab
         if (level.isClientSide) {
             setRayPosition(stack, vec3.x, vec3.y, vec3.z);
             AlexsCaves.PROXY.playWorldSound(living, (byte) 8);
-            int efficency = stack.getEnchantmentLevel(ACEnchantmentRegistry.ENERGY_EFFICIENCY.get());
+            int efficency = ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.ENERGY_EFFICIENCY, stack);
             int divis = 2 + (int) Math.floor(efficency * 1.5F);
             if (time >= 1F && i % divis == 0 && (!(living instanceof Player) || !((Player) living).isCreative())) {
                 int charge = getCharge(stack);
@@ -177,7 +182,7 @@ public class RaygunItem extends Item implements UpdatesStackTags, AlwaysCombinab
         float deltaX = 0;
         float deltaY = 0;
         float deltaZ = 0;
-        boolean gamma = stack.getEnchantmentLevel(ACEnchantmentRegistry.GAMMA_RAY.get()) > 0;
+        boolean gamma = ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.GAMMA_RAY, stack) > 0;
         ParticleOptions particleOptions;
         if (level.random.nextBoolean() && time >= 1F) {
             particleOptions = gamma ? ACParticleRegistry.BLUE_RAYGUN_EXPLOSION.get() : ACParticleRegistry.RAYGUN_EXPLOSION.get();
@@ -231,7 +236,7 @@ public class RaygunItem extends Item implements UpdatesStackTags, AlwaysCombinab
                 if (!entity.is(living) && !entity.isAlliedTo(living) && !living.isAlliedTo(entity) && !living.isPassengerOfSameVehicle(entity)) {
                     boolean flag = entity instanceof TremorzillaEntity || entity.hurt(ACDamageTypes.causeRaygunDamage(level.registryAccess(), living), gamma ? 2F : 1.5F);
                     if (flag && entity instanceof LivingEntity livingEntity && !livingEntity.getType().is(ACTagRegistry.RESISTS_RADIATION)) {
-                        if (livingEntity.addEffect(new MobEffectInstance(ACEffectRegistry.IRRADIATED.get(), 800, radiationLevel))) {
+                        if (livingEntity.addEffect(new MobEffectInstance(ACEffectRegistry.IRRADIATED, 800, radiationLevel))) {
                             AlexsCaves.sendMSGToAll(new UpdateEffectVisualityEntityMessage(entity.getId(), living.getId(), gamma ? 4 : 0, 800));
                         }
                     }
@@ -241,13 +246,14 @@ public class RaygunItem extends Item implements UpdatesStackTags, AlwaysCombinab
     }
 
     public static void setUseTime(ItemStack stack, int useTime) {
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         tag.putInt("PrevUseTime", getUseTime(stack));
         tag.putInt("UseTime", useTime);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
     public static void setRayPosition(ItemStack stack, double x, double y, double z) {
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         Vec3 prev = getRayPosition(stack);
         tag.putDouble("PrevRayX", prev.x);
         tag.putDouble("PrevRayY", prev.y);
@@ -255,26 +261,28 @@ public class RaygunItem extends Item implements UpdatesStackTags, AlwaysCombinab
         tag.putDouble("RayX", x);
         tag.putDouble("RayY", y);
         tag.putDouble("RayZ", z);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
     public static int getUseTime(ItemStack stack) {
-        CompoundTag compoundtag = stack.getTag();
-        return compoundtag != null ? compoundtag.getInt("UseTime") : 0;
+        CompoundTag compoundtag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return compoundtag.getInt("UseTime");
     }
 
     public static int getCharge(ItemStack stack) {
-        CompoundTag compoundtag = stack.getTag();
-        return compoundtag != null ? compoundtag.getInt("ChargeUsed") : 0;
+        CompoundTag compoundtag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return compoundtag.getInt("ChargeUsed");
     }
 
     public static void setCharge(ItemStack stack, int charge) {
-        CompoundTag compoundtag = stack.getOrCreateTag();
+        CompoundTag compoundtag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         compoundtag.putInt("ChargeUsed", charge);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(compoundtag));
     }
 
     public static Vec3 getRayPosition(ItemStack stack) {
-        CompoundTag compoundtag = stack.getTag();
-        if (compoundtag != null && compoundtag.contains("RayX")) {
+        CompoundTag compoundtag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        if (compoundtag.contains("RayX")) {
             return new Vec3(compoundtag.getDouble("RayX"), compoundtag.getDouble("RayY"), compoundtag.getDouble("RayZ"));
         } else {
             return Vec3.ZERO;
@@ -282,16 +290,16 @@ public class RaygunItem extends Item implements UpdatesStackTags, AlwaysCombinab
     }
 
     public static float getLerpedUseTime(ItemStack stack, float f) {
-        CompoundTag compoundtag = stack.getTag();
-        float prev = compoundtag != null ? (float) compoundtag.getInt("PrevUseTime") : 0F;
-        float current = compoundtag != null ? (float) compoundtag.getInt("UseTime") : 0F;
+        CompoundTag compoundtag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        float prev = (float) compoundtag.getInt("PrevUseTime");
+        float current = (float) compoundtag.getInt("UseTime");
         return prev + f * (current - prev);
     }
 
     @Nullable
     public static Vec3 getLerpedRayPosition(ItemStack stack, float f) {
-        CompoundTag compoundtag = stack.getTag();
-        if (compoundtag != null) {
+        CompoundTag compoundtag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        if (!compoundtag.isEmpty()) {
             double prevX = (float) compoundtag.getDouble("PrevRayX");
             double x = (float) compoundtag.getDouble("RayX");
             double prevY = (float) compoundtag.getDouble("PrevRayY");
@@ -327,8 +335,8 @@ public class RaygunItem extends Item implements UpdatesStackTags, AlwaysCombinab
         return Mth.hsvToRgb(0.3F, f1 * 0.6F + 0.2F, 1.0F);
     }
 
-
-    public void appendHoverText(ItemStack stack, @Nullable Level worldIn, List<Component> tooltip, TooltipFlag flagIn) {
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
         if (getCharge(stack) != 0) {
             String chargeLeft = "" + (int) (MAX_CHARGE - getCharge(stack));
             tooltip.add(Component.translatable("item.alexscaves.raygun.charge", chargeLeft, MAX_CHARGE).withStyle(ChatFormatting.GREEN));

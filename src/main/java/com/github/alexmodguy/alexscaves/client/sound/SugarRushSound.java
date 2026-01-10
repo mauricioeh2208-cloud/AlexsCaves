@@ -23,11 +23,11 @@ public class SugarRushSound extends AbstractTickableSoundInstance implements Unl
     }
 
     public boolean canPlaySound() {
-        return !this.user.isSilent() && this.user.hasEffect(ACEffectRegistry.SUGAR_RUSH.get());
+        return !this.user.isSilent() && this.user.hasEffect(ACEffectRegistry.SUGAR_RUSH);
     }
 
     public void tick() {
-        if (this.user.isAlive() && user.hasEffect(ACEffectRegistry.SUGAR_RUSH.get())) {
+        if (this.user.isAlive() && user.hasEffect(ACEffectRegistry.SUGAR_RUSH)) {
             this.x = (float) this.user.getX();
             this.y = (float) this.user.getY();
             this.z = (float) this.user.getZ();

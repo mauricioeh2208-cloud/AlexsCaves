@@ -9,8 +9,6 @@ import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -29,11 +27,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.ForgeMod;
-import net.minecraftforge.common.ToolActions;
-import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PlayMessages;
+import net.neoforged.neoforge.common.NeoForgeMod;
+import net.neoforged.neoforge.common.ItemAbilities;
+import net.neoforged.neoforge.fluids.FluidType;
 
 public class SubmarineEntity extends Entity implements KeybindUsingMount {
     private static final EntityDataAccessor<Float> RIGHT_PROPELLER_ROT = SynchedEntityData.defineId(SubmarineEntity.class, EntityDataSerializers.FLOAT);
@@ -77,26 +73,17 @@ public class SubmarineEntity extends Entity implements KeybindUsingMount {
         super(entityType, level);
     }
 
-    public SubmarineEntity(PlayMessages.SpawnEntity spawnEntity, Level world) {
-        this(ACEntityRegistry.SUBMARINE.get(), world);
-    }
-
     @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return (Packet<ClientGamePacketListener>) NetworkHooks.getEntitySpawningPacket(this);
-    }
-
-    @Override
-    protected void defineSynchedData() {
-        this.entityData.define(RIGHT_PROPELLER_ROT, 0.0F);
-        this.entityData.define(LEFT_PROPELLER_ROT, 0.0F);
-        this.entityData.define(BACK_PROPELLER_ROT, 0.0F);
-        this.entityData.define(ACCELERATION, 0.0F);
-        this.entityData.define(LIGHTS, false);
-        this.entityData.define(WAXED, false);
-        this.entityData.define(OXIDIZATION_LEVEL, 0);
-        this.entityData.define(DAMAGE_LEVEL, 0);
-        this.entityData.define(DANGER_ALERT_TICKS, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(RIGHT_PROPELLER_ROT, 0.0F);
+        builder.define(LEFT_PROPELLER_ROT, 0.0F);
+        builder.define(BACK_PROPELLER_ROT, 0.0F);
+        builder.define(ACCELERATION, 0.0F);
+        builder.define(LIGHTS, false);
+        builder.define(WAXED, false);
+        builder.define(OXIDIZATION_LEVEL, 0);
+        builder.define(DAMAGE_LEVEL, 0);
+        builder.define(DANGER_ALERT_TICKS, 0);
 
     }
 
@@ -280,7 +267,6 @@ public class SubmarineEntity extends Entity implements KeybindUsingMount {
         }
     }
 
-    @Override
     public void lerpTo(double x, double y, double z, float yr, float xr, int steps, boolean b) {
         this.lx = x;
         this.ly = y;
@@ -363,7 +349,7 @@ public class SubmarineEntity extends Entity implements KeybindUsingMount {
             }
             float f1 = -(this.getXRot() / 40F);
             Vec3 seatOffset = new Vec3(0F, -0.2F, 0.8F + f1).xRot((float) Math.toRadians(this.getXRot())).yRot((float) Math.toRadians(-this.getYRot()));
-            double d0 = this.getY() + this.getBbHeight() * 0.5F + seatOffset.y + passenger.getMyRidingOffset();
+            double d0 = this.getY() + this.getBbHeight() * 0.5F + seatOffset.y;
             moveFunction.accept(passenger, this.getX() + seatOffset.x, d0, this.getZ() + seatOffset.z);
             living.setAirSupply(Math.min(living.getAirSupply() + 2, living.getMaxAirSupply()));
         } else {
@@ -434,12 +420,10 @@ public class SubmarineEntity extends Entity implements KeybindUsingMount {
             return InteractionResult.PASS;
         } else {
             ItemStack itemStack = player.getItemInHand(hand);
-            if (itemStack.canPerformAction(ToolActions.AXE_SCRAPE) && (this.getOxidizationLevel() > 0 || this.isWaxed())) {
+            if (itemStack.canPerformAction(ItemAbilities.AXE_SCRAPE) && (this.getOxidizationLevel() > 0 || this.isWaxed())) {
                 player.swing(hand);
                 if (!player.isCreative()) {
-                    itemStack.hurtAndBreak(1, player, (player1) -> {
-                        player1.broadcastBreakEvent(hand);
-                    });
+                    itemStack.hurtAndBreak(1, player, hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
                 }
                 if (this.isWaxed()) {
                     this.playSound(SoundEvents.AXE_WAX_OFF, 1.0F, 1.0F);
@@ -569,7 +553,7 @@ public class SubmarineEntity extends Entity implements KeybindUsingMount {
     }
 
     public float getWaterHeight() {
-        return (float) getFluidTypeHeight(ForgeMod.WATER_TYPE.get());
+        return (float) getFluidTypeHeight(NeoForgeMod.WATER_TYPE.value());
     }
 
     @Override

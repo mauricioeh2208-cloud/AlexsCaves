@@ -16,6 +16,7 @@ import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
+import net.minecraft.world.entity.vehicle.VehicleEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseRailBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -33,35 +34,23 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 @Mixin(AbstractMinecart.class)
-public abstract class AbstractMinecartMixin extends Entity implements MinecartAccessor {
+public abstract class AbstractMinecartMixin extends VehicleEntity implements MinecartAccessor {
 
     @Shadow
     private boolean flipped;
 
     @Shadow
-    public abstract int getHurtTime();
-
+    private int lerpSteps;
     @Shadow
-    public abstract void setHurtTime(int p_38155_);
-
+    private double lerpX;
     @Shadow
-    public abstract void setDamage(float p_38110_);
-
+    private double lerpY;
     @Shadow
-    public abstract float getDamage();
-
+    private double lerpZ;
     @Shadow
-    private int lSteps;
+    private double lerpYRot;
     @Shadow
-    private double lx;
-    @Shadow
-    private double ly;
-    @Shadow
-    private double lz;
-    @Shadow
-    private double lyr;
-    @Shadow
-    private double lxr;
+    private double lerpXRot;
 
     @Shadow
     @Nullable
@@ -132,16 +121,16 @@ public abstract class AbstractMinecartMixin extends Entity implements MinecartAc
                 }
 
                 this.checkBelowWorld();
-                this.handleNetherPortal();
+                this.handlePortal();
                 if (this.level().isClientSide) {
-                    if (this.lSteps > 0) {
-                        double d5 = this.getX() + (this.lx - this.getX()) / (double) this.lSteps;
-                        double d6 = this.getY() + (this.ly - this.getY()) / (double) this.lSteps;
-                        double d7 = this.getZ() + (this.lz - this.getZ()) / (double) this.lSteps;
-                        double d2 = Mth.wrapDegrees(this.lyr - (double) this.getYRot());
-                        this.setYRot(this.getYRot() + (float) d2 / (float) this.lSteps);
-                        this.setXRot(this.getXRot() + (float) (this.lxr - (double) this.getXRot()) / (float) this.lSteps);
-                        --this.lSteps;
+                    if (this.lerpSteps > 0) {
+                        double d5 = this.getX() + (this.lerpX - this.getX()) / (double) this.lerpSteps;
+                        double d6 = this.getY() + (this.lerpY - this.getY()) / (double) this.lerpSteps;
+                        double d7 = this.getZ() + (this.lerpZ - this.getZ()) / (double) this.lerpSteps;
+                        double d2 = Mth.wrapDegrees(this.lerpYRot - (double) this.getYRot());
+                        this.setYRot(this.getYRot() + (float) d2 / (float) this.lerpSteps);
+                        this.setXRot(this.getXRot() + (float) (this.lerpXRot - (double) this.getXRot()) / (float) this.lerpSteps);
+                        --this.lerpSteps;
                         this.setPos(d5, d6, d7);
                         this.setRot(this.getYRot(), this.getXRot());
                     } else {

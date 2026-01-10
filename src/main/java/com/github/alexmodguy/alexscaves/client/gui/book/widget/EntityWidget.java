@@ -25,7 +25,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 public class EntityWidget extends BookWidget {
 
@@ -63,7 +65,7 @@ public class EntityWidget extends BookWidget {
 
     public void render(PoseStack poseStack, MultiBufferSource.BufferSource bufferSource, float partialTicks, boolean onFlippingPage) {
         if (actualRenderEntity == null) {
-            EntityType type = ForgeRegistries.ENTITY_TYPES.getValue(ResourceLocation.parse(entityId));
+            EntityType type = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.parse(entityId));
             if (type != null) {
                 actualRenderEntity = type.create(Minecraft.getInstance().level);
                 if (actualRenderEntity instanceof LivingEntity living && nbt != null && !nbt.isEmpty()) {
@@ -125,7 +127,7 @@ public class EntityWidget extends BookWidget {
                     model.riding = shouldSit;
                     model.setupAnim(living, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F);
                     matrixStack.scale(living.getScale(), living.getScale(), living.getScale());
-                    model.renderToBuffer(matrixStack, ivertexbuilder, packedLight, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+                    model.renderToBuffer(matrixStack, ivertexbuilder, packedLight, OverlayTexture.NO_OVERLAY, -1);
                     matrixStack.popPose();
                 }
             }

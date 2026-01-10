@@ -4,23 +4,27 @@ import com.github.alexmodguy.alexscaves.server.block.ACBlockRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.util.GummyColors;
 import com.github.alexmodguy.alexscaves.server.entity.util.HasGummyColors;
 import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSerializationContext;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
-import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.functions.LootItemConditionalFunction;
 import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 public class GummyColorLootFunction extends LootItemConditionalFunction {
 
-    protected GummyColorLootFunction(LootItemCondition[] lootItemConditions) {
-        super(lootItemConditions);
+    public static final MapCodec<GummyColorLootFunction> CODEC = RecordCodecBuilder.mapCodec(instance ->
+        commonFields(instance).apply(instance, GummyColorLootFunction::new)
+    );
+
+    protected GummyColorLootFunction(List<LootItemCondition> conditions) {
+        super(conditions);
     }
 
     @Override
@@ -108,22 +112,7 @@ public class GummyColorLootFunction extends LootItemConditionalFunction {
 
 
     @Override
-    public @NotNull LootItemFunctionType getType() {
+    public @NotNull LootItemFunctionType<GummyColorLootFunction> getType() {
         return ACLootTableRegistry.GUMMY_COLORS_LOOT_FUNCTION.get();
-    }
-
-    public static class Serializer extends LootItemConditionalFunction.Serializer<GummyColorLootFunction> {
-        public Serializer() {
-            super();
-        }
-
-        @Override
-        public void serialize(@NotNull JsonObject object, @NotNull GummyColorLootFunction functionClazz, @NotNull JsonSerializationContext serializationContext) {
-        }
-
-        @Override
-        public @NotNull GummyColorLootFunction deserialize(@NotNull JsonObject object, @NotNull JsonDeserializationContext deserializationContext, LootItemCondition @NotNull [] conditionsIn) {
-            return new GummyColorLootFunction(conditionsIn);
-        }
     }
 }

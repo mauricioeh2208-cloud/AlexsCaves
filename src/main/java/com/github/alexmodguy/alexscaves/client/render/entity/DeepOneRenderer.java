@@ -1,5 +1,7 @@
 package com.github.alexmodguy.alexscaves.client.render.entity;
 
+import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
+
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.client.model.DeepOneModel;
 import com.github.alexmodguy.alexscaves.client.render.ACRenderTypes;
@@ -59,7 +61,7 @@ public class DeepOneRenderer extends MobRenderer<DeepOneEntity, DeepOneModel> im
             if (!entitylivingbaseIn.isInvisible()) {
                 VertexConsumer ivertexbuilder = bufferIn.getBuffer(sepia ? ACRenderTypes.getBookWidget(TEXTURE_GLOW, true) : ACRenderTypes.getGhostly(TEXTURE_GLOW));
                 float alpha = 1.0F;
-                this.getParentModel().renderToBuffer(matrixStackIn, ivertexbuilder, 240, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), 1.0F, 1.0F, 1.0F, alpha);
+                this.getParentModel().renderToBuffer(matrixStackIn, ivertexbuilder, 240, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), ColorUtil.packColor(1.0F, 1.0F, 1.0F, alpha));
             }
         }
     }

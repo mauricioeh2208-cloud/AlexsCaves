@@ -43,7 +43,7 @@ public class LicowitchTowerStructurePiece extends UndergroundTemplateStructurePi
     }
 
     private static StructurePlaceSettings makeSettings(Rotation rotation) {
-        return (new StructurePlaceSettings()).setRotation(rotation).setIgnoreEntities(true).setKeepLiquids(false);
+        return (new StructurePlaceSettings()).setRotation(rotation).setIgnoreEntities(true);
     }
 
     protected void addAdditionalSaveData(StructurePieceSerializationContext context, CompoundTag tag) {
@@ -59,9 +59,13 @@ public class LicowitchTowerStructurePiece extends UndergroundTemplateStructurePi
     @Override
     protected void handleDataMarker(String string, BlockPos pos, ServerLevelAccessor accessor, RandomSource random, BoundingBox box) {
         if (string.equals("loot_chest")) {
-            RandomizableContainerBlockEntity.setLootTable(accessor, random, pos.below(), ACLootTableRegistry.LICOWITCH_TOWER_CHEST);
+            if (accessor.getBlockEntity(pos.below()) instanceof RandomizableContainerBlockEntity container) {
+                container.setLootTable(ACLootTableRegistry.LICOWITCH_TOWER_CHEST, random.nextLong());
+            }
         } else if (string.equals("secret_loot_chest")) {
-            RandomizableContainerBlockEntity.setLootTable(accessor, random, pos.below(), ACLootTableRegistry.SECRET_LICOWITCH_TOWER_CHEST);
+            if (accessor.getBlockEntity(pos.below()) instanceof RandomizableContainerBlockEntity container) {
+                container.setLootTable(ACLootTableRegistry.SECRET_LICOWITCH_TOWER_CHEST, random.nextLong());
+            }
         }
         accessor.setBlock(pos, Blocks.CAVE_AIR.defaultBlockState(), 0);
     }

@@ -74,12 +74,12 @@ public class AtlatitanEntity extends SauropodBaseEntity implements KeybindUsingM
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(EATING_POS, Optional.empty());
-        this.entityData.define(LAST_EATEN_BLOCK, Optional.empty());
-        this.entityData.define(RIDEABLE_FOR, 0);
-        this.entityData.define(METER_AMOUNT, 1.0F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(EATING_POS, Optional.empty());
+        builder.define(LAST_EATEN_BLOCK, Optional.empty());
+        builder.define(RIDEABLE_FOR, 0);
+        builder.define(METER_AMOUNT, 1.0F);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -128,7 +128,7 @@ public class AtlatitanEntity extends SauropodBaseEntity implements KeybindUsingM
                 crushBlocksInRing(15, this.getBlockX(), this.getBlockZ(), 1.0F);
                 if(this.isVehicle() && !this.level().isClientSide){
                     for(Entity passenger : this.getPassengers()){
-                        ACAdvancementTriggerRegistry.ATLATITAN_STOMP.triggerForEntity(passenger);
+                        ACAdvancementTriggerRegistry.ATLATITAN_STOMP.get().triggerForEntity(passenger);
                     }
                 }
             }
@@ -390,5 +390,9 @@ public class AtlatitanEntity extends SauropodBaseEntity implements KeybindUsingM
 
     protected SoundEvent getDeathSound() {
         return ACSoundRegistry.ATLATITAN_DEATH.get();
+    }
+
+    public double getPassengersRidingOffset() {
+        return this.getBbHeight() * 0.75D;
     }
 }

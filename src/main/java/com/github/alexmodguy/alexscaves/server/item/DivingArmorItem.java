@@ -8,6 +8,7 @@ import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
@@ -45,12 +46,13 @@ public class DivingArmorItem extends ArmorItem {
         consumer.accept((IClientItemExtensions) AlexsCaves.PROXY.getArmorProperties());
     }
 
+    @Override
     @Nullable
-    public String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, String type) {
+    public ResourceLocation getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, ArmorMaterial.Layer layer, boolean innerModel) {
         if (slot == EquipmentSlot.LEGS) {
-            return AlexsCaves.MODID + ":textures/armor/diving_suit_1.png";
+            return ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "textures/armor/diving_suit_1.png");
         } else {
-            return AlexsCaves.MODID + ":textures/armor/diving_suit_0.png";
+            return ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "textures/armor/diving_suit_0.png");
         }
     }
 }

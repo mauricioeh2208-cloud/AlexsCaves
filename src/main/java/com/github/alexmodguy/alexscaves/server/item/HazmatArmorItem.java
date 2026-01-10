@@ -6,6 +6,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
@@ -49,12 +50,13 @@ public class HazmatArmorItem extends ArmorItem {
         }
     }
 
+    @Override
     @Nullable
-    public String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, String type) {
+    public ResourceLocation getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, ArmorMaterial.Layer layer, boolean innerModel) {
         if (slot == EquipmentSlot.LEGS) {
-            return AlexsCaves.MODID + ":textures/armor/hazmat_suit_1.png";
+            return ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "textures/armor/hazmat_suit_1.png");
         } else {
-            return AlexsCaves.MODID + ":textures/armor/hazmat_suit_0.png";
+            return ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "textures/armor/hazmat_suit_0.png");
         }
     }
 

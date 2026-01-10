@@ -121,8 +121,7 @@ public abstract class AbstractMinecartMixin extends VehicleEntity implements Min
                 }
 
                 this.checkBelowWorld();
-                // handleNetherPortal() was removed in 1.21 - portal logic is now handled differently via handlePortal()
-                // this.handlePortal();
+                this.handlePortal();
                 if (this.level().isClientSide) {
                     if (this.lerpSteps > 0) {
                         double d5 = this.getX() + (this.lerpX - this.getX()) / (double) this.lerpSteps;

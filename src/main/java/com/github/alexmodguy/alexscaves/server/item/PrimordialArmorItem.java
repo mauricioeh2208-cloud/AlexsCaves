@@ -1,6 +1,7 @@
 package com.github.alexmodguy.alexscaves.server.item;
 
 import com.github.alexmodguy.alexscaves.AlexsCaves;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -25,12 +26,13 @@ public class PrimordialArmorItem extends ArmorItem {
         consumer.accept((IClientItemExtensions) AlexsCaves.PROXY.getArmorProperties());
     }
 
+    @Override
     @Nullable
-    public String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, String type) {
+    public ResourceLocation getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, ArmorMaterial.Layer layer, boolean innerModel) {
         if (slot == EquipmentSlot.LEGS) {
-            return AlexsCaves.MODID + ":textures/armor/primordial_armor_1.png";
+            return ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "textures/armor/primordial_armor_1.png");
         } else {
-            return AlexsCaves.MODID + ":textures/armor/primordial_armor_0.png";
+            return ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "textures/armor/primordial_armor_0.png");
         }
     }
 

@@ -66,27 +66,31 @@ public abstract class HumanoidArmorLayerMixin extends RenderLayer {
     }
 
 
-    /* copy of forge method - updated for 1.21 where ArmorMaterial is a Holder */
+    /* Updated for 1.21 ArmorMaterial.Layer system */
     private ResourceLocation getACArmorResource(LivingEntity entity, ItemStack stack, EquipmentSlot slot, @Nullable String type) {
         ArmorItem item = (ArmorItem) stack.getItem();
-        // In 1.21, getMaterial() returns Holder<ArmorMaterial>, use unwrapKey to get the ResourceLocation
+        // In 1.21, armor textures are handled via the ArmorMaterial.Layer system
+        net.minecraft.world.item.ArmorMaterial material = item.getMaterial().value();
+        boolean innerModel = slot == EquipmentSlot.LEGS;
+        
+        // Get the first layer (most armor materials have only one layer, leather has two for dyeing)
+        if (!material.layers().isEmpty()) {
+            net.minecraft.world.item.ArmorMaterial.Layer layer = material.layers().get(0);
+            // Use the new ClientHooks.getArmorTexture with ArmorMaterial.Layer
+            return ClientHooks.getArmorTexture(entity, stack, layer, innerModel, slot);
+        }
+        
+        // Fallback: construct texture path manually if no layers defined
         ResourceLocation materialName = item.getMaterial().unwrapKey().get().location();
         String domain = materialName.getNamespace();
         String texture = materialName.getPath();
-        String s1 = String.format(java.util.Locale.ROOT, "%s:textures/models/armor/%s_layer_%d%s.png", domain, texture, (slot == EquipmentSlot.LEGS ? 2 : 1), type == null ? "" : String.format(java.util.Locale.ROOT, "_%s", type));
-
-        // Note: In 1.21, ClientHooks.getArmorTexture signature changed with the armor layer refactor.
-        // Custom armor textures are handled via the new ArmorMaterial/ArmorLayer system.
-        // The old call was: ClientHooks.getArmorTexture(entity, stack, s1, slot, type)
-        // For now, we skip the hook and use the calculated texture directly
-        // s1 = net.neoforged.neoforge.client.ClientHooks.getArmorTexture(entity, stack, slot, type, s1);
+        String s1 = String.format(java.util.Locale.ROOT, "%s:textures/models/armor/%s_layer_%d%s.png", domain, texture, (innerModel ? 2 : 1), type == null ? "" : String.format(java.util.Locale.ROOT, "_%s", type));
+        
         ResourceLocation resourcelocation = AC_ARMOR_LOCATION_CACHE.get(s1);
-
         if (resourcelocation == null) {
             resourcelocation = ResourceLocation.parse(s1);
             AC_ARMOR_LOCATION_CACHE.put(s1, resourcelocation);
         }
-
         return resourcelocation;
     }
 }

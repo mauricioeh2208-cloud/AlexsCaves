@@ -4,6 +4,7 @@ import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.server.block.ConversionCrucibleBlock;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.ConversionCrucibleBlockEntity;
 import com.github.alexmodguy.alexscaves.server.level.biome.ACBiomeRegistry;
+import com.github.alexmodguy.alexscaves.server.misc.ACDataComponentRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.CaveBookProgress;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Registry;
@@ -113,11 +114,9 @@ public class CaveInfoItem extends Item {
 
     public static ItemStack create(Item item, ResourceKey<Biome> biomeResourceKey) {
         ItemStack map = new ItemStack(item);
-        CompoundTag tag = new CompoundTag();
         if(biomeResourceKey != null){
-            tag.putString("CaveBiome", biomeResourceKey.location().toString());
+            map.set(ACDataComponentRegistry.CAVE_BIOME.get(), biomeResourceKey);
         }
-        map.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         return map;
     }
 
@@ -133,6 +132,11 @@ public class CaveInfoItem extends Item {
     }
 
     public static ResourceKey<Biome> getCaveBiome(ItemStack stack) {
+        // First try the new DataComponent
+        if (stack.has(ACDataComponentRegistry.CAVE_BIOME.get())) {
+            return stack.get(ACDataComponentRegistry.CAVE_BIOME.get());
+        }
+        // Fallback for legacy items using CustomData
         CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
         if (customData != null) {
             CompoundTag tag = customData.copyTag();

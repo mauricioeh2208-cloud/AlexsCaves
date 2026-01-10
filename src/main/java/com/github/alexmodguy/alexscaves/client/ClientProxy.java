@@ -478,14 +478,13 @@ public class ClientProxy extends CommonProxy {
     }
 
     public void onItemColors(RegisterColorHandlersEvent.Item event) {
-        AlexsCaves.LOGGER.info("loaded in item colorizer");
         event.register(
                 (stack, colorIn) -> colorIn != 1 ? -1
-                        : CaveInfoItem.getBiomeColorOf(Minecraft.getInstance().level, stack, false),
+                        : CaveInfoItem.getBiomeColorOf(Minecraft.getInstance().level, stack, false) | 0xFF000000,
                 ACItemRegistry.CAVE_TABLET.get());
         event.register(
                 (stack, colorIn) -> colorIn != 1 ? -1
-                        : CaveInfoItem.getBiomeColorOf(Minecraft.getInstance().level, stack, false),
+                        : CaveInfoItem.getBiomeColorOf(Minecraft.getInstance().level, stack, false) | 0xFF000000,
                 ACItemRegistry.CAVE_CODEX.get());
         event.register((stack, colorIn) -> colorIn != 0 ? -1 : GazingPearlItem.getPearlColor(stack),
                 ACItemRegistry.GAZING_PEARL.get());
@@ -498,7 +497,6 @@ public class ClientProxy extends CommonProxy {
     }
 
     public void onBlockColors(RegisterColorHandlersEvent.Block event) {
-        AlexsCaves.LOGGER.info("loaded in block colorizer");
         event.register(
                 (blockState, blockAndTintGetter, blockPos, colorIn) -> colorIn != 0 ? -1
                         : FrostedChocolateBlock.calculateFrostingColor(blockPos),

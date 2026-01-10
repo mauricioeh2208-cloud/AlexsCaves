@@ -163,13 +163,13 @@ public class AlexsCaves {
         registrar.playToClient(UpdateEffectVisualityEntityMessage.TYPE, UpdateEffectVisualityEntityMessage.CODEC,
                 UpdateEffectVisualityEntityMessage::handle);
         registrar.playBidirectional(UpdateItemTagMessage.TYPE, UpdateItemTagMessage.CODEC, UpdateItemTagMessage::handle);
-        registrar.playToClient(MultipartEntityMessage.TYPE, MultipartEntityMessage.CODEC,
-                MultipartEntityMessage::handle);
         registrar.playToClient(BeholderSyncMessage.TYPE, BeholderSyncMessage.CODEC, BeholderSyncMessage::handle);
         registrar.playToClient(SundropRainbowMessage.TYPE, SundropRainbowMessage.CODEC, SundropRainbowMessage::handle);
         registrar.playToClient(SpelunkeryTableCompleteTutorialMessage.TYPE,
                 SpelunkeryTableCompleteTutorialMessage.CODEC, SpelunkeryTableCompleteTutorialMessage::handle);
         // Client-to-server messages
+        registrar.playToServer(MultipartEntityMessage.TYPE, MultipartEntityMessage.CODEC,
+                MultipartEntityMessage::handle);
         registrar.playToServer(SpelunkeryTableChangeMessage.TYPE, SpelunkeryTableChangeMessage.CODEC,
                 SpelunkeryTableChangeMessage::handle);
         registrar.playToServer(PlayerJumpFromMagnetMessage.TYPE, PlayerJumpFromMagnetMessage.CODEC,

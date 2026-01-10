@@ -64,7 +64,7 @@ public class MagnetronPartEntity extends PartEntity<MagnetronEntity> {
         } else {
             this.playSound(SoundEvents.ITEM_BREAK);
             if (player.level().isClientSide) {
-                AlexsCaves.sendMSGToServer(new MultipartEntityMessage(parent.getId(), player.getId(), 0, 0));
+                AlexsCaves.sendMSGToServer(new MultipartEntityMessage(parent.getId(), player.getId(), 0));
             }
             return parent.interact(player, hand);
         }
@@ -94,7 +94,7 @@ public class MagnetronPartEntity extends PartEntity<MagnetronEntity> {
         if (!this.isInvulnerableTo(source) && parent != null) {
             Entity player = source.getEntity();
             if (player != null && player.level().isClientSide) {
-                AlexsCaves.sendMSGToServer(new MultipartEntityMessage(parent.getId(), player.getId(), 1, amount));
+                AlexsCaves.sendMSGToServer(new MultipartEntityMessage(parent.getId(), player.getId(), 1));
             }
         }
         return false;

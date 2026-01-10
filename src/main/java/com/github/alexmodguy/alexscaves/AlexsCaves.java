@@ -166,11 +166,11 @@ public class AlexsCaves {
                 MultipartEntityMessage::handle);
         registrar.playToClient(BeholderSyncMessage.TYPE, BeholderSyncMessage.CODEC, BeholderSyncMessage::handle);
         registrar.playToClient(SundropRainbowMessage.TYPE, SundropRainbowMessage.CODEC, SundropRainbowMessage::handle);
+        registrar.playToClient(SpelunkeryTableCompleteTutorialMessage.TYPE,
+                SpelunkeryTableCompleteTutorialMessage.CODEC, SpelunkeryTableCompleteTutorialMessage::handle);
         // Client-to-server messages
         registrar.playToServer(SpelunkeryTableChangeMessage.TYPE, SpelunkeryTableChangeMessage.CODEC,
                 SpelunkeryTableChangeMessage::handle);
-        registrar.playToServer(SpelunkeryTableCompleteTutorialMessage.TYPE,
-                SpelunkeryTableCompleteTutorialMessage.CODEC, SpelunkeryTableCompleteTutorialMessage::handle);
         registrar.playToServer(PlayerJumpFromMagnetMessage.TYPE, PlayerJumpFromMagnetMessage.CODEC,
                 PlayerJumpFromMagnetMessage::handle);
         registrar.playToServer(MountedEntityKeyMessage.TYPE, MountedEntityKeyMessage.CODEC,

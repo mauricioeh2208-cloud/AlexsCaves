@@ -49,12 +49,12 @@ public class UpdateCaveBiomeMapTagMessage implements CustomPacketPayload {
     }
 
     public static void handle(UpdateCaveBiomeMapTagMessage message, IPayloadContext context) {
-        // Packet handling is automatic in NeoForge;
-        Player playerSided = context.player();
-        if (context.flow().isClientbound() == context.flow().isClientbound()) {
-            playerSided = AlexsCaves.PROXY.getClientSidePlayer();
+        // This packet is sent from server to client
+        if (!context.flow().isClientbound()) {
+            return;
         }
-        if(playerSided != null){
+        Player playerSided = AlexsCaves.PROXY.getClientSidePlayer();
+        if (playerSided != null) {
             Player player = playerSided.level().getPlayerByUUID(message.userUUID);
             if (player != null) {
                 ItemStack set = null;

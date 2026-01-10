@@ -54,19 +54,18 @@ public class SundropRainbowMessage implements CustomPacketPayload {
     }
 
     public static void handle(SundropRainbowMessage message, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Player playerSided = context.player();
-            if (context.flow().isClientbound() == context.flow().isClientbound()) {
-                playerSided = AlexsCaves.PROXY.getClientSidePlayer();
-            }
-            if(playerSided.level() != null){
-                BlockPos blockPos1 = new BlockPos(message.fromX, message.fromY, message.fromZ);
-                BlockPos blockPos2 = new BlockPos(message.toX, message.toY, message.toZ);
-                if(playerSided.level().hasChunkAt(blockPos1) && playerSided.level().getBlockState(blockPos1).is(ACBlockRegistry.SUNDROP.get())){
-                    playerSided.level().addAlwaysVisibleParticle(ACParticleRegistry.RAINBOW.get(), true, blockPos1.getX() + 0.5F, blockPos1.getY() + 0.5F, blockPos1.getZ() + 0.5F, blockPos2.getX() + 0.5F, blockPos2.getY() + 0.5F, blockPos2.getZ() + 0.5F);
+        // This packet is sent from server to client
+        if (context.flow().isClientbound()) {
+            context.enqueueWork(() -> {
+                Player playerSided = AlexsCaves.PROXY.getClientSidePlayer();
+                if (playerSided != null && playerSided.level() != null) {
+                    BlockPos blockPos1 = new BlockPos(message.fromX, message.fromY, message.fromZ);
+                    BlockPos blockPos2 = new BlockPos(message.toX, message.toY, message.toZ);
+                    if (playerSided.level().hasChunkAt(blockPos1) && playerSided.level().getBlockState(blockPos1).is(ACBlockRegistry.SUNDROP.get())) {
+                        playerSided.level().addAlwaysVisibleParticle(ACParticleRegistry.RAINBOW.get(), true, blockPos1.getX() + 0.5F, blockPos1.getY() + 0.5F, blockPos1.getZ() + 0.5F, blockPos2.getX() + 0.5F, blockPos2.getY() + 0.5F, blockPos2.getZ() + 0.5F);
+                    }
                 }
-            }
-        });
-        // Packet handling is automatic in NeoForge;
+            });
+        }
     }
 }

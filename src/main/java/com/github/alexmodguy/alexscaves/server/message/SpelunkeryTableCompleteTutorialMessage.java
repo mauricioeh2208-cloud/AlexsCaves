@@ -38,13 +38,12 @@ public class SpelunkeryTableCompleteTutorialMessage implements CustomPacketPaylo
     }
 
     public static void handle(SpelunkeryTableCompleteTutorialMessage message, IPayloadContext context) {
-        // Packet handling is automatic in NeoForge;
-        Player player = context.player();
-        if (context.flow().isClientbound() == context.flow().isClientbound()) {
-            player = AlexsCaves.PROXY.getClientSidePlayer();
-        }
-        if (player != null) {
-            AlexsCaves.PROXY.setSpelunkeryTutorialComplete(message.completedTutorial);
+        // This packet is sent from server to client
+        if (context.flow().isClientbound()) {
+            Player player = AlexsCaves.PROXY.getClientSidePlayer();
+            if (player != null) {
+                AlexsCaves.PROXY.setSpelunkeryTutorialComplete(message.completedTutorial);
+            }
         }
     }
 }

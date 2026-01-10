@@ -60,11 +60,11 @@ public class UpdateEffectVisualityEntityMessage implements CustomPacketPayload {
     }
 
     public static void handle(UpdateEffectVisualityEntityMessage message, IPayloadContext context) {
-        // Packet handling is automatic in NeoForge;
-        Player playerSided = context.player();
-        if (context.flow().isClientbound() == context.flow().isClientbound()) {
-            playerSided = AlexsCaves.PROXY.getClientSidePlayer();
+        // This packet is sent from server to client
+        if (!context.flow().isClientbound()) {
+            return;
         }
+        Player playerSided = AlexsCaves.PROXY.getClientSidePlayer();
         if (playerSided != null) {
             Entity entity = playerSided.level().getEntity(message.entityID);
             Entity senderEntity = playerSided.level().getEntity(message.fromEntityID);

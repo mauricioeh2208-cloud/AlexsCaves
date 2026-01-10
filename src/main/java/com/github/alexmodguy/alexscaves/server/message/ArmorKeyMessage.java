@@ -49,23 +49,19 @@ public class ArmorKeyMessage implements CustomPacketPayload {
     }
 
     public static void handle(ArmorKeyMessage message, IPayloadContext context) {
+        // This packet is sent from client to server
         context.enqueueWork(() -> {
             Player playerSided = context.player();
-            if (context.flow().isClientbound() == context.flow().isClientbound()) {
-                playerSided = AlexsCaves.PROXY.getClientSidePlayer();
-            }
-            if(playerSided != null){
+            if (playerSided != null) {
                 Entity keyPresser = playerSided.level().getEntity(message.playerId);
                 EquipmentSlot equipmentSlot1 = EquipmentSlot.values()[Mth.clamp(message.equipmentSlot, 0, EquipmentSlot.values().length - 1)];
                 if (keyPresser != null && keyPresser instanceof Player player) {
                     ItemStack stack = player.getItemBySlot(equipmentSlot1);
-                    if(stack.getItem() instanceof KeybindUsingArmor armor){
+                    if (stack.getItem() instanceof KeybindUsingArmor armor) {
                         armor.onKeyPacket(keyPresser, stack, message.type);
                     }
                 }
-
             }
         });
-        // Packet handling is automatic in NeoForge;
     }
 }

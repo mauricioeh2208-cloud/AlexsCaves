@@ -46,17 +46,16 @@ public class PossessionKeyMessage implements CustomPacketPayload {
     }
 
     public static void handle(PossessionKeyMessage message, IPayloadContext context) {
+        // This packet is sent from client to server
         context.enqueueWork(() -> {
             Player playerSided = context.player();
-            if (context.flow().isClientbound() == context.flow().isClientbound()) {
-                playerSided = AlexsCaves.PROXY.getClientSidePlayer();
-            }
-            Entity watcher = playerSided.level().getEntity(message.watcher);
-            Entity keyPresser = playerSided.level().getEntity(message.playerId);
-            if (watcher instanceof PossessesCamera watcherEntity && keyPresser instanceof Player) {
-                watcherEntity.onPossessionKeyPacket(keyPresser, message.type);
+            if (playerSided != null) {
+                Entity watcher = playerSided.level().getEntity(message.watcher);
+                Entity keyPresser = playerSided.level().getEntity(message.playerId);
+                if (watcher instanceof PossessesCamera watcherEntity && keyPresser instanceof Player) {
+                    watcherEntity.onPossessionKeyPacket(keyPresser, message.type);
+                }
             }
         });
-        // Packet handling is automatic in NeoForge;
     }
 }

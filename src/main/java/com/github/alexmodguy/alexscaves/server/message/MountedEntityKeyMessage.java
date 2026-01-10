@@ -46,17 +46,16 @@ public class MountedEntityKeyMessage implements CustomPacketPayload {
     }
 
     public static void handle(MountedEntityKeyMessage message, IPayloadContext context) {
+        // This packet is sent from client to server
         context.enqueueWork(() -> {
             Player playerSided = context.player();
-            if (context.flow().isClientbound() == context.flow().isClientbound()) {
-                playerSided = AlexsCaves.PROXY.getClientSidePlayer();
-            }
-            Entity parent = playerSided.level().getEntity(message.mountId);
-            Entity keyPresser = playerSided.level().getEntity(message.playerId);
-            if (keyPresser != null && parent instanceof KeybindUsingMount mount && keyPresser instanceof Player && keyPresser.isPassengerOfSameVehicle(parent)) {
-                mount.onKeyPacket(keyPresser, message.type);
+            if (playerSided != null) {
+                Entity parent = playerSided.level().getEntity(message.mountId);
+                Entity keyPresser = playerSided.level().getEntity(message.playerId);
+                if (keyPresser != null && parent instanceof KeybindUsingMount mount && keyPresser instanceof Player && keyPresser.isPassengerOfSameVehicle(parent)) {
+                    mount.onKeyPacket(keyPresser, message.type);
+                }
             }
         });
-        // Packet handling is automatic in NeoForge;
     }
 }

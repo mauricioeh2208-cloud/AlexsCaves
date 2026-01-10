@@ -39,11 +39,8 @@ public class SpelunkeryTableChangeMessage implements CustomPacketPayload {
     }
 
     public static void handle(SpelunkeryTableChangeMessage message, IPayloadContext context) {
-        // Packet handling is automatic in NeoForge;
+        // This packet is sent from client to server
         Player player = context.player();
-        if (context.flow().isClientbound() == context.flow().isClientbound()) {
-            player = AlexsCaves.PROXY.getClientSidePlayer();
-        }
         if (player != null) {
             if (player.containerMenu instanceof SpelunkeryTableMenu tableMenu) {
                 tableMenu.onMessageFromScreen(player, message.pass);

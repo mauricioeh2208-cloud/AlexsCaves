@@ -48,23 +48,24 @@ public class MultipartEntityMessage implements CustomPacketPayload {
     }
 
     public static void handle(MultipartEntityMessage message, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Player playerSided = context.player();
-            if (context.flow().isClientbound() == context.flow().isClientbound()) {
-                playerSided = AlexsCaves.PROXY.getClientSidePlayer();
-            }
-            Entity parent = playerSided.level().getEntity(message.parentId);
-            Entity interacter = playerSided.level().getEntity(message.playerId);
-            if (interacter != null && parent != null && parent.isMultipartEntity() && interacter.distanceTo(parent) < 16) {
-                if (message.type == 0) {
-                    if (interacter instanceof Player player) {
-                        parent.interact(player, player.getUsedItemHand());
+        // This packet is sent from server to client
+        if (context.flow().isClientbound()) {
+            context.enqueueWork(() -> {
+                Player playerSided = AlexsCaves.PROXY.getClientSidePlayer();
+                if (playerSided != null) {
+                    Entity parent = playerSided.level().getEntity(message.parentId);
+                    Entity interacter = playerSided.level().getEntity(message.playerId);
+                    if (interacter != null && parent != null && parent.isMultipartEntity() && interacter.distanceTo(parent) < 16) {
+                        if (message.type == 0) {
+                            if (interacter instanceof Player player) {
+                                parent.interact(player, player.getUsedItemHand());
+                            }
+                        } else if (message.type == 1) {
+                            parent.hurt(parent.damageSources().generic(), (float) message.damage);
+                        }
                     }
-                } else if (message.type == 1) {
-                    parent.hurt(parent.damageSources().generic(), (float) message.damage);
                 }
-            }
-        });
-        // Packet handling is automatic in NeoForge;
+            });
+        }
     }
 }

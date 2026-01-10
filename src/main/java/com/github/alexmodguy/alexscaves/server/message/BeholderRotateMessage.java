@@ -48,16 +48,15 @@ public class BeholderRotateMessage implements CustomPacketPayload {
     }
 
     public static void handle(BeholderRotateMessage message, IPayloadContext context) {
+        // This packet is sent from client to server
         context.enqueueWork(() -> {
             Player playerSided = context.player();
-            if (context.flow().isClientbound() == context.flow().isClientbound()) {
-                playerSided = AlexsCaves.PROXY.getClientSidePlayer();
-            }
-            Level serverLevel = ServerLifecycleHooks.getCurrentServer().getLevel(playerSided.level().dimension());
-            Entity watcher = serverLevel.getEntity(message.beholderId);
-            if (watcher instanceof BeholderEyeEntity beholderEye) {
+            if (playerSided != null) {
+                Level serverLevel = ServerLifecycleHooks.getCurrentServer().getLevel(playerSided.level().dimension());
+                Entity watcher = serverLevel.getEntity(message.beholderId);
+                if (watcher instanceof BeholderEyeEntity beholderEye) {
+                }
             }
         });
-        // Packet handling is automatic in NeoForge;
     }
 }

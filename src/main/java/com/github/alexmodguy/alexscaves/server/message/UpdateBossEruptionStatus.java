@@ -38,12 +38,12 @@ public class UpdateBossEruptionStatus implements CustomPacketPayload {
     }
 
     public static void handle(UpdateBossEruptionStatus message, IPayloadContext context) {
-        // Packet handling is automatic in NeoForge;
-        Player playerSided = context.player();
-        if (context.flow().isClientbound() == context.flow().isClientbound()) {
-            playerSided = AlexsCaves.PROXY.getClientSidePlayer();
+        // This packet is sent from server to client
+        if (!context.flow().isClientbound()) {
+            return;
         }
-        if(playerSided != null){
+        Player playerSided = AlexsCaves.PROXY.getClientSidePlayer();
+        if (playerSided != null) {
             AlexsCaves.PROXY.setPrimordialBossActive(playerSided.level(), message.entityId, message.erupting);
         }
     }

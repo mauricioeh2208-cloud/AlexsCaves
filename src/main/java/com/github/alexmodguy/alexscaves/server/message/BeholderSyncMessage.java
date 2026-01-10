@@ -45,25 +45,25 @@ public class BeholderSyncMessage implements CustomPacketPayload {
     }
 
     public static void handle(BeholderSyncMessage message, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Player playerSided = context.player();
-            if (context.flow().isClientbound() == context.flow().isClientbound()) {
-                playerSided = AlexsCaves.PROXY.getClientSidePlayer();
-            }
-            Level serverLevel = ServerLifecycleHooks.getCurrentServer().getLevel(playerSided.level().dimension());
-            Entity watcher = serverLevel.getEntity(message.beholderId);
-            if (watcher instanceof BeholderEyeEntity beholderEye) {
-                Entity beholderEyePlayer = beholderEye.getUsingPlayer();
-                beholderEye.hasTakenFullControlOfCamera = true;
-                if(beholderEyePlayer != null && beholderEyePlayer instanceof Player && beholderEyePlayer.equals(playerSided)){
-                    if(message.active){
-                        AlexsCaves.PROXY.setRenderViewEntity(playerSided, beholderEye);
-                    }else{
-                        AlexsCaves.PROXY.resetRenderViewEntity(playerSided);
+        // This packet is sent from server to client
+        if (context.flow().isClientbound()) {
+            context.enqueueWork(() -> {
+                Player playerSided = AlexsCaves.PROXY.getClientSidePlayer();
+                if (playerSided != null) {
+                    Entity watcher = playerSided.level().getEntity(message.beholderId);
+                    if (watcher instanceof BeholderEyeEntity beholderEye) {
+                        Entity beholderEyePlayer = beholderEye.getUsingPlayer();
+                        beholderEye.hasTakenFullControlOfCamera = true;
+                        if (beholderEyePlayer != null && beholderEyePlayer instanceof Player && beholderEyePlayer.equals(playerSided)) {
+                            if (message.active) {
+                                AlexsCaves.PROXY.setRenderViewEntity(playerSided, beholderEye);
+                            } else {
+                                AlexsCaves.PROXY.resetRenderViewEntity(playerSided);
+                            }
+                        }
                     }
                 }
-            }
-        });
-        // Packet handling is automatic in NeoForge;
+            });
+        }
     }
 }

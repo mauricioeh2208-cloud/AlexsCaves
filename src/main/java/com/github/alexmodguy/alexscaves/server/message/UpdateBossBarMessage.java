@@ -40,14 +40,13 @@ public class UpdateBossBarMessage implements CustomPacketPayload {
     }
 
     public static void handle(UpdateBossBarMessage message, IPayloadContext context) {
-        // Packet handling is automatic in NeoForge;
-        Player playerSided = context.player();
-        if (context.flow().isClientbound() == context.flow().isClientbound()) {
-            playerSided = AlexsCaves.PROXY.getClientSidePlayer();
+        // This packet is sent from server to client
+        if (!context.flow().isClientbound()) {
+            return;
         }
-        if(message.renderType == -1){
+        if (message.renderType == -1) {
             AlexsCaves.PROXY.removeBossBarRender(message.bossBar);
-        }else{
+        } else {
             AlexsCaves.PROXY.setBossBarRender(message.bossBar, message.renderType);
         }
     }

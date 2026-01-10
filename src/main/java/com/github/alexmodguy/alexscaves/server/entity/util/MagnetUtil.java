@@ -41,6 +41,8 @@ public class MagnetUtil {
     }
 
     public static void tickMagnetism(Entity entity) {
+        // All magnetism logic runs on server side only
+        // Client will receive position updates through normal entity sync
         if (!entity.level().isClientSide && entity.level() instanceof ServerLevel serverLevel) {
             int range = 5;
             Stream<BlockPos> attracts = getNearbyAttractingMagnets(entity.blockPosition(), serverLevel, range);
@@ -61,67 +63,83 @@ public class MagnetUtil {
                 Vec3 pullScale = pullNorm.scale((1 - distance) * 0.25F);
                 setEntityMagneticDelta(entity, getEntityMagneticDelta(entity).scale(0.9).add(pullScale));
             });
-        }
-        Vec3 vec3 = getEntityMagneticDelta(entity);
-        Direction dir = getEntityMagneticDirection(entity);
-        MagneticEntityAccessor magneticAccessor = (MagneticEntityAccessor) entity;
-        boolean attatchesToMagnets = AlexsCaves.COMMON_CONFIG.walkingOnMagnets.get() && attachesToMagnets(entity);
-        float progress = magneticAccessor.getAttachmentProgress(1.0F);
-        if (vec3 != Vec3.ZERO) {
-            Direction standingOnDirection = getStandingOnMagnetSurface(entity);
-            float overrideByWalking = 1.0F;
-            if (entity instanceof LivingEntity living) {
-                boolean isJumping = isEntityJumping(living);
-                if (isJumping && standingOnDirection == dir) {
-                    if (living.level().isClientSide) {
-                        AlexsCaves.sendMSGToServer(new PlayerJumpFromMagnetMessage(living.getId(), isJumping));
+            
+            Vec3 vec3 = getEntityMagneticDelta(entity);
+            Direction dir = getEntityMagneticDirection(entity);
+            MagneticEntityAccessor magneticAccessor = (MagneticEntityAccessor) entity;
+            boolean attatchesToMagnets = AlexsCaves.COMMON_CONFIG.walkingOnMagnets.get() && attachesToMagnets(entity);
+            float progress = magneticAccessor.getAttachmentProgress(1.0F);
+            if (vec3 != Vec3.ZERO) {
+                Direction standingOnDirection = getStandingOnMagnetSurface(entity);
+                float overrideByWalking = 1.0F;
+                if (entity instanceof LivingEntity living) {
+                    boolean isJumping = isEntityJumping(living);
+                    if (isJumping && standingOnDirection == dir) {
+                        magneticAccessor.postMagnetJump();
                     }
-                    magneticAccessor.postMagnetJump();
+                    float detract = living.xxa * living.xxa + living.yya * living.yya + living.zza * living.zza;
+                    overrideByWalking -= Math.min(1.0F, Math.sqrt(detract) * 0.7F);
                 }
-                float detract = living.xxa * living.xxa + living.yya * living.yya + living.zza * living.zza;
-                overrideByWalking -= Math.min(1.0F, Math.sqrt(detract) * 0.7F);
-            }
-            if (!isEntityOnMovingMetal(entity)) {
-                if (attatchesToMagnets) {
-                    Vec3 vec31;
-                    if (dir == Direction.DOWN && standingOnDirection == null) {
-                        vec31 = vec3.multiply(overrideByWalking, overrideByWalking, overrideByWalking);
-                        entity.setDeltaMovement(entity.getDeltaMovement().add(vec31));
-                        entity.refreshDimensions();
-                    } else {
-                        magneticAccessor.stepOnMagnetBlock(getSamplePosForDirection(entity, dir, 0.5F));
-                        float f1 = Math.abs(dir.getStepX());
-                        float f2 = Math.abs(dir.getStepY());
-                        float f3 = Math.abs(dir.getStepZ());
-                        vec31 = vec3.multiply(overrideByWalking * f1, overrideByWalking * f2, overrideByWalking * f3);
-                        if (entity.getPose() == Pose.SWIMMING) {
+                if (!isEntityOnMovingMetal(entity)) {
+                    if (attatchesToMagnets) {
+                        Vec3 vec31;
+                        if (dir == Direction.DOWN && standingOnDirection == null) {
+                            vec31 = vec3.multiply(overrideByWalking, overrideByWalking, overrideByWalking);
+                            entity.setDeltaMovement(entity.getDeltaMovement().add(vec31));
+                            entity.refreshDimensions();
+                        } else {
+                            magneticAccessor.stepOnMagnetBlock(getSamplePosForDirection(entity, dir, 0.5F));
+                            float f1 = Math.abs(dir.getStepX());
+                            float f2 = Math.abs(dir.getStepY());
+                            float f3 = Math.abs(dir.getStepZ());
+                            vec31 = vec3.multiply(overrideByWalking * f1, overrideByWalking * f2, overrideByWalking * f3);
+                            if (entity.getPose() == Pose.SWIMMING) {
+                                entity.setPose(Pose.STANDING);
+                            }
+                            if (entity instanceof LivingEntity living) {
+                                vec31 = processMovementControls(0, living, dir);
+                            }
+                            entity.setDeltaMovement(vec31);
+                        }
+                        Direction closest = calculateClosestDirection(entity);
+                        if (closest != null && closest != Direction.DOWN) {
+                            entity.fallDistance = 0.0F;
+                        }
+                        if (closest != dir && magneticAccessor.canChangeDirection() && (progress == 1.0F || closest == Direction.UP)) {
+                            entity.setDeltaMovement(entity.getDeltaMovement().add(0, 0.4F, 0));
+                            setEntityMagneticDirection(entity, closest);
+                            entity.refreshDimensions();
                             entity.setPose(Pose.STANDING);
                         }
-                        if (entity instanceof LivingEntity living) {
-                            vec31 = processMovementControls(0, living, dir);
-                        }
-                        entity.setDeltaMovement(vec31);
+                    } else {
+                        entity.setDeltaMovement(entity.getDeltaMovement().add(vec3));
                     }
-                    Direction closest = calculateClosestDirection(entity);
-                    if (closest != null && closest != Direction.DOWN) {
-                        entity.fallDistance = 0.0F;
-                    }
-                    if (closest != dir && magneticAccessor.canChangeDirection() && (progress == 1.0F || closest == Direction.UP)) {
-                        entity.setDeltaMovement(entity.getDeltaMovement().add(0, 0.4F, 0));
-                        setEntityMagneticDirection(entity, closest);
-                        entity.refreshDimensions();
-                        entity.setPose(Pose.STANDING);
-                    }
-                } else {
-                    entity.setDeltaMovement(entity.getDeltaMovement().add(vec3));
+                }
+                setEntityMagneticDelta(entity, vec3.scale(0.08F));
+            }
+            if (!attatchesToMagnets && dir != Direction.DOWN) {
+                setEntityMagneticDirection(entity, Direction.DOWN);
+                entity.refreshDimensions();
+                entity.setPose(Pose.STANDING);
+            }
+            
+            // Force sync entity velocity to clients for players
+            if (entity instanceof net.minecraft.server.level.ServerPlayer player) {
+                player.hurtMarked = true;
+            }
+        } else if (entity.level().isClientSide) {
+            // Client-side: handle jump message only
+            Vec3 vec3 = getEntityMagneticDelta(entity);
+            Direction dir = getEntityMagneticDirection(entity);
+            MagneticEntityAccessor magneticAccessor = (MagneticEntityAccessor) entity;
+            if (vec3 != Vec3.ZERO && entity instanceof LivingEntity living) {
+                Direction standingOnDirection = getStandingOnMagnetSurface(entity);
+                boolean isJumping = isEntityJumping(living);
+                if (isJumping && standingOnDirection == dir) {
+                    AlexsCaves.sendMSGToServer(new PlayerJumpFromMagnetMessage(living.getId(), isJumping));
+                    magneticAccessor.postMagnetJump();
                 }
             }
-            setEntityMagneticDelta(entity, vec3.scale(0.08F));
-        }
-        if (!attatchesToMagnets && dir != Direction.DOWN) {
-            setEntityMagneticDirection(entity, Direction.DOWN);
-            entity.refreshDimensions();
-            entity.setPose(Pose.STANDING);
         }
     }
 

@@ -37,11 +37,11 @@ public class FrostmintSpearEntity extends AbstractArrow {
     }
 
     public FrostmintSpearEntity(Level level, LivingEntity shooter, ItemStack itemStack) {
-        super(ACEntityRegistry.FROSTMINT_SPEAR.get(), shooter, level, new ItemStack(ACItemRegistry.FROSTMINT_SPEAR.get()), ItemStack.EMPTY);
+        super(ACEntityRegistry.FROSTMINT_SPEAR.get(), shooter, level, new ItemStack(ACItemRegistry.FROSTMINT_SPEAR.get()), null);
     }
 
     public FrostmintSpearEntity(Level level, double x, double y, double z) {
-        super(ACEntityRegistry.FROSTMINT_SPEAR.get(), x, y, z, level, new ItemStack(ACItemRegistry.FROSTMINT_SPEAR.get()), ItemStack.EMPTY);
+        super(ACEntityRegistry.FROSTMINT_SPEAR.get(), x, y, z, level, new ItemStack(ACItemRegistry.FROSTMINT_SPEAR.get()), null);
     }
 
     @Override

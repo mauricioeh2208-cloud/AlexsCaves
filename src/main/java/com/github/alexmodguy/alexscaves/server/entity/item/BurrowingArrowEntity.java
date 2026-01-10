@@ -38,12 +38,12 @@ public class BurrowingArrowEntity extends AbstractArrow {
     }
 
     public BurrowingArrowEntity(Level level, LivingEntity shooter) {
-        super(ACEntityRegistry.BURROWING_ARROW.get(), shooter, level, new ItemStack(ACItemRegistry.BURROWING_ARROW.get()), ItemStack.EMPTY);
+        super(ACEntityRegistry.BURROWING_ARROW.get(), shooter, level, new ItemStack(ACItemRegistry.BURROWING_ARROW.get()), null);
         this.setBaseDamage(3.5D);
     }
 
     public BurrowingArrowEntity(Level level, double x, double y, double z) {
-        super(ACEntityRegistry.BURROWING_ARROW.get(), x, y, z, level, new ItemStack(ACItemRegistry.BURROWING_ARROW.get()), ItemStack.EMPTY);
+        super(ACEntityRegistry.BURROWING_ARROW.get(), x, y, z, level, new ItemStack(ACItemRegistry.BURROWING_ARROW.get()), null);
         this.setBaseDamage(3.5D);
     }
 

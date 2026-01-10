@@ -29,11 +29,11 @@ public class DarkArrowEntity extends AbstractArrow {
     }
 
     public DarkArrowEntity(Level level, LivingEntity shooter) {
-        super(ACEntityRegistry.DARK_ARROW.get(), shooter, level, ItemStack.EMPTY, ItemStack.EMPTY);
+        super(ACEntityRegistry.DARK_ARROW.get(), shooter, level, ItemStack.EMPTY, null);
     }
 
     public DarkArrowEntity(Level level, double x, double y, double z) {
-        super(ACEntityRegistry.DARK_ARROW.get(), x, y, z, level, ItemStack.EMPTY, ItemStack.EMPTY);
+        super(ACEntityRegistry.DARK_ARROW.get(), x, y, z, level, ItemStack.EMPTY, null);
     }
 
     @Override

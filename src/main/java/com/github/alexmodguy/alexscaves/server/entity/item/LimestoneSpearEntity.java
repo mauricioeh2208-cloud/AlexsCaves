@@ -24,11 +24,11 @@ public class LimestoneSpearEntity extends AbstractArrow {
     }
 
     public LimestoneSpearEntity(Level level, LivingEntity shooter, ItemStack itemStack) {
-        super(ACEntityRegistry.LIMESTONE_SPEAR.get(), shooter, level, new ItemStack(ACItemRegistry.LIMESTONE_SPEAR.get()), ItemStack.EMPTY);
+        super(ACEntityRegistry.LIMESTONE_SPEAR.get(), shooter, level, new ItemStack(ACItemRegistry.LIMESTONE_SPEAR.get()), null);
     }
 
     public LimestoneSpearEntity(Level level, double x, double y, double z) {
-        super(ACEntityRegistry.LIMESTONE_SPEAR.get(), x, y, z, level, new ItemStack(ACItemRegistry.LIMESTONE_SPEAR.get()), ItemStack.EMPTY);
+        super(ACEntityRegistry.LIMESTONE_SPEAR.get(), x, y, z, level, new ItemStack(ACItemRegistry.LIMESTONE_SPEAR.get()), null);
     }
 
     @Override

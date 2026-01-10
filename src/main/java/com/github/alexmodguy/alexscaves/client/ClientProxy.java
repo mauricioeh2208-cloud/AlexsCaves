@@ -492,7 +492,7 @@ public class ClientProxy extends CommonProxy {
                 ACItemRegistry.JELLY_BEAN.get());
         event.register(
                 (stack, colorIn) -> colorIn != 1 ? -1
-                        : BiomeTreatItem.getBiomeTreatColorOf(Minecraft.getInstance().level, stack),
+                        : BiomeTreatItem.getBiomeTreatColorOf(Minecraft.getInstance().level, stack) | 0xFF000000,
                 ACItemRegistry.BIOME_TREAT.get());
     }
 

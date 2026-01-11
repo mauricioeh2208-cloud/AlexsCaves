@@ -155,7 +155,7 @@ public class RelicheirusPushTreesGoal extends MoveToBlockGoal {
             if (!list.contains(pos)) {
                 list.add(pos);
                 for (BlockPos blockpos1 : BlockPos.betweenClosed(pos.offset(-1, -1, -1), pos.offset(1, 1, 1))) {
-                    if (!blockpos1.equals(pos) && pos.distToCenterSqr(origin.getX(), pos.getY(), origin.getZ()) < MAX_TREE_SPREAD) {
+                    if (!blockpos1.equals(pos) && blockpos1.distToCenterSqr(origin.getX(), blockpos1.getY(), origin.getZ()) < MAX_TREE_SPREAD * MAX_TREE_SPREAD) {
                         if (isTreePart(blockpos1)) {
                             gatherAttachedBlocks(origin, blockpos1.immutable(), list);
                         }

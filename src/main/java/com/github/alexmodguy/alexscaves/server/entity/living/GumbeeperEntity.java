@@ -96,7 +96,7 @@ public class GumbeeperEntity extends Monster implements PowerableMob, PossessedB
     }
 
     public static boolean checkGumbeeperSpawnRules(EntityType<? extends Monster> entityType, ServerLevelAccessor levelAccessor, MobSpawnType mobSpawnType, BlockPos blockPos, RandomSource randomSource) {
-        return checkMonsterSpawnRules(entityType, levelAccessor, mobSpawnType, blockPos, randomSource) && randomSource.nextInt(10) == 0;
+        return checkAnyLightMonsterSpawnRules(entityType, levelAccessor, mobSpawnType, blockPos, randomSource) && randomSource.nextInt(10) == 0;
     }
 
     @Override

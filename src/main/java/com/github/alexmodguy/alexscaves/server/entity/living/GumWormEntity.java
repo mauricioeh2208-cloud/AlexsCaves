@@ -127,7 +127,7 @@ public class GumWormEntity extends Monster implements ICustomCollisions, KaijuMo
     }
 
     public static boolean checkGumWormSpawnRules(EntityType<? extends Monster> entityType, ServerLevelAccessor levelAccessor, MobSpawnType mobSpawnType, BlockPos blockPos, RandomSource randomSource) {
-        return checkMonsterSpawnRules(entityType, levelAccessor, mobSpawnType, blockPos, randomSource) && randomSource.nextInt(6) == 0;
+        return checkAnyLightMonsterSpawnRules(entityType, levelAccessor, mobSpawnType, blockPos, randomSource) && randomSource.nextInt(6) == 0;
     }
 
     @Override

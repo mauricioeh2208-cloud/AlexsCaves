@@ -62,7 +62,13 @@ public class PrimitiveClubItem extends Item {
         if (!hurtEntity.level().isClientSide) {
             SoundEvent soundEvent = ACSoundRegistry.PRIMITIVE_CLUB_MISS.get();
             if (hurtEntity.getRandom().nextFloat() < 0.8F) {
-                MobEffectInstance instance = new MobEffectInstance(ACEffectRegistry.STUNNED, 150 + hurtEntity.getRandom().nextInt(150), 0, false, false);
+                int stunDuration = 150 + hurtEntity.getRandom().nextInt(150);
+                // If already stunned, add to remaining duration to ensure effect always extends
+                MobEffectInstance existingStun = hurtEntity.getEffect(ACEffectRegistry.STUNNED);
+                if (existingStun != null) {
+                    stunDuration += existingStun.getDuration();
+                }
+                MobEffectInstance instance = new MobEffectInstance(ACEffectRegistry.STUNNED, stunDuration, 0, false, false);
                 if (hurtEntity.addEffect(instance)) {
                     AlexsCaves.sendMSGToAll(new UpdateEffectVisualityEntityMessage(hurtEntity.getId(), player.getId(), 3, instance.getDuration()));
                     soundEvent = ACSoundRegistry.PRIMITIVE_CLUB_HIT.get();
@@ -72,7 +78,12 @@ public class PrimitiveClubItem extends Item {
                         AABB aabb = AABB.ofSize(hurtEntity.position(), f, f, f);
                         for (Entity entity : hurtEntity.level().getEntities(player, aabb, Entity::canBeHitByProjectile)) {
                             if (!entity.is(hurtEntity) && !entity.isAlliedTo(player) && entity.distanceTo(hurtEntity) <= f && entity instanceof LivingEntity inflict) {
-                                MobEffectInstance instance2 = new MobEffectInstance(ACEffectRegistry.STUNNED, 80 + hurtEntity.getRandom().nextInt(80), 0, false, false);
+                                int aoeStunDuration = 80 + hurtEntity.getRandom().nextInt(80);
+                                MobEffectInstance existingAoeStun = inflict.getEffect(ACEffectRegistry.STUNNED);
+                                if (existingAoeStun != null) {
+                                    aoeStunDuration += existingAoeStun.getDuration();
+                                }
+                                MobEffectInstance instance2 = new MobEffectInstance(ACEffectRegistry.STUNNED, aoeStunDuration, 0, false, false);
                                 inflict.hurt(inflict.level().damageSources().mobAttack(player), 1.0F);
                                 if (inflict.addEffect(instance2)) {
                                     AlexsCaves.sendMSGToAll(new UpdateEffectVisualityEntityMessage(inflict.getId(), player.getId(), 3, instance2.getDuration()));

@@ -149,6 +149,13 @@ public class FissurePrimalMagmaBlock extends Block {
         return newState;
     }
 
+    @Override
+    public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
+        super.onPlace(state, level, pos, oldState, movedByPiston);
+        // Schedule a tick to check for regeneration when the block is placed
+        level.scheduleTick(pos, this, 20 + level.random.nextInt(20));
+    }
+
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource randomSource) {
         Vec3 center = Vec3.upFromBottomCenterOf(pos, 1).add(randomSource.nextFloat() - 0.5F, 0, randomSource.nextFloat() - 0.5F);
         Vec3 delta = new Vec3(randomSource.nextFloat() - 0.5F, randomSource.nextFloat() - 0.5F, randomSource.nextFloat() - 0.5F);

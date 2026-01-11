@@ -112,6 +112,13 @@ public class PrimalMagmaBlock extends Block {
         return newState;
     }
 
+    @Override
+    public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
+        super.onPlace(state, level, pos, oldState, movedByPiston);
+        // Schedule a tick to check for boss active state when the block is placed
+        level.scheduleTick(pos, this, 20 + level.random.nextInt(20));
+    }
+
     public static boolean isBossActive(Level level) {
         ACWorldData worldData = ACWorldData.get(level);
         if(worldData != null){

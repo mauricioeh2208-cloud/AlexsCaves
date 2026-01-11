@@ -116,16 +116,16 @@ public class MagnetUtil {
                     }
                 }
                 setEntityMagneticDelta(entity, vec3.scale(0.08F));
+                
+                // Force sync entity velocity to clients for players only when magnetic force is applied
+                if (entity instanceof net.minecraft.server.level.ServerPlayer player) {
+                    player.hurtMarked = true;
+                }
             }
             if (!attatchesToMagnets && dir != Direction.DOWN) {
                 setEntityMagneticDirection(entity, Direction.DOWN);
                 entity.refreshDimensions();
                 entity.setPose(Pose.STANDING);
-            }
-            
-            // Force sync entity velocity to clients for players
-            if (entity instanceof net.minecraft.server.level.ServerPlayer player) {
-                player.hurtMarked = true;
             }
         } else if (entity.level().isClientSide) {
             // Client-side: handle jump message only

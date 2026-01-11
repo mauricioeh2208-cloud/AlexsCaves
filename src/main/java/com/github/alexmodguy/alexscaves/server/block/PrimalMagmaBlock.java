@@ -91,6 +91,11 @@ public class PrimalMagmaBlock extends Block {
         return Shapes.empty();
     }
 
+    @Override
+    protected void randomTick(BlockState blockState, ServerLevel serverLevel, BlockPos blockPos, RandomSource randomSource) {
+        this.tick(blockState, serverLevel, blockPos, randomSource);
+    }
+
     public void tick(BlockState blockState, ServerLevel serverLevel, BlockPos blockPos, RandomSource randomSource) {
         if(blockState.getValue(ACTIVE)){
             if(!blockState.getValue(PERMANENT) && !isBossActive(serverLevel)){

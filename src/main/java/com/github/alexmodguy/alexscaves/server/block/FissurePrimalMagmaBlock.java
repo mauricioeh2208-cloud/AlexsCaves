@@ -91,6 +91,11 @@ public class FissurePrimalMagmaBlock extends Block {
         return Shapes.empty();
     }
 
+    @Override
+    protected void randomTick(BlockState blockState, ServerLevel serverLevel, BlockPos blockPos, RandomSource randomSource) {
+        this.tick(blockState, serverLevel, blockPos, randomSource);
+    }
+
     public void tick(BlockState blockState, ServerLevel serverLevel, BlockPos blockPos, RandomSource randomSource) {
         if(!PrimalMagmaBlock.isBossActive(serverLevel)){
             int regenHeight = blockState.getValue(REGEN_HEIGHT);

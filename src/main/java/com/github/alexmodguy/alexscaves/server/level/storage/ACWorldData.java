@@ -21,7 +21,6 @@ import net.neoforged.neoforge.common.world.chunk.TicketSet;
 
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ACWorldData extends SavedData {
 
@@ -62,7 +61,7 @@ public class ACWorldData extends SavedData {
         }
         data.primordialBossDefeatedOnce = nbt.getBoolean("PrimordialBossDefeatedOnce");
         data.firstPrimordialBossDefeatTimestamp = nbt.getLong("FirstPrimordialBossDefeatTimestamp");
-        data.trackedLuxtructosaurusIds = Arrays.stream(nbt.getIntArray("TrackedLuxtructosaurusIds")).boxed().collect(Collectors.toSet());
+        // Note: trackedLuxtructosaurusIds is not persisted since entity IDs are runtime values
         return data;
     }
 
@@ -80,7 +79,7 @@ public class ACWorldData extends SavedData {
         }
         compound.putBoolean("PrimordialBossDefeatedOnce", primordialBossDefeatedOnce);
         compound.putLong("FirstPrimordialBossDefeatTimestamp", firstPrimordialBossDefeatTimestamp);
-        compound.putIntArray("TrackedLuxtructosaurusIds", trackedLuxtructosaurusIds.stream().mapToInt(Integer::intValue).toArray());
+        // Note: trackedLuxtructosaurusIds is not persisted since entity IDs are runtime values
         return compound;
     }
 

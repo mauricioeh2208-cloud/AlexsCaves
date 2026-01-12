@@ -57,6 +57,7 @@ public class ThrownIceCreamScoopEntity extends ThrowableItemProjectile {
 
     }
 
+    @Override
     protected Item getDefaultItem() {
         return ACItemRegistry.VANILLA_ICE_CREAM_SCOOP.get();
     }

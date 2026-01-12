@@ -58,6 +58,7 @@ public class CinderBrickEntity extends ThrowableItemProjectile {
 
     }
 
+    @Override
     protected Item getDefaultItem() {
         return ACItemRegistry.CINDER_BRICK.get();
     }

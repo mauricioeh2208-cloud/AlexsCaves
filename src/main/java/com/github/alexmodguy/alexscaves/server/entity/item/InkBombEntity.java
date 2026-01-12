@@ -116,7 +116,8 @@ public class InkBombEntity extends ThrowableItemProjectile {
         this.entityData.set(GLOWING_BOMB, bool);
     }
 
+    @Override
     protected Item getDefaultItem() {
-        return isGlowingBomb() ? ACItemRegistry.GLOW_INK_BOMB.get() : ACItemRegistry.INK_BOMB.get();
+        return ACItemRegistry.INK_BOMB.get();
     }
 }

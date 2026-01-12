@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class TephraExplosion {
+    private Explosion dummyExplosion;
     private static final ExplosionDamageCalculator EXPLOSION_DAMAGE_CALCULATOR = new ExplosionDamageCalculator();
     private final Explosion.BlockInteraction blockInteraction;
     private final RandomSource random = RandomSource.create();
@@ -246,8 +247,15 @@ public class TephraExplosion {
                             });
                         }
                     }
+                    if (dummyExplosion == null) {
+                        dummyExplosion = new Explosion(level, null, this.x, this.y, this.z, this.radius, false, Explosion.BlockInteraction.KEEP);
+                    }
                     if (blockstate.getFluidState().isEmpty() && !blockstate.is(ACBlockRegistry.FISSURE_PRIMAL_MAGMA.get())) {
-                        level.setBlock(blockpos, setToAir ? Blocks.AIR.defaultBlockState() : ACBlockRegistry.FISSURE_PRIMAL_MAGMA.get().defaultBlockState().setValue(FissurePrimalMagmaBlock.REGEN_HEIGHT, 0), 3);
+                        if (setToAir) {
+                            blockstate.onBlockExploded(level, blockpos, dummyExplosion);
+                        } else {
+                            level.setBlock(blockpos, ACBlockRegistry.FISSURE_PRIMAL_MAGMA.get().defaultBlockState().setValue(FissurePrimalMagmaBlock.REGEN_HEIGHT, 0), 3);
+                        }
                     }
                     this.level.getProfiler().pop();
                 }

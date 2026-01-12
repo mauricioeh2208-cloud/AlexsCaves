@@ -365,7 +365,9 @@ public abstract class SauropodBaseModel<T extends SauropodBaseEntity> extends Ad
         float danceAmount = entity.getDanceProgress(partialTicks);
         float buryEggsAmount = entity.getBuryEggsProgress(partialTicks);
         positionNeckAndTail(entity, netHeadYaw, headPitch, partialTicks);
-        articulateLegs(entity.legSolver, raiseArmsAmount, partialTicks);
+        if (!straighten) {
+            articulateLegs(entity.legSolver, raiseArmsAmount, partialTicks);
+        }
         if (buryEggsAmount > 0.0F) {
             limbSwing = ageInTicks;
             limbSwingAmount = buryEggsAmount * 0.5F;

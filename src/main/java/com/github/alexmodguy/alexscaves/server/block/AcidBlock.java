@@ -144,6 +144,26 @@ public class AcidBlock extends LiquidBlock {
             map.put(Blocks.CUT_COPPER_STAIRS, Blocks.WEATHERED_CUT_COPPER_STAIRS);
             map.put(Blocks.WEATHERED_CUT_COPPER_STAIRS, Blocks.EXPOSED_CUT_COPPER_STAIRS);
             map.put(Blocks.EXPOSED_CUT_COPPER_STAIRS, Blocks.OXIDIZED_CUT_COPPER_STAIRS);
+            // Chiseled Copper
+            map.put(Blocks.CHISELED_COPPER, Blocks.WEATHERED_CHISELED_COPPER);
+            map.put(Blocks.WEATHERED_CHISELED_COPPER, Blocks.EXPOSED_CHISELED_COPPER);
+            map.put(Blocks.EXPOSED_CHISELED_COPPER, Blocks.OXIDIZED_CHISELED_COPPER);
+            // Copper Grate
+            map.put(Blocks.COPPER_GRATE, Blocks.WEATHERED_COPPER_GRATE);
+            map.put(Blocks.WEATHERED_COPPER_GRATE, Blocks.EXPOSED_COPPER_GRATE);
+            map.put(Blocks.EXPOSED_COPPER_GRATE, Blocks.OXIDIZED_COPPER_GRATE);
+            // Copper Bulb
+            map.put(Blocks.COPPER_BULB, Blocks.WEATHERED_COPPER_BULB);
+            map.put(Blocks.WEATHERED_COPPER_BULB, Blocks.EXPOSED_COPPER_BULB);
+            map.put(Blocks.EXPOSED_COPPER_BULB, Blocks.OXIDIZED_COPPER_BULB);
+            // Copper Door
+            map.put(Blocks.COPPER_DOOR, Blocks.WEATHERED_COPPER_DOOR);
+            map.put(Blocks.WEATHERED_COPPER_DOOR, Blocks.EXPOSED_COPPER_DOOR);
+            map.put(Blocks.EXPOSED_COPPER_DOOR, Blocks.OXIDIZED_COPPER_DOOR);
+            // Copper Trapdoor
+            map.put(Blocks.COPPER_TRAPDOOR, Blocks.WEATHERED_COPPER_TRAPDOOR);
+            map.put(Blocks.WEATHERED_COPPER_TRAPDOOR, Blocks.EXPOSED_COPPER_TRAPDOOR);
+            map.put(Blocks.EXPOSED_COPPER_TRAPDOOR, Blocks.OXIDIZED_COPPER_TRAPDOOR);
             map.put(ACBlockRegistry.SCRAP_METAL.get(), ACBlockRegistry.RUSTY_SCRAP_METAL.get());
             map.put(ACBlockRegistry.SCRAP_METAL_PLATE.get(), ACBlockRegistry.RUSTY_SCRAP_METAL_PLATE.get());
             map.put(ACBlockRegistry.METAL_BARREL.get(), ACBlockRegistry.RUSTY_BARREL.get());

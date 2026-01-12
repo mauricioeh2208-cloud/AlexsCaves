@@ -29,7 +29,7 @@ import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 public class PrimitiveClubItem extends Item {
 
     public PrimitiveClubItem(Item.Properties properties) {
-        super(properties.attributes(createDefaultAttributes()));
+        super(properties);
     }
 
     private static ItemAttributeModifiers createDefaultAttributes() {
@@ -114,11 +114,11 @@ public class PrimitiveClubItem extends Item {
 
     @Override
     public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
-        int swift = ACEnchantmentHelper.getEnchantmentLevel((Level) null, ACEnchantmentRegistry.SWIFTWOOD, stack);
+        int swift = ACEnchantmentHelper.getEnchantmentLevelFromStack(ACEnchantmentRegistry.SWIFTWOOD, stack);
         if (swift > 0) {
             return createAttributesForSwiftwoodLevel(Mth.clamp(swift, 0, 3));
         }
-        return super.getDefaultAttributeModifiers(stack);
+        return createDefaultAttributes();
     }
 
     @Override

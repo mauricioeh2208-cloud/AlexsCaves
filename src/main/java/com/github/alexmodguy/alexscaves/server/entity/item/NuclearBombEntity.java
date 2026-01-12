@@ -94,13 +94,14 @@ public class NuclearBombEntity extends Entity {
     }
 
     @Override
-    public void resetFallDistance() {
-        if (this.fallDistance > 20.0F) {
+    protected void checkFallDamage(double y, boolean onGround, net.minecraft.world.level.block.state.BlockState state, BlockPos pos) {
+        if (onGround && this.fallDistance > 20.0F) {
             this.discard();
             if (!this.level().isClientSide) {
                 this.explode();
             }
         }
+        super.checkFallDamage(y, onGround, state, pos);
     }
 
     private Stream<BlockPos> getNearbySirens(ServerLevel world, int range) {

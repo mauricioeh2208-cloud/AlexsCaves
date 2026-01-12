@@ -40,7 +40,10 @@ public class NuclearExplosionEntity extends Entity {
 
     public static final TicketController TICKET_CONTROLLER = new TicketController(ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "nuclear_explosion"));
 
+    private static final int TREMORZILLA_EGG_HATCH_RADIUS = 36;
+
     private boolean spawnedParticle = false;
+    private boolean hatchedTremorzillaEggs = false;
     private Stack<BlockPos> destroyingChunks = new Stack<>();
     private static final EntityDataAccessor<Float> SIZE = SynchedEntityData.defineId(NuclearExplosionEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Boolean> NO_GRIEFING = SynchedEntityData.defineId(NuclearExplosionEntity.class, EntityDataSerializers.BOOLEAN);
@@ -72,6 +75,10 @@ public class NuclearExplosionEntity extends Entity {
                 if (!loadingChunks && !this.isRemoved()) {
                     loadingChunks = true;
                     loadChunksAround(true);
+                }
+                if (!hatchedTremorzillaEggs) {
+                    hatchedTremorzillaEggs = true;
+                    hatchNearbyTremorzillaEggs();
                 }
                 if (destroyingChunks.isEmpty()) {
                     BlockPos center = this.blockPosition();
@@ -200,6 +207,25 @@ public class NuclearExplosionEntity extends Entity {
 
     private boolean isDestroyable(BlockState state) {
         return (!state.is(ACTagRegistry.NUKE_PROOF) && state.getBlock().getExplosionResistance() < AlexsCaves.COMMON_CONFIG.nukeMaxBlockExplosionResistance.get()) || state.is(ACBlockRegistry.TREMORZILLA_EGG.get());
+    }
+
+    private void hatchNearbyTremorzillaEggs() {
+        BlockPos center = this.blockPosition();
+        BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos();
+        for (int x = -TREMORZILLA_EGG_HATCH_RADIUS; x <= TREMORZILLA_EGG_HATCH_RADIUS; x++) {
+            for (int y = -TREMORZILLA_EGG_HATCH_RADIUS; y <= TREMORZILLA_EGG_HATCH_RADIUS; y++) {
+                for (int z = -TREMORZILLA_EGG_HATCH_RADIUS; z <= TREMORZILLA_EGG_HATCH_RADIUS; z++) {
+                    mutablePos.set(center.getX() + x, center.getY() + y, center.getZ() + z);
+                    if (mutablePos.distSqr(center) <= TREMORZILLA_EGG_HATCH_RADIUS * TREMORZILLA_EGG_HATCH_RADIUS) {
+                        BlockState state = level().getBlockState(mutablePos);
+                        if (state.is(ACBlockRegistry.TREMORZILLA_EGG.get()) && state.getBlock() instanceof TremorzillaEggBlock tremorzillaEggBlock) {
+                            tremorzillaEggBlock.spawnDinosaurs(level(), mutablePos.immutable(), state);
+                            level().removeBlock(mutablePos, false);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     @Override

@@ -2,6 +2,7 @@
   "description": {
     "translate": "enchantment.alexscaves.dark_nock"
   },
+  "exclusive_set": "#alexscaves:exclusive_with_relentless_darkness",
   "supported_items": "#alexscaves:dreadbow_enchantable",
   "weight": 2,
   "max_level": 3,

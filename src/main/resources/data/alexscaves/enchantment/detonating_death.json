@@ -2,6 +2,7 @@
   "description": {
     "translate": "enchantment.alexscaves.detonating_death"
   },
+  "exclusive_set": "alexscaves:astral_transferring",
   "supported_items": "#alexscaves:totem_of_possession_enchantable",
   "weight": 2,
   "max_level": 1,

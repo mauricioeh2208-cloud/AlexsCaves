@@ -2,6 +2,7 @@
   "description": {
     "translate": "enchantment.alexscaves.triple_split"
   },
+  "exclusive_set": "alexscaves:targeted_ricochet",
   "supported_items": "#alexscaves:shot_gum_enchantable",
   "weight": 2,
   "max_level": 1,

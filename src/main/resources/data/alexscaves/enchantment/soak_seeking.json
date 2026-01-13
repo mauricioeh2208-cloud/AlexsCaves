@@ -2,7 +2,6 @@
   "description": {
     "translate": "enchantment.alexscaves.soak_seeking"
   },
-  "exclusive_set": "alexscaves:triple_splash",
   "supported_items": "#alexscaves:sea_staff_enchantable",
   "weight": 10,
   "max_level": 3,

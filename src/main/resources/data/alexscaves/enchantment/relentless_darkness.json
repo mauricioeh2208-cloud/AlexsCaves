@@ -2,6 +2,7 @@
   "description": {
     "translate": "enchantment.alexscaves.relentless_darkness"
   },
+  "exclusive_set": "#alexscaves:exclusive_with_relentless_darkness",
   "supported_items": "#alexscaves:dreadbow_enchantable",
   "weight": 1,
   "max_level": 1,

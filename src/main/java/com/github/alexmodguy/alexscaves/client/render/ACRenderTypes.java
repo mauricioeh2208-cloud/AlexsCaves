@@ -105,6 +105,7 @@ public class ACRenderTypes extends RenderType {
                 .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
                 .setCullState(CULL)
                 .setDepthTestState(LEQUAL_DEPTH_TEST)
+                .setWriteMaskState(COLOR_WRITE)
                 .setLightmapState(NO_LIGHTMAP)
                 .setOutputState(HOLOGRAM_OUTPUT)
                 .createCompositeState(false));

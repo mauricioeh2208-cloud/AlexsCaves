@@ -97,11 +97,22 @@ public abstract class EntityMixin implements MagneticEntityAccessor {
     }
     
     /**
-     * Sync the magnetic data attachment to clients
+     * Sync the magnetic data attachment to clients via network packet.
+     * This replaces 1.20's automatic SynchedEntityData sync.
      */
     private void syncMagneticData() {
-        // Attachment sync is handled automatically by the AttachmentType's sync configuration
-        // No manual sync needed when using .sync() on the AttachmentType builder
+        if (!supportsMagneticData()) {
+            return;
+        }
+        Entity thisEntity = (Entity) (Object) this;
+        // Only sync from server side
+        if (!thisEntity.level().isClientSide) {
+            MagneticEntityData data = thisEntity.getData(ACAttachmentRegistry.MAGNETIC_DATA);
+            // Send sync packet to all tracking players
+            com.github.alexmodguy.alexscaves.server.message.UpdateMagneticDataMessage msg = 
+                new com.github.alexmodguy.alexscaves.server.message.UpdateMagneticDataMessage(thisEntity, data);
+            net.neoforged.neoforge.network.PacketDistributor.sendToPlayersTrackingEntityAndSelf(thisEntity, msg);
+        }
     }
 
     @Inject(

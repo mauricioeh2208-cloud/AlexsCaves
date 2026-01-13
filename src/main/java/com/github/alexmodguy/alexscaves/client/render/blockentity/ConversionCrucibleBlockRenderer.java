@@ -129,12 +129,11 @@ public class ConversionCrucibleBlockRenderer<T extends ConversionCrucibleBlockEn
             poseStack.mulPose(Axis.YP.rotationDegrees(180 - cameraY));
             PoseStack.Pose posestack$pose1 = poseStack.last();
             Matrix4f matrix4f2 = posestack$pose1.pose();
-            Matrix3f matrix3f2 = posestack$pose1.normal();
             VertexConsumer lightConsumer = bufferIn.getBuffer(ACRenderTypes.getCrucibleItemBeam());
-            shineOriginVertex(lightConsumer, matrix4f2, matrix3f2, 0, 0, r, g, b, 12 * showItemProgress);
-            shineLeftCornerVertex(lightConsumer, matrix4f2, matrix3f2, lightLength, lightWidth, 0, 0, r, g, b, 0);
-            shineRightCornerVertex(lightConsumer, matrix4f2, matrix3f2, lightLength, lightWidth, 0, 0, r, g, b, 0);
-            shineLeftCornerVertex(lightConsumer, matrix4f2, matrix3f2, lightLength, lightWidth, 0, 0, r, g, b, 0);
+            shineOriginVertex(lightConsumer, matrix4f2, 0, 0, r, g, b, 12 * showItemProgress);
+            shineLeftCornerVertex(lightConsumer, matrix4f2, lightLength, lightWidth, 0, 0, r, g, b, 0);
+            shineRightCornerVertex(lightConsumer, matrix4f2, lightLength, lightWidth, 0, 0, r, g, b, 0);
+            shineLeftCornerVertex(lightConsumer, matrix4f2, lightLength, lightWidth, 0, 0, r, g, b, 0);
             poseStack.popPose();
         }
     }
@@ -165,16 +164,16 @@ public class ConversionCrucibleBlockRenderer<T extends ConversionCrucibleBlockEn
     }
 
 
-    private static void shineOriginVertex(VertexConsumer vertexConsumer, Matrix4f matrix4f, Matrix3f matrix3f, float xOffset, float yOffset, float r, float g, float b, float a) {
-        vertexConsumer.addVertex(matrix4f, 0.0F, 0.0F, 0.0F).setColor(r, g, b, a).setUv(xOffset + 0.5F, yOffset).setOverlay(OverlayTexture.NO_OVERLAY).setLight(240).setNormal(0.0F, 1.0F, 0.0F);
+    private static void shineOriginVertex(VertexConsumer vertexConsumer, Matrix4f matrix4f, float xOffset, float yOffset, float r, float g, float b, float a) {
+        vertexConsumer.addVertex(matrix4f, 0.0F, 0.0F, 0.0F).setColor(r, g, b, a);
     }
 
-    private static void shineLeftCornerVertex(VertexConsumer vertexConsumer, Matrix4f matrix4f, Matrix3f matrix3f, float length, float width, float xOffset, float yOffset, float r, float g, float b, float a) {
-        vertexConsumer.addVertex(matrix4f, -ACMath.HALF_SQRT_3 * width, length, 0).setColor(r, g, b, a).setUv(xOffset, yOffset + 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(240).setNormal(0.0F, -1.0F, 0.0F);
+    private static void shineLeftCornerVertex(VertexConsumer vertexConsumer, Matrix4f matrix4f, float length, float width, float xOffset, float yOffset, float r, float g, float b, float a) {
+        vertexConsumer.addVertex(matrix4f, -ACMath.HALF_SQRT_3 * width, length, 0).setColor(r, g, b, a);
     }
 
-    private static void shineRightCornerVertex(VertexConsumer vertexConsumer, Matrix4f matrix4f, Matrix3f matrix3f, float length, float width, float xOffset, float yOffset, float r, float g, float b, float a) {
-        vertexConsumer.addVertex(matrix4f, ACMath.HALF_SQRT_3 * width, length, 0).setColor(r, g, b, a).setUv(xOffset + 1, yOffset + 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(240).setNormal(0.0F, -1.0F, 0.0F);
+    private static void shineRightCornerVertex(VertexConsumer vertexConsumer, Matrix4f matrix4f, float length, float width, float xOffset, float yOffset, float r, float g, float b, float a) {
+        vertexConsumer.addVertex(matrix4f, ACMath.HALF_SQRT_3 * width, length, 0).setColor(r, g, b, a);
     }
 
     public int getViewDistance() {

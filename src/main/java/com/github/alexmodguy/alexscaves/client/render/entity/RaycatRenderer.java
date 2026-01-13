@@ -51,16 +51,16 @@ public class RaycatRenderer extends MobRenderer<RaycatEntity, RaycatModel> imple
         }
     }
 
-    private static void shineOriginVertex(VertexConsumer p_114220_, Matrix4f p_114221_, Matrix3f p_114092_, float xOffset, float yOffset) {
-        p_114220_.addVertex(p_114221_, 0.0F, 0.0F, 0.0F).setColor(0, 255, 0, 255).setUv(xOffset + 0.5F, yOffset).setOverlay(NO_OVERLAY).setLight(240).setNormal(0.0F, 1.0F, 0.0F);
+    private static void shineOriginVertex(VertexConsumer p_114220_, Matrix4f p_114221_, float xOffset, float yOffset) {
+        p_114220_.addVertex(p_114221_, 0.0F, 0.0F, 0.0F).setColor(0, 255, 0, 255);
     }
 
-    private static void shineLeftCornerVertex(VertexConsumer p_114215_, Matrix4f p_114216_, Matrix3f p_114092_, float p_114217_, float p_114218_, float xOffset, float yOffset) {
-        p_114215_.addVertex(p_114216_, -HALF_SQRT_3 * p_114218_, p_114217_, 0).setColor(0, 255, 0, 0).setUv(xOffset, yOffset + 1).setOverlay(NO_OVERLAY).setLight(240).setNormal(0.0F, -1.0F, 0.0F);
+    private static void shineLeftCornerVertex(VertexConsumer p_114215_, Matrix4f p_114216_, float p_114217_, float p_114218_, float xOffset, float yOffset) {
+        p_114215_.addVertex(p_114216_, -HALF_SQRT_3 * p_114218_, p_114217_, 0).setColor(0, 255, 0, 0);
     }
 
-    private static void shineRightCornerVertex(VertexConsumer p_114224_, Matrix4f p_114225_, Matrix3f p_114092_, float p_114226_, float p_114227_, float xOffset, float yOffset) {
-        p_114224_.addVertex(p_114225_, HALF_SQRT_3 * p_114227_, p_114226_, 0).setColor(0, 255, 0, 0).setUv(xOffset + 1, yOffset + 1).setOverlay(NO_OVERLAY).setLight(240).setNormal(0.0F, -1.0F, 0.0F);
+    private static void shineRightCornerVertex(VertexConsumer p_114224_, Matrix4f p_114225_, float p_114226_, float p_114227_, float xOffset, float yOffset) {
+        p_114224_.addVertex(p_114225_, HALF_SQRT_3 * p_114227_, p_114226_, 0).setColor(0, 255, 0, 0);
     }
 
     public void render(RaycatEntity entityIn, float entityYaw, float partialTicks, PoseStack poseStack, MultiBufferSource bufferIn, int packedLightIn) {
@@ -85,12 +85,11 @@ public class RaycatRenderer extends MobRenderer<RaycatEntity, RaycatModel> imple
             poseStack.mulPose(Axis.ZN.rotationDegrees(90));
             PoseStack.Pose posestack$pose = poseStack.last();
             Matrix4f matrix4f1 = posestack$pose.pose();
-            Matrix3f matrix3f1 = posestack$pose.normal();
             VertexConsumer lightConsumer = bufferIn.getBuffer(ACRenderTypes.getNucleeperLights());
-            shineOriginVertex(lightConsumer, matrix4f1, matrix3f1, 0, 0);
-            shineLeftCornerVertex(lightConsumer, matrix4f1, matrix3f1, length, width, 0, 0);
-            shineRightCornerVertex(lightConsumer, matrix4f1, matrix3f1, length, width, 0, 0);
-            shineLeftCornerVertex(lightConsumer, matrix4f1, matrix3f1, length, width, 0, 0);
+            shineOriginVertex(lightConsumer, matrix4f1, 0, 0);
+            shineLeftCornerVertex(lightConsumer, matrix4f1, length, width, 0, 0);
+            shineRightCornerVertex(lightConsumer, matrix4f1, length, width, 0, 0);
+            shineLeftCornerVertex(lightConsumer, matrix4f1, length, width, 0, 0);
             poseStack.popPose();
             poseStack.popPose();
         }

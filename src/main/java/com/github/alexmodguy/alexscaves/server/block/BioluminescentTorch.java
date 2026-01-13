@@ -42,7 +42,8 @@ public class BioluminescentTorch extends TorchBlock implements SimpleWaterlogged
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         LevelAccessor levelaccessor = context.getLevel();
         BlockPos blockpos = context.getClickedPos();
-        return super.getStateForPlacement(context).setValue(WATERLOGGED, Boolean.valueOf(levelaccessor.getFluidState(blockpos).getType() == Fluids.WATER));
+        BlockState prev = super.getStateForPlacement(context);
+        return prev == null ? null : prev.setValue(WATERLOGGED, Boolean.valueOf(levelaccessor.getFluidState(blockpos).isSourceOfType(Fluids.WATER)));
     }
 
 

@@ -101,7 +101,7 @@ public class ACPotionEffectLayer extends RenderLayer {
                 float alpha = level >= IrradiatedEffect.BLUE_LEVEL ? 0.9F : Math.min(level * 0.33F, 1F);
                 poseStack.pushPose();
                 this.getParentModel().renderToBuffer(poseStack, ivertexbuilder, packedLightIn,
-                        LivingEntityRenderer.getOverlayCoords((LivingEntity) entity, 0), ColorUtil.packColor(alpha, 1.0F, 1.0F, 1.0F));
+                        LivingEntityRenderer.getOverlayCoords((LivingEntity) entity, 0), ColorUtil.packColor(1.0F, 1.0F, 1.0F, alpha));
                 poseStack.popPose();
             }
             if (living.hasEffect(ACEffectRegistry.BUBBLED) && living.isAlive()) {
@@ -127,7 +127,7 @@ public class ACPotionEffectLayer extends RenderLayer {
                 poseStack.pushPose();
                 float alpha = DarknessIncarnateEffect.getIntensity(living, partialTicks, 25F);
                 this.getParentModel().renderToBuffer(poseStack, ivertexbuilder, 0,
-                        LivingEntityRenderer.getOverlayCoords((LivingEntity) entity, 0), ColorUtil.packColor(alpha, 0.0F, 0.0F, 0.0F));
+                        LivingEntityRenderer.getOverlayCoords((LivingEntity) entity, 0), ColorUtil.packColor(0.0F, 0.0F, 0.0F, alpha));
                 poseStack.popPose();
             }
             if (living.hasEffect(ACEffectRegistry.SUGAR_RUSH) && getParentModel() instanceof HumanoidModel<?>) {

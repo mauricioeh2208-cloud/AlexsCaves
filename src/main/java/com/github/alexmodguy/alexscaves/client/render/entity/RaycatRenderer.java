@@ -114,9 +114,9 @@ public class RaycatRenderer extends MobRenderer<RaycatEntity, RaycatModel> imple
 
         public void render(PoseStack matrixStackIn, MultiBufferSource bufferIn, int packedLightIn, RaycatEntity entitylivingbaseIn, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
             VertexConsumer ivertexbuilder1 = bufferIn.getBuffer(RaycatRenderer.this.sepia ? ACRenderTypes.getBookWidget(TEXTURE, true) : RenderType.entityCutoutNoCull(TEXTURE));
-            this.getParentModel().renderToBuffer(matrixStackIn, ivertexbuilder1, packedLightIn, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), 1.0F, 1.0F, 1.0F, 1.0F);
+            this.getParentModel().renderToBuffer(matrixStackIn, ivertexbuilder1, packedLightIn, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), -1);
             VertexConsumer ivertexbuilder2 = bufferIn.getBuffer(RaycatRenderer.this.sepia ? ACRenderTypes.getBookWidget(TEXTURE_EYES, true) : ACRenderTypes.getEyesAlphaEnabled(TEXTURE_EYES));
-            this.getParentModel().renderToBuffer(matrixStackIn, ivertexbuilder2, packedLightIn, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), 1.0F, 1.0F, 1.0F, 1.0F);
+            this.getParentModel().renderToBuffer(matrixStackIn, ivertexbuilder2, packedLightIn, LivingEntityRenderer.getOverlayCoords(entitylivingbaseIn, 0.0F), -1);
         }
     }
 }

@@ -143,25 +143,31 @@ public class ACRenderTypes extends RenderType {
     }
 
     public static RenderType getRadiationGlow(ResourceLocation locationIn) {
-        return create("radiation_glow", DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
+        // Use NEW_ENTITY format since model.renderToBuffer() outputs NEW_ENTITY vertices
+        return create("radiation_glow", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, true, true, RenderType.CompositeState.builder()
                 .setShaderState(RENDERTYPE_IRRADIATED_SHADER)
                 .setCullState(NO_CULL)
                 .setTextureState(new RenderStateShard.TextureStateShard(locationIn, false, false))
                 .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+                .setLightmapState(LIGHTMAP)
+                .setOverlayState(OVERLAY)
                 .setDepthTestState(LEQUAL_DEPTH_TEST)
                 .setOutputState(IRRADIATED_OUTPUT)
-                .createCompositeState(false));
+                .createCompositeState(true));
     }
 
     public static RenderType getBlueRadiationGlow(ResourceLocation locationIn) {
-        return create("blue_radiation_glow", DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
+        // Use NEW_ENTITY format since model.renderToBuffer() outputs NEW_ENTITY vertices
+        return create("blue_radiation_glow", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, true, true, RenderType.CompositeState.builder()
                 .setShaderState(RENDERTYPE_BLUE_IRRADIATED_SHADER)
                 .setCullState(NO_CULL)
                 .setTextureState(new RenderStateShard.TextureStateShard(locationIn, false, false))
                 .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+                .setLightmapState(LIGHTMAP)
+                .setOverlayState(OVERLAY)
                 .setDepthTestState(LEQUAL_DEPTH_TEST)
                 .setOutputState(IRRADIATED_OUTPUT)
-                .createCompositeState(false));
+                .createCompositeState(true));
     }
     public static RenderType getGelTriangles(ResourceLocation locationIn) {
         return create("ferrouslime_gel_triangles", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.TRIANGLES, 256, true, true, RenderType.CompositeState.builder()

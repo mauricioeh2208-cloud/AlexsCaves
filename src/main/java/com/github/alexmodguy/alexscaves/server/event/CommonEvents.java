@@ -323,11 +323,11 @@ public class CommonEvents {
 
     @SubscribeEvent
     public void livingRemoveEffect(MobEffectEvent.Remove event) {
-        if (event.getEffect() instanceof DarknessIncarnateEffect darknessIncarnateEffect) {
+        if (event.getEffect().value() instanceof DarknessIncarnateEffect darknessIncarnateEffect) {
             darknessIncarnateEffect.toggleFlight(event.getEntity(), false);
             event.getEntity().level().playSound(null, event.getEntity().getX(), event.getEntity().getY(), event.getEntity().getZ(), ACSoundRegistry.DARKNESS_INCARNATE_EXIT.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
         }
-        if (event.getEffect() instanceof SugarRushEffect) {
+        if (event.getEffect().value() instanceof SugarRushEffect) {
             event.getEntity().level().playSound(null, event.getEntity().getX(), event.getEntity().getY(), event.getEntity().getZ(), ACSoundRegistry.SUGAR_RUSH_EXIT.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
         }
     }
@@ -335,14 +335,14 @@ public class CommonEvents {
 
     @SubscribeEvent
     public void livingAddEffect(MobEffectEvent.Added event) {
-        if (event.getEffectInstance().getEffect() instanceof DarknessIncarnateEffect) {
+        if (event.getEffectInstance().getEffect().value() instanceof DarknessIncarnateEffect) {
             event.getEntity().level().playSound(null, event.getEntity().getX(), event.getEntity().getY(), event.getEntity().getZ(), ACSoundRegistry.DARKNESS_INCARNATE_ENTER.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
         }
-        if (event.getEffectInstance().getEffect() instanceof SugarRushEffect) {
+        if (event.getEffectInstance().getEffect().value() instanceof SugarRushEffect) {
             event.getEntity().level().playSound(null, event.getEntity().getX(), event.getEntity().getY(), event.getEntity().getZ(), ACSoundRegistry.SUGAR_RUSH_ENTER.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
         }
         // In 1.21, isAddedToWorld() is removed - use isAlive() && level() != null
-        if (event.getEntity() instanceof Player player && player.isAlive() && player.level() != null && event.getEffectInstance().getEffect() instanceof SugarRushEffect && AlexsCaves.COMMON_CONFIG.sugarRushSlowsTime.get()) {
+        if (event.getEntity() instanceof Player player && player.isAlive() && player.level() != null && event.getEffectInstance().getEffect().value() instanceof SugarRushEffect && AlexsCaves.COMMON_CONFIG.sugarRushSlowsTime.get()) {
             float timeBetweenTicksIncrease = 2F;
             SugarRushEffect.enterSlowMotion(player, player.level(), Mth.ceil(event.getEffectInstance().getDuration() * timeBetweenTicksIncrease), timeBetweenTicksIncrease);
         }
@@ -350,11 +350,11 @@ public class CommonEvents {
 
     @SubscribeEvent
     public void livingExpireEffect(MobEffectEvent.Expired event) {
-        if (event.getEffectInstance().getEffect() instanceof DarknessIncarnateEffect darknessIncarnateEffect) {
+        if (event.getEffectInstance().getEffect().value() instanceof DarknessIncarnateEffect darknessIncarnateEffect) {
             darknessIncarnateEffect.toggleFlight(event.getEntity(), false);
             event.getEntity().playSound(ACSoundRegistry.DARKNESS_INCARNATE_EXIT.get());
         }
-        if (event.getEntity() instanceof Player player && event.getEffectInstance().getEffect() instanceof SugarRushEffect && AlexsCaves.COMMON_CONFIG.sugarRushSlowsTime.get()) {
+        if (event.getEntity() instanceof Player player && event.getEffectInstance().getEffect().value() instanceof SugarRushEffect && AlexsCaves.COMMON_CONFIG.sugarRushSlowsTime.get()) {
             SugarRushEffect.leaveSlowMotion(player, player.level());
         }
     }

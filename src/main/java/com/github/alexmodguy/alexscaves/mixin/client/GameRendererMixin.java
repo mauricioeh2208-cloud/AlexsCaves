@@ -8,6 +8,7 @@ import com.github.alexmodguy.alexscaves.client.render.entity.layer.ACPotionEffec
 import com.github.alexmodguy.alexscaves.server.entity.item.SubmarineEntity;
 import com.github.alexmodguy.alexscaves.server.potion.ACEffectRegistry;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
@@ -16,6 +17,7 @@ import net.minecraft.client.renderer.RenderBuffers;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Quaternionf;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -32,6 +34,10 @@ public abstract class GameRendererMixin {
     @Shadow
     @Final
     private RenderBuffers renderBuffers;
+
+    @Shadow
+    @Final
+    private Camera mainCamera;
 
     @Inject(
             method = {"Lnet/minecraft/client/renderer/GameRenderer;tick()V"},
@@ -76,8 +82,11 @@ public abstract class GameRendererMixin {
         Entity player = Minecraft.getInstance().cameraEntity;
         if (player != null && player.isPassenger() && player.getVehicle() instanceof SubmarineEntity submarine && SubmarineRenderer.isFirstPersonFloodlightsMode(submarine)) {
             Vec3 offset = submarine.getPosition(partialTicks).subtract(player.getEyePosition(partialTicks));
-            // In 1.21, we need to create our own PoseStack since it's no longer passed
+            // In 1.21, we need to create our own PoseStack with camera rotation applied
             PoseStack poseStack = new PoseStack();
+            // Apply camera rotation (conjugate to get the view matrix rotation)
+            Quaternionf cameraRotation = mainCamera.rotation().conjugate(new Quaternionf());
+            poseStack.mulPose(cameraRotation);
             poseStack.pushPose();
             poseStack.translate(offset.x, offset.y, offset.z);
             SubmarineRenderer.renderSubFirstPerson(submarine, partialTicks, poseStack, renderBuffers.bufferSource());
@@ -97,8 +106,10 @@ public abstract class GameRendererMixin {
     public void ac_renderLevelAfterHand(DeltaTracker deltaTracker, CallbackInfo ci) {
         if (Minecraft.getInstance().getCameraEntity() instanceof LivingEntity living && living.hasEffect(ACEffectRegistry.BUBBLED) && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
             MultiBufferSource.BufferSource multibuffersource$buffersource = Minecraft.getInstance().renderBuffers().bufferSource();
-            // In 1.21, we need to create our own PoseStack
+            // In 1.21, we need to create our own PoseStack with camera rotation applied
             PoseStack poseStack = new PoseStack();
+            Quaternionf cameraRotation = mainCamera.rotation().conjugate(new Quaternionf());
+            poseStack.mulPose(cameraRotation);
             ACPotionEffectLayer.renderBubbledFirstPerson(poseStack);
             multibuffersource$buffersource.endBatch();
         }

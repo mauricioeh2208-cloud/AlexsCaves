@@ -349,7 +349,8 @@ public class SubmarineEntity extends Entity implements KeybindUsingMount {
             }
             float f1 = -(this.getXRot() / 40F);
             Vec3 seatOffset = new Vec3(0F, -0.2F, 0.8F + f1).xRot((float) Math.toRadians(this.getXRot())).yRot((float) Math.toRadians(-this.getYRot()));
-            double d0 = this.getY() + this.getBbHeight() * 0.5F + seatOffset.y;
+            Vec3 attachPoint = passenger.getVehicleAttachmentPoint(this);
+            double d0 = this.getY() + this.getBbHeight() * 0.5F + seatOffset.y - attachPoint.y;
             moveFunction.accept(passenger, this.getX() + seatOffset.x, d0, this.getZ() + seatOffset.z);
             living.setAirSupply(Math.min(living.getAirSupply() + 2, living.getMaxAirSupply()));
         } else {

@@ -37,7 +37,7 @@
       "outtarget": "swap"
     },
     {
-      "name": "alexscaves:blit",
+      "name": "blit",
       "intarget": "swap",
       "outtarget": "final"
     }

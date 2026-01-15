@@ -201,9 +201,18 @@ public class FrostmintExplosion {
                                 this.hitPlayers.put(player, vec31);
                             }
                         }
-                        if(entity instanceof LivingEntity living){
-                            living.setTicksFrozen(living.getTicksRequiredToFreeze() + 200);
-                            ((FrostmintFreezableAccessor)living).setFrostmintFreezing(true);
+                        if (entity instanceof LivingEntity living) {
+                            boolean flag = false;
+                            for (ItemStack itemstack : living.getArmorSlots()) {
+                                if (itemstack.is(net.minecraft.tags.ItemTags.FREEZE_IMMUNE_WEARABLES)) {
+                                    flag = true;
+                                    break;
+                                }
+                            }
+                            if (!flag) {
+                                living.setTicksFrozen(living.getTicksRequiredToFreeze() + 200);
+                                ((FrostmintFreezableAccessor) living).setFrostmintFreezing(true);
+                            }
                         }
                     }
                 }

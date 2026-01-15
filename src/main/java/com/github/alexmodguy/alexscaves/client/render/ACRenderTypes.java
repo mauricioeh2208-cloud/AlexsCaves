@@ -305,4 +305,16 @@ public class ACRenderTypes extends RenderType {
                 .createCompositeState(false));
     }
 
+    public static RenderType getWatcherAppearance(ResourceLocation locationIn) {
+        RenderType.CompositeState rendertype$compositestate = RenderType.CompositeState.builder()
+                .setShaderState(RENDERTYPE_ENTITY_TRANSLUCENT_CULL_SHADER)
+                .setTextureState(new RenderStateShard.TextureStateShard(locationIn, false, false))
+                .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                .setCullState(NO_CULL)
+                .setLightmapState(NO_LIGHTMAP)
+                .setOverlayState(OVERLAY)
+                .createCompositeState(true);
+        return create("watcher_appearance", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, false, true, rendertype$compositestate);
+    }
+
 }

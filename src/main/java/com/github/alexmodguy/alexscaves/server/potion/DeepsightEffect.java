@@ -7,57 +7,70 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.player.Player;
 
+import java.util.Map;
+import java.util.WeakHashMap;
+
 public class DeepsightEffect extends MobEffect {
 
-    private int lastDuration = -1;
-    private int firstDuration = -1;
+    private final Map<LivingEntity, Integer> entityStartDurations = new WeakHashMap<>();
 
     protected DeepsightEffect() {
         super(MobEffectCategory.BENEFICIAL, 0X002972);
     }
 
     public int getActiveTime() {
-        return firstDuration - lastDuration;
+        return 0;
     }
 
     @Override
     public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
-        lastDuration = duration;
-        if (duration <= 0) {
-            lastDuration = -1;
-            firstDuration = -1;
+        return true;
+    }
+
+    @Override
+    public boolean applyEffectTick(LivingEntity entity, int amplifier) {
+        if (!entity.level().isClientSide) {
+            return true;
         }
-        if (firstDuration == -1) {
-            firstDuration = duration;
+        MobEffectInstance instance = entity.getEffect(ACEffectRegistry.DEEPSIGHT);
+        if (instance != null) {
+            int duration = instance.getDuration();
+            if (!entityStartDurations.containsKey(entity) || duration > entityStartDurations.get(entity)) {
+                entityStartDurations.put(entity, duration);
+            }
         }
-        return duration > 0;
+        return true;
     }
 
     @Override
     public void removeAttributeModifiers(AttributeMap map) {
-        lastDuration = -1;
-        firstDuration = -1;
         super.removeAttributeModifiers(map);
     }
 
     @Override
     public void onEffectStarted(LivingEntity entity, int amplifier) {
-        lastDuration = -1;
-        firstDuration = -1;
+        MobEffectInstance instance = entity.getEffect(ACEffectRegistry.DEEPSIGHT);
+        if (instance != null) {
+            entityStartDurations.put(entity, instance.getDuration());
+        }
     }
-
 
     public static float getIntensity(Player player, float partialTicks) {
         MobEffectInstance instance = player.getEffect(ACEffectRegistry.DEEPSIGHT);
         if (instance == null) {
             return 0.0F;
-        } else if(instance.isInfiniteDuration()) {
+        } else if (instance.isInfiniteDuration()) {
             return 1.0F;
         } else {
             DeepsightEffect deepsightEffect = (DeepsightEffect) instance.getEffect().value();
-            float j = deepsightEffect.getActiveTime() + partialTicks;
             int duration = instance.getDuration();
-            return Math.min(20, (Math.min(j, duration + partialTicks))) * 0.05F;
+            int maxDuration = deepsightEffect.entityStartDurations.getOrDefault(player, duration);
+            if (duration > maxDuration) {
+                maxDuration = duration;
+                deepsightEffect.entityStartDurations.put(player, maxDuration);
+            }
+            float activeTime = maxDuration - duration + partialTicks;
+            return Math.min(20, (Math.min(activeTime, duration + partialTicks))) * 0.05F;
         }
     }
 }

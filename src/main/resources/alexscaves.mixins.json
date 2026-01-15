@@ -10,6 +10,7 @@
     "BiomeSourceMixin",
     "ChunkStatusMixin",
     "CoralFeatureMixin",
+    "CorrodentCollisionMixin",
     "EnchantRandomlyFunctionMixin",
     "EntityMixin",
     "FallingBlockEntityMixin",

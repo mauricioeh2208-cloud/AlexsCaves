@@ -153,6 +153,9 @@ public class SodaBottleRocketEntity extends FireworkRocketEntity {
 
         ++this.life;
         ++this.phageAge;
+        if (this.level().isClientSide && this.life % 2 < 2) {
+            this.level().addParticle(ParticleTypes.FIREWORK, this.getX(), this.getY(), this.getZ(), this.random.nextGaussian() * 0.05D, -this.getDeltaMovement().y * 0.5D, this.random.nextGaussian() * 0.05D);
+        }
         if (this.level().isClientSide) {
             for(int i = 0; i < 5; i++){
                 this.level().addParticle(ACParticleRegistry.PURPLE_SODA_BUBBLE.get(), this.getX(), this.getY() - 0.3D, this.getZ(), this.random.nextGaussian() * 0.25D, -this.getDeltaMovement().y * 0.5D, this.random.nextGaussian() * 0.25D);

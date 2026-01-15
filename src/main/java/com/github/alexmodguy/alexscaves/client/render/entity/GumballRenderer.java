@@ -16,6 +16,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.projectile.DragonFireball;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 public class GumballRenderer extends EntityRenderer<GumballEntity> {
     private static final ResourceLocation TEXTURE_0 = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "textures/entity/gumball/gumball_0.png");
@@ -45,7 +46,7 @@ public class GumballRenderer extends EntityRenderer<GumballEntity> {
         PoseStack.Pose posestack$pose = poseStack.last();
         Matrix4f matrix4f = posestack$pose.pose();
         Matrix3f matrix3f = posestack$pose.normal();
-        VertexConsumer vertexconsumer = multiBufferSource.getBuffer(RenderType.entityCutout(getTextureLocation(entity)));
+        VertexConsumer vertexconsumer = multiBufferSource.getBuffer(RenderType.entityCutoutNoCull(getTextureLocation(entity)));
         vertex(vertexconsumer, matrix4f, matrix3f, packedLight, 0.0F, 0, 0, 1, 1F);
         vertex(vertexconsumer, matrix4f, matrix3f, packedLight, 1.0F, 0, 1, 1, 1F);
         vertex(vertexconsumer, matrix4f, matrix3f, packedLight, 1.0F, 1, 1, 0, 1F);
@@ -63,7 +64,9 @@ public class GumballRenderer extends EntityRenderer<GumballEntity> {
     }
 
     private static void vertex(VertexConsumer vertexConsumer, Matrix4f matrix4f, Matrix3f matrix3f, int p_253829_, float x, int y, int u, int v, float alpha) {
-        vertexConsumer.addVertex(matrix4f, x - 0.5F, (float)y - 0.25F, 0.0F).setColor(1F, 1F, 1F, alpha).setUv((float)u, (float)v).setOverlay(OverlayTexture.NO_OVERLAY).setLight(p_253829_).setNormal(0.0F, 1.0F, 0.0F);
+        Vector3f vector3f = new Vector3f(0.0F, 1.0F, 0.0F);
+        vector3f.mul(matrix3f);
+        vertexConsumer.addVertex(matrix4f, x - 0.5F, (float)y - 0.25F, 0.0F).setColor(1F, 1F, 1F, alpha).setUv((float)u, (float)v).setOverlay(OverlayTexture.NO_OVERLAY).setLight(p_253829_).setNormal(vector3f.x, vector3f.y, vector3f.z);
     }
 
     public ResourceLocation getTextureLocation(GumballEntity gumballEntity) {

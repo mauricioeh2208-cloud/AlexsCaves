@@ -346,6 +346,11 @@ public class GumWormEntity extends Monster implements ICustomCollisions, KaijuMo
         return this.entityData.get(DIGGING);
     }
 
+    @Override
+    public float maxUpStep() {
+        return isRidingMode() ? 5.0F : super.maxUpStep();
+    }
+
     public void remove(Entity.RemovalReason removalReason) {
         AlexsCaves.PROXY.clearSoundCacheFor(this);
         super.remove(removalReason);

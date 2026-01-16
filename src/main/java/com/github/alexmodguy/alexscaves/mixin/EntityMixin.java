@@ -8,6 +8,7 @@ import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
 import com.github.alexmodguy.alexscaves.server.item.RainbounceBootsItem;
 import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
 import com.github.alexmodguy.alexscaves.server.potion.ACEffectRegistry;
+import com.github.alexthe666.citadel.server.entity.collision.ICustomCollisions;
 import com.google.common.collect.ImmutableList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -179,8 +180,15 @@ public abstract class EntityMixin implements MagneticEntityAccessor {
     //must override entire method for compatibility with Radium mod
     public void ac_collide(Vec3 deltaIn, CallbackInfoReturnable<Vec3> cir) {
 
-        AABB aabb = this.getBoundingBox();
         Entity thisEntity = (Entity) (Object) this;
+        
+        // Support ICustomCollisions (e.g., GumWorm digging)
+        if (thisEntity instanceof ICustomCollisions) {
+            cir.setReturnValue(ICustomCollisions.getAllowedMovementForEntity(thisEntity, deltaIn));
+            return;
+        }
+
+        AABB aabb = this.getBoundingBox();
         //AC CODE START
         List<VoxelShape> list;
         //fix infinity voxel collection crash for ItemEntity

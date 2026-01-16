@@ -130,7 +130,9 @@ public class SubmarineEntity extends Entity implements KeybindUsingMount {
             damageSustained--;
         }
         this.xRotO = this.getXRot();
-        this.yRotO = Mth.wrapDegrees(this.getYRot());
+        // Wrap yRot to [-180, 180] range to prevent continuous spinning during interpolation
+        this.setYRot(Mth.wrapDegrees(this.getYRot()));
+        this.yRotO = this.getYRot();
         this.prevSonarFlashAmount = sonarFlashAmount;
         if(this.getDangerAlertTicks() > 0 && sonarFlashAmount < 1.0F){
             sonarFlashAmount += 0.25F;

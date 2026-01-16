@@ -69,12 +69,13 @@ public class ACArmorRenderProperties implements IClientItemExtensions {
     }
 
     public static void renderCustomArmor(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, ItemStack itemStack, ArmorItem armorItem, Model armorModel, boolean legs, ResourceLocation texture) {
-        if(armorItem.getMaterial() == ACItemRegistry.DARKNESS_ARMOR_MATERIAL){
+        // In 1.21, armorItem.getMaterial() returns Holder<ArmorMaterial>, so compare with .getHolder()
+        if(armorItem.getMaterial() == ACItemRegistry.DARKNESS_ARMOR_MATERIAL.getHolder()){
             VertexConsumer vertexconsumer1 = itemStack.hasFoil() ? VertexMultiConsumer.create(multiBufferSource.getBuffer(RenderType.entityGlintDirect()), multiBufferSource.getBuffer(RenderType.entityTranslucent(texture))) : multiBufferSource.getBuffer(RenderType.entityTranslucent(texture));
             armorModel.renderToBuffer(poseStack, vertexconsumer1, light, OverlayTexture.NO_OVERLAY, -1);
             VertexConsumer vertexconsumer2 = multiBufferSource.getBuffer(ACRenderTypes.getEyesAlphaEnabled(DARKNESS_ARMOR_GLOW));
             armorModel.renderToBuffer(poseStack, vertexconsumer2, 240, OverlayTexture.NO_OVERLAY, -1);
-        }else if(armorItem.getMaterial() == ACItemRegistry.RAINBOUNCE_ARMOR_MATERIAL){
+        }else if(armorItem.getMaterial() == ACItemRegistry.RAINBOUNCE_ARMOR_MATERIAL.getHolder()){
             VertexConsumer vertexconsumer1 = itemStack.hasFoil() ? VertexMultiConsumer.create(multiBufferSource.getBuffer(RenderType.entityGlintDirect()), multiBufferSource.getBuffer(ACRenderTypes.getTeslaBulb(texture))) : multiBufferSource.getBuffer(ACRenderTypes.getTeslaBulb(texture));
             armorModel.renderToBuffer(poseStack, vertexconsumer1, 240, OverlayTexture.NO_OVERLAY, -1);
         }

@@ -70,11 +70,12 @@ public class CorrodentRenderer extends MobRenderer<CorrodentEntity, CorrodentMod
                     poseStack.translate((double) pos.getX(), (double) pos.getY(), (double) pos.getZ());
                     PoseStack.Pose posestack$pose1 = poseStack.last();
                     VertexConsumer vertexconsumer1 = new SheetedDecalTextureGenerator(multibuffersource$buffersource.getBuffer(ModelBakery.DESTROY_TYPES.get(progress)), posestack$pose1, 1.0F);
-                    net.neoforged.neoforge.client.model.data.ModelData modelData = Minecraft.getInstance().level.getModelDataManager().getAt(pos);
-                    Minecraft.getInstance().getBlockRenderer().renderBreakingTexture(Minecraft.getInstance().level.getBlockState(pos), pos, Minecraft.getInstance().level, poseStack, vertexconsumer1, modelData == null ? net.neoforged.neoforge.client.model.data.ModelData.EMPTY : modelData);
+                    net.neoforged.neoforge.client.model.data.ModelData modelData = Minecraft.getInstance().level.getModelData(pos);
+                    Minecraft.getInstance().getBlockRenderer().renderBreakingTexture(Minecraft.getInstance().level.getBlockState(pos), pos, Minecraft.getInstance().level, poseStack, vertexconsumer1, modelData);
                     poseStack.popPose();
                 }
             }
+            multibuffersource$buffersource.endBatch();
             poseStack.popPose();
         }
         allDugBlocksOnScreen.clear();

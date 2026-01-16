@@ -290,8 +290,6 @@ public class ClientEvents {
             RenderSystem.runAsFancy(() -> HologramProjectorBlockRenderer.renderEntireBatch(event.getLevelRenderer(),
                     event.getPoseStack(), event.getRenderTick(), event.getCamera(),
                     event.getPartialTick().getGameTimeDeltaPartialTick(false)));
-        }
-        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_CUTOUT_BLOCKS) {
             RenderSystem.runAsFancy(() -> CorrodentRenderer.renderEntireBatch(event.getLevelRenderer(),
                     event.getPoseStack(), event.getRenderTick(), event.getCamera(),
                     event.getPartialTick().getGameTimeDeltaPartialTick(false)));

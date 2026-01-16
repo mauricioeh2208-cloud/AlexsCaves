@@ -2,7 +2,6 @@ package com.github.alexmodguy.alexscaves.server.block.blockentity;
 
 import com.github.alexmodguy.alexscaves.client.particle.ACParticleRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.ACEntityRegistry;
-import com.github.alexmodguy.alexscaves.server.entity.item.DinosaurSpiritEntity;
 import com.github.alexmodguy.alexscaves.server.entity.living.GumWormEntity;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
@@ -61,6 +60,7 @@ public class GobthumperBlockEntity extends BlockEntity {
                 }
                 if (closestWorm != null) {
                     this.summonedWormId = closestWorm.getId();
+                    closestWorm.setGobthumperPos(this.getBlockPos());
                 }else{
                     boolean flag = false;
                     BlockPos summonPos = null;
@@ -80,6 +80,7 @@ public class GobthumperBlockEntity extends BlockEntity {
                         summonedWorm.setTempSummon(true);
                         summonedWorm.finalizeSpawn((ServerLevel) level, level.getCurrentDifficultyAt(summonPos), MobSpawnType.MOB_SUMMONED, (SpawnGroupData) null);
                         level.addFreshEntity(summonedWorm);
+                        summonedWorm.setGobthumperPos(this.getBlockPos());
                         this.summonedWormId = summonedWorm.getId();
                     }
                 }

@@ -28,6 +28,8 @@ public class ACRenderTypes extends RenderType {
         if (target != null) {
             target.copyDepthFrom(Minecraft.getInstance().getMainRenderTarget());
             target.bindWrite(false);
+        } else {
+            com.github.alexmodguy.alexscaves.AlexsCaves.LOGGER.warn("IRRADIATED_OUTPUT target is null!");
         }
     }, () -> {
         Minecraft.getInstance().getMainRenderTarget().bindWrite(false);

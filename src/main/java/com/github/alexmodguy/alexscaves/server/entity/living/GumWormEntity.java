@@ -52,8 +52,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.neoforge.common.NeoForgeMod;
-import net.neoforged.neoforge.entity.PartEntity;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -127,7 +125,7 @@ public class GumWormEntity extends Monster implements ICustomCollisions, KaijuMo
     }
 
     public static boolean checkGumWormSpawnRules(EntityType<? extends Monster> entityType, ServerLevelAccessor levelAccessor, MobSpawnType mobSpawnType, BlockPos blockPos, RandomSource randomSource) {
-        return checkAnyLightMonsterSpawnRules(entityType, levelAccessor, mobSpawnType, blockPos, randomSource) && randomSource.nextInt(6) == 0;
+        return checkMonsterSpawnRules(entityType, levelAccessor, mobSpawnType, blockPos, randomSource) && randomSource.nextInt(6) == 0;
     }
 
     @Override
@@ -239,10 +237,10 @@ public class GumWormEntity extends Monster implements ICustomCollisions, KaijuMo
             if (!canDigBlock(centralStateBelow)) {
                 this.setDeltaMovement(random.nextFloat() - 0.5F, 0.8F, random.nextFloat() - 0.5F);
                 flag = true;
-            }
-        }else if((surfaceY < this.getEyeY() || centralStateBelow.isAir() || this.isInFluidType()) && isSafeDig(level(), this.blockPosition().below()) && !isRidingMode() && !this.isLeaping()){
-            if(outOfGroundTime++ > 10){
-                this.setDeltaMovement(this.getDeltaMovement().add(0, -0.5, 0));
+            } else if((surfaceY < this.getEyeY() || centralStateBelow.isAir() || this.isInFluidType()) && isSafeDig(level(), this.blockPosition().below()) && !isRidingMode()){
+                if(outOfGroundTime++ > 10){
+                    this.setDeltaMovement(this.getDeltaMovement().add(0, -0.5, 0));
+                }
             }
         }else{
             outOfGroundTime = 0;
@@ -348,32 +346,25 @@ public class GumWormEntity extends Monster implements ICustomCollisions, KaijuMo
         return this.entityData.get(DIGGING);
     }
 
-    public float getStepHeight() {
-        return isRidingMode() ? 5.0F : 1.0F;
-    }
-
     public void remove(Entity.RemovalReason removalReason) {
         AlexsCaves.PROXY.clearSoundCacheFor(this);
         super.remove(removalReason);
     }
 
-    protected void dropAllDeathLoot(DamageSource damageSource) {
-        Entity entity = damageSource.getEntity();
-
-        // In 1.21, getLootingLevel is removed from CommonHooks
+    @Override
+    protected void dropAllDeathLoot(ServerLevel serverLevel, DamageSource damageSource) {
         this.captureDrops(new java.util.ArrayList<>());
 
         boolean flag = this.lastHurtByPlayerTime > 0;
-        if (this.shouldDropLoot() && this.level().getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)) {
+        if (this.shouldDropLoot() && serverLevel.getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)) {
             this.dropFromLootTable(damageSource, flag);
-            this.dropCustomDeathLoot((ServerLevel) this.level(), damageSource, flag);
+            this.dropCustomDeathLoot(serverLevel, damageSource, flag);
         }
 
         this.dropEquipment();
-        this.dropExperience(entity);
+        this.dropExperience(damageSource.getEntity());
 
         Collection<ItemEntity> drops = captureDrops(null);
-        // In 1.21, onLivingDrops takes 4 params: (entity, source, drops, recentlyHit)
         if (!net.neoforged.neoforge.common.CommonHooks.onLivingDrops(this, damageSource, drops, lastHurtByPlayerTime > 0)){
             drops.forEach(e -> dropItemAtSurface(e));
         }
@@ -436,7 +427,8 @@ public class GumWormEntity extends Monster implements ICustomCollisions, KaijuMo
         }
     }
 
-    public void lerpTo(double x, double y, double z, float yr, float xr, int steps, boolean b) {
+    @Override
+    public void lerpTo(double x, double y, double z, float yr, float xr, int steps) {
         this.lx = x;
         this.ly = y;
         this.lz = z;
@@ -638,7 +630,7 @@ public class GumWormEntity extends Monster implements ICustomCollisions, KaijuMo
     }
 
     public boolean isColliding(BlockPos pos, BlockState blockstate) {
-        return canDigBlock(blockstate) && super.isColliding(pos, blockstate);
+        return (!this.isDigging() || canDigBlock(blockstate)) && super.isColliding(pos, blockstate);
     }
 
     public Vec3 collide(Vec3 vec3) {
@@ -685,7 +677,7 @@ public class GumWormEntity extends Monster implements ICustomCollisions, KaijuMo
     }
 
     public static boolean canDigBlock(BlockState state) {
-        return state.isAir() || !state.is(ACTagRegistry.GUM_WORM_BLOCKS_DIGGING);
+        return !state.is(ACTagRegistry.GUM_WORM_BLOCKS_DIGGING) && state.getFluidState().isEmpty() && state.canOcclude();
     }
 
     public boolean isInvulnerableTo(DamageSource damageSource) {

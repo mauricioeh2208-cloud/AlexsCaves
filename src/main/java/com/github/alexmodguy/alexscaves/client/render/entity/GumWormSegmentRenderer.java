@@ -2,7 +2,6 @@ package com.github.alexmodguy.alexscaves.client.render.entity;
 
 import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.client.model.GumWormSegmentModel;
-import com.github.alexmodguy.alexscaves.client.render.ColorUtil;
 import com.github.alexmodguy.alexscaves.server.entity.living.GumWormEntity;
 import com.github.alexmodguy.alexscaves.server.entity.living.GumWormSegmentEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -19,7 +18,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 public class GumWormSegmentRenderer extends EntityRenderer<GumWormSegmentEntity> {
@@ -97,11 +95,10 @@ public class GumWormSegmentRenderer extends EntityRenderer<GumWormSegmentEntity>
         poseStack.translate(0, -length, 0);
         PoseStack.Pose posestack$pose = poseStack.last();
         Matrix4f matrix4f = posestack$pose.pose();
-        Matrix3f matrix3f = posestack$pose.normal();
-        gumConsumer.addVertex(matrix4f, 0, 0, -0.5F).setColor(255, 255, 255, 255).setUv((float) 0, (float) 0).setOverlay(overlayCoords).setLight(packedLightIn).setNormal(0.0F, -1.0F, 0.0F);
-        gumConsumer.addVertex(matrix4f, 0, 0, 0.5F).setColor(255, 255, 255, 255).setUv((float) 1, (float) 0).setOverlay(overlayCoords).setLight(packedLightIn).setNormal(0.0F, -1.0F, 0.0F);
-        gumConsumer.addVertex(matrix4f, 0, length, 0.5F).setColor(255, 255, 255, 255).setUv((float) 1, (float)1).setOverlay(overlayCoords).setLight(packedLightIn).setNormal(0.0F, -1.0F, 0.0F);
-        gumConsumer.addVertex(matrix4f, 0, length, -0.5F).setColor(255, 255, 255, 255).setUv((float) 0, (float)1).setOverlay(overlayCoords).setLight(packedLightIn).setNormal(0.0F, -1.0F, 0.0F);
+        gumConsumer.addVertex(matrix4f, 0, 0, -0.5F).setColor(255, 255, 255, 255).setUv(0, 0).setOverlay(overlayCoords).setLight(packedLightIn).setNormal(0.0F, -1.0F, 0.0F);
+        gumConsumer.addVertex(matrix4f, 0, 0, 0.5F).setColor(255, 255, 255, 255).setUv(1, 0).setOverlay(overlayCoords).setLight(packedLightIn).setNormal(0.0F, -1.0F, 0.0F);
+        gumConsumer.addVertex(matrix4f, 0, length, 0.5F).setColor(255, 255, 255, 255).setUv(1, 1).setOverlay(overlayCoords).setLight(packedLightIn).setNormal(0.0F, -1.0F, 0.0F);
+        gumConsumer.addVertex(matrix4f, 0, length, -0.5F).setColor(255, 255, 255, 255).setUv(0, 1).setOverlay(overlayCoords).setLight(packedLightIn).setNormal(0.0F, -1.0F, 0.0F);
         poseStack.popPose();
     }
 

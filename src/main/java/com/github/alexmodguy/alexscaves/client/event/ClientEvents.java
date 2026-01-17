@@ -667,7 +667,7 @@ public class ClientEvents {
     public void onPostRenderGuiOverlay(RenderGuiLayerEvent.Post event) {
         Player player = AlexsCaves.PROXY.getClientSidePlayer();
         int hudY = 0;
-        if (event.getName().equals(VanillaGuiLayers.CROSSHAIR) && player.getVehicle() instanceof RidingMeterMount mount
+        if (event.getName().equals(VanillaGuiLayers.HOTBAR) && player.getVehicle() instanceof RidingMeterMount mount
                 && mount.hasRidingMeter()) {
             int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
             int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
@@ -721,7 +721,7 @@ public class ClientEvents {
                     (int) Math.floor(dinoHeight * invProgress), 128, 512);
             event.getGuiGraphics().pose().popPose();
         }
-        if (event.getName().equals(VanillaGuiLayers.CROSSHAIR) && DarknessArmorItem.hasMeter(player)) {
+        if (event.getName().equals(VanillaGuiLayers.HOTBAR) && DarknessArmorItem.hasMeter(player)) {
             ItemStack stack = player.getItemBySlot(EquipmentSlot.CHEST);
             int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
             int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();

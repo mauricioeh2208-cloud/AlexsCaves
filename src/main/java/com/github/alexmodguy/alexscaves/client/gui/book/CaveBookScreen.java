@@ -14,6 +14,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.neoforged.neoforge.client.NeoForgeRenderTypes;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -243,7 +244,7 @@ public class CaveBookScreen extends Screen {
         poseStack.pushPose();
         BOOK_MODEL.setupAnim(null, openBookAmount, pageAngle, pageUp, -20 * (openBookAmount) - 10 * pageFlipBump, 0);
         BOOK_MODEL.mouseOver(mouseLeanX, mouseLeanY, ageInTicks, flip, canGoLeft(), canGoRight());
-        BOOK_MODEL.renderToBuffer(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(BOOK_TEXTURE)), 240, OverlayTexture.NO_OVERLAY, -1);
+        BOOK_MODEL.renderToBuffer(poseStack, bufferSource.getBuffer(NeoForgeRenderTypes.getUnlitTranslucent(BOOK_TEXTURE)), 240, OverlayTexture.NO_OVERLAY, -1);
         renderBookContents(poseStack, mouseX, mouseY, partialTick);
         guiGraphics.flush();
         poseStack.popPose();

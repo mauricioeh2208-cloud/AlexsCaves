@@ -7,7 +7,7 @@
       "outtarget": "swap"
     },
     {
-      "name": "alexscaves:blur",
+      "name": "citadel:blur",
       "intarget": "swap",
       "outtarget": "final",
       "uniforms": [
@@ -22,7 +22,7 @@
       ]
     },
     {
-      "name": "alexscaves:blur",
+      "name": "citadel:blur",
       "intarget": "final",
       "outtarget": "swap",
       "uniforms": [

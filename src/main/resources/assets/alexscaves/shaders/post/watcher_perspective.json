@@ -2,7 +2,7 @@
   "targets": ["swap", "largeBlur", "largeBlur2", "temp"],
   "passes": [
     {
-      "name": "alexscaves:blur",
+      "name": "citadel:blur",
       "intarget": "minecraft:main",
       "outtarget": "swap",
       "uniforms": [
@@ -17,7 +17,7 @@
       ]
     },
     {
-      "name": "alexscaves:blur",
+      "name": "citadel:blur",
       "intarget": "swap",
       "outtarget": "largeBlur",
       "uniforms": [

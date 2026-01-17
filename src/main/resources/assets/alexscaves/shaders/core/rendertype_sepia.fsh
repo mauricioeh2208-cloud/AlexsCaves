@@ -7,24 +7,18 @@ uniform sampler2D Sampler0;
 uniform vec4 ColorModulator;
 uniform float FogStart;
 uniform float FogEnd;
-uniform vec4 FogColor;
 
 in float vertexDistance;
-in vec4 vertexColor;
-in vec4 lightMapColor;
-in vec4 overlayColor;
 in vec2 texCoord0;
-in vec4 normal;
 
 out vec4 fragColor;
 
 void main() {
-    vec4 color = texture(Sampler0, texCoord0) * vertexColor * ColorModulator;
+    vec4 color = texture(Sampler0, texCoord0) * ColorModulator;
     if (color.a < 0.1) {
         discard;
     }
-    color.rgb = mix(overlayColor.rgb, color.rgb, overlayColor.a);
-    color *= lightMapColor;
+    float fade = linear_fog_fade(vertexDistance, FogStart, FogEnd);
 
     float rr = .3;
     float rg = .7;
@@ -45,6 +39,5 @@ void main() {
     float green = (gr * color.r) + (gb * color.b) + (gg * color.g) + (ga * color.a);
     float blue = (br * color.r) + (bb * color.b) + (bg * color.g) + (ba * color.a);
 
-    vec4 sepiaColor = vec4(red, green, blue, color.a);
-    fragColor = linear_fog(sepiaColor, vertexDistance, FogStart, FogEnd, FogColor);
+    fragColor = vec4(red * fade, green * fade, blue * fade, color.a);
 }

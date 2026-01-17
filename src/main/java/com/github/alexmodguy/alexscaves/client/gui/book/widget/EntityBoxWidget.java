@@ -120,8 +120,8 @@ public class EntityBoxWidget extends EntityWidget {
         float scaledV1 = v1 / (float)BORDER_TEXTURE_SIZE;
 
         vertexconsumer.addVertex(matrix4f, x0, y0, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(scaledU1, scaledV0).setOverlay(NO_OVERLAY).setLight(240).setNormal(0.0F, 1.0F, 0.0F);
-        vertexconsumer.addVertex(matrix4f, x1, y0, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(scaledU0, scaledV0).setOverlay(NO_OVERLAY).setLight(240).setNormal(0.0F, 1.0F, 0.0F).setUv(scaledU0, scaledV1);
-        vertexconsumer.addVertex(matrix4f, x1, y1, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(scaledU0, scaledV1).setOverlay(NO_OVERLAY).setLight(240).setNormal(0.0F, 1.0F, 0.0F).setUv(scaledU0, scaledV0);
-        vertexconsumer.addVertex(matrix4f, x0, y1, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(scaledU1, scaledV1).setOverlay(NO_OVERLAY).setLight(240).setNormal(0.0F, 1.0F, 0.0F).setUv(scaledU1, scaledV0);
+        vertexconsumer.addVertex(matrix4f, x1, y0, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(scaledU0, scaledV0).setOverlay(NO_OVERLAY).setLight(240).setNormal(0.0F, 1.0F, 0.0F);
+        vertexconsumer.addVertex(matrix4f, x1, y1, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(scaledU0, scaledV1).setOverlay(NO_OVERLAY).setLight(240).setNormal(0.0F, 1.0F, 0.0F);
+        vertexconsumer.addVertex(matrix4f, x0, y1, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(scaledU1, scaledV1).setOverlay(NO_OVERLAY).setLight(240).setNormal(0.0F, 1.0F, 0.0F);
     }
 }

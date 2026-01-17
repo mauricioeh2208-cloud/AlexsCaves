@@ -257,6 +257,7 @@ public class ACRenderTypes extends RenderType {
                     .setCullState(NO_CULL)
                     .setTextureState(new RenderStateShard.TextureStateShard(locationIn, false, false))
                     .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+                    .setLightmapState(LIGHTMAP)
                     .setOverlayState(OVERLAY)
                     .createCompositeState(true));
         }else{

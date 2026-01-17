@@ -335,6 +335,11 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
         if (itemStackIn.is(ACItemRegistry.DREADBOW.get())) {
             float ageInTicks = Minecraft.getInstance().player == null ? 0F : Minecraft.getInstance().player.tickCount + partialTick;
             float pullAmount = DreadbowItem.getPullingAmount(Minecraft.getInstance().level, itemStackIn, partialTick);
+            // Only show pulled state when player is actively using a dreadbow
+            boolean isPlayerUsingDreadbow = Minecraft.getInstance().player != null && Minecraft.getInstance().player.isUsingItem() && Minecraft.getInstance().player.getUseItem().is(ACItemRegistry.DREADBOW.get());
+            if (!isPlayerUsingDreadbow) {
+                pullAmount = 0;
+            }
             poseStack.translate(0.5F, 0.5F, 0.5F);
             ItemStack spriteItem = new ItemStack(pullAmount >= 0.8F ? ACItemRegistry.DREADBOW_PULLING_2_SPRITE.get() : pullAmount >= 0.5F ? ACItemRegistry.DREADBOW_PULLING_1_SPRITE.get() : pullAmount > 0.0F ? ACItemRegistry.DREADBOW_PULLING_0_SPRITE.get() : ACItemRegistry.DREADBOW_SPRITE.get());
             spriteItem.applyComponents(itemStackIn.getComponents());

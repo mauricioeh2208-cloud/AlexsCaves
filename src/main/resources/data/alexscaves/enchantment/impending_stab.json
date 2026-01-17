@@ -2,7 +2,7 @@
   "description": {
     "translate": "enchantment.alexscaves.impending_stab"
   },
-  "exclusive_set": "alexscaves:double_stab",
+  "exclusive_set": "#alexscaves:exclusive_desolate_dagger",
   "supported_items": "#alexscaves:desolate_dagger_enchantable",
   "weight": 10,
   "max_level": 3,

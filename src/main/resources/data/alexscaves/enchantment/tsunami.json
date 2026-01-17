@@ -2,7 +2,7 @@
   "description": {
     "translate": "enchantment.alexscaves.tsunami"
   },
-  "exclusive_set": "alexscaves:second_wave",
+  "exclusive_set": "#alexscaves:exclusive_ortholance",
   "supported_items": "#alexscaves:ortholance_enchantable",
   "weight": 1,
   "max_level": 1,

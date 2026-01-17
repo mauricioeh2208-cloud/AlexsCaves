@@ -17,6 +17,6 @@ void main() {
     if (defaultColor.a < 0.1) {
         discard;
     }
-    vec4 color = vec4(0, animation1 * 0.15 + 0.85, animation1 * 0.15 + 0.85, 1.0);
+    vec4 color = vec4(0, animation1 * 0.15 + 0.85, animation1 * 0.15 + 0.85, defaultColor.a);
     fragColor = color * ColorModulator;
 }

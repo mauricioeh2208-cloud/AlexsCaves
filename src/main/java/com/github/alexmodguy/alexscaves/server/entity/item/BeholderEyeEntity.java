@@ -110,7 +110,18 @@ public class BeholderEyeEntity extends Entity implements PossessesCamera {
 
     public void handleCameraServerSide(Entity usingPlayer, boolean turnOn) {
         if (usingPlayer.level().equals(this.level())) {
-            AlexsCaves.sendMSGToAll(new BeholderSyncMessage(this.getId(), turnOn));
+            // Include entity spawn data so client can create the entity if it doesn't exist
+            // This is necessary when viewing from far away (unloaded chunks)
+            AlexsCaves.sendMSGToAll(new BeholderSyncMessage(
+                this.getId(), 
+                turnOn,
+                this.getX(),
+                this.getY(), 
+                this.getZ(),
+                this.getYRot(),
+                this.getXRot(),
+                this.getUsingPlayerUUID()
+            ));
             if (turnOn) {
                 this.level().broadcastEntityEvent(this, (byte) 77);
             } else {

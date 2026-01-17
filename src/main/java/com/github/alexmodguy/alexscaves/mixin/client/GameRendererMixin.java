@@ -106,10 +106,9 @@ public abstract class GameRendererMixin {
     public void ac_renderLevelAfterHand(DeltaTracker deltaTracker, CallbackInfo ci) {
         if (Minecraft.getInstance().getCameraEntity() instanceof LivingEntity living && living.hasEffect(ACEffectRegistry.BUBBLED) && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
             MultiBufferSource.BufferSource multibuffersource$buffersource = Minecraft.getInstance().renderBuffers().bufferSource();
-            // In 1.21, we need to create our own PoseStack with camera rotation applied
+            // For first-person screen overlay effects, we don't apply camera rotation
+            // The effect should stay fixed on screen regardless of where the player looks
             PoseStack poseStack = new PoseStack();
-            Quaternionf cameraRotation = mainCamera.rotation().conjugate(new Quaternionf());
-            poseStack.mulPose(cameraRotation);
             ACPotionEffectLayer.renderBubbledFirstPerson(poseStack);
             multibuffersource$buffersource.endBatch();
         }

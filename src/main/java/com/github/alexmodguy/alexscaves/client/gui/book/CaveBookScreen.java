@@ -12,7 +12,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.neoforged.neoforge.client.NeoForgeRenderTypes;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -28,7 +27,6 @@ import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import net.neoforged.neoforge.common.NeoForge;
 
 public class CaveBookScreen extends Screen {
 

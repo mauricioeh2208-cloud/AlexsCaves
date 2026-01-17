@@ -25,6 +25,7 @@ import com.github.alexmodguy.alexscaves.server.block.FrostedChocolateBlock;
 import com.github.alexmodguy.alexscaves.server.block.blockentity.*;
 import com.github.alexmodguy.alexscaves.server.block.fluid.ACFluidRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.ACEntityRegistry;
+import com.github.alexmodguy.alexscaves.server.entity.item.BeholderEyeEntity;
 import com.github.alexmodguy.alexscaves.server.entity.item.QuarrySmasherEntity;
 import com.github.alexmodguy.alexscaves.server.entity.item.SubmarineEntity;
 import com.github.alexmodguy.alexscaves.server.entity.living.*;
@@ -144,28 +145,6 @@ public class ClientProxy extends CommonProxy {
     public static float acSkyOverrideAmount;
     public static Vec3 acSkyOverrideColor = Vec3.ZERO;
     public static boolean disabledBiomeAmbientLightByOtherMod = false;
-
-    /**
-     * Sets the remaining ticks for bubbled effect visual on an entity.
-     * @param entityId The entity ID
-     * @param ticks The remaining duration in ticks, or 0 to remove
-     */
-    public static void setBubbledEffectTicks(int entityId, int ticks) {
-        if (ticks <= 0) {
-            BUBBLED_EFFECT_TICKS.remove(entityId);
-        } else {
-            BUBBLED_EFFECT_TICKS.put(entityId, ticks);
-        }
-    }
-
-    /**
-     * Checks if an entity should display the bubbled effect visual.
-     * @param entityId The entity ID
-     * @return true if the entity has bubbled effect visual active
-     */
-    public static boolean hasBubbledEffectVisual(int entityId) {
-        return BUBBLED_EFFECT_TICKS.getOrDefault(entityId, 0) > 0;
-    }
 
     /**
      * Ticks down all bubbled effect timers. Called from ClientEvents.
@@ -725,6 +704,54 @@ public class ClientProxy extends CommonProxy {
         if (lastCameraEntity != Minecraft.getInstance().getCameraEntity()) {
             Minecraft.getInstance().levelRenderer.allChanged();
             lastCameraEntity = Minecraft.getInstance().getCameraEntity();
+        }
+    }
+
+    @Override
+    public boolean hasBubbledEffectVisual(int entityId) {
+        return BUBBLED_EFFECT_TICKS.getOrDefault(entityId, 0) > 0;
+    }
+
+    @Override
+    public void setBubbledEffectTicks(int entityId, int ticks) {
+        if (ticks <= 0) {
+            BUBBLED_EFFECT_TICKS.remove(entityId);
+        } else {
+            BUBBLED_EFFECT_TICKS.put(entityId, ticks);
+        }
+    }
+
+    @Override
+    public void handleBeholderSync(int beholderId, boolean active, double x, double y, double z, float yRot, float xRot, UUID usingPlayerUUID) {
+        Player playerSided = getClientSidePlayer();
+        if (playerSided != null && playerSided.level() instanceof ClientLevel clientLevel) {
+            Entity watcher = clientLevel.getEntity(beholderId);
+            // If entity doesn't exist on client and we have spawn data, create it
+            // This is necessary when viewing a Beholder from far away (unloaded chunks)
+            if (watcher == null && active && usingPlayerUUID != null) {
+                BeholderEyeEntity beholderEye = ACEntityRegistry.BEHOLDER_EYE.get().create(clientLevel);
+                if (beholderEye != null) {
+                    beholderEye.setId(beholderId);
+                    beholderEye.setPos(x, y, z);
+                    beholderEye.setEyeYRot(yRot);
+                    beholderEye.setEyeXRot(xRot);
+                    beholderEye.setUsingPlayerUUID(usingPlayerUUID);
+                    beholderEye.hasTakenFullControlOfCamera = true;
+                    clientLevel.addEntity(beholderEye);
+                    watcher = beholderEye;
+                }
+            }
+            if (watcher instanceof BeholderEyeEntity beholderEye) {
+                Entity beholderEyePlayer = beholderEye.getUsingPlayer();
+                beholderEye.hasTakenFullControlOfCamera = true;
+                if (beholderEyePlayer != null && beholderEyePlayer instanceof Player && beholderEyePlayer.equals(playerSided)) {
+                    if (active) {
+                        setRenderViewEntity(playerSided, beholderEye);
+                    } else {
+                        resetRenderViewEntity(playerSided);
+                    }
+                }
+            }
         }
     }
 

@@ -105,7 +105,7 @@ public class ACPotionEffectLayer extends RenderLayer {
                 poseStack.popPose();
             }
             // Check both the MobEffect (for local player) and client-side visual tracker (for remote entities)
-            if ((living.hasEffect(ACEffectRegistry.BUBBLED) || ClientProxy.hasBubbledEffectVisual(living.getId())) && living.isAlive()) {
+            if ((living.hasEffect(ACEffectRegistry.BUBBLED) || AlexsCaves.PROXY.hasBubbledEffectVisual(living.getId())) && living.isAlive()) {
                 float bodyYaw = Mth.rotLerp(partialTicks, living.yBodyRotO, living.yBodyRot);
                 poseStack.pushPose();
                 float size = (float) Math.ceil(Math.max(living.getBbHeight(), living.getBbWidth()));

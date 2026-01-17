@@ -1,15 +1,10 @@
 package com.github.alexmodguy.alexscaves.server.message;
 
 import com.github.alexmodguy.alexscaves.AlexsCaves;
-import com.github.alexmodguy.alexscaves.server.entity.ACEntityRegistry;
-import com.github.alexmodguy.alexscaves.server.entity.item.BeholderEyeEntity;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.UUID;
@@ -76,36 +71,11 @@ public class BeholderSyncMessage implements CustomPacketPayload {
         // This packet is sent from server to client
         if (context.flow().isClientbound()) {
             context.enqueueWork(() -> {
-                Player playerSided = AlexsCaves.PROXY.getClientSidePlayer();
-                if (playerSided != null && playerSided.level() instanceof ClientLevel clientLevel) {
-                    Entity watcher = clientLevel.getEntity(message.beholderId);
-                    // If entity doesn't exist on client and we have spawn data, create it
-                    // This is necessary when viewing a Beholder from far away (unloaded chunks)
-                    if (watcher == null && message.active && message.usingPlayerUUID != null) {
-                        BeholderEyeEntity beholderEye = ACEntityRegistry.BEHOLDER_EYE.get().create(clientLevel);
-                        if (beholderEye != null) {
-                            beholderEye.setId(message.beholderId);
-                            beholderEye.setPos(message.x, message.y, message.z);
-                            beholderEye.setEyeYRot(message.yRot);
-                            beholderEye.setEyeXRot(message.xRot);
-                            beholderEye.setUsingPlayerUUID(message.usingPlayerUUID);
-                            beholderEye.hasTakenFullControlOfCamera = true;
-                            clientLevel.addEntity(beholderEye);
-                            watcher = beholderEye;
-                        }
-                    }
-                    if (watcher instanceof BeholderEyeEntity beholderEye) {
-                        Entity beholderEyePlayer = beholderEye.getUsingPlayer();
-                        beholderEye.hasTakenFullControlOfCamera = true;
-                        if (beholderEyePlayer != null && beholderEyePlayer instanceof Player && beholderEyePlayer.equals(playerSided)) {
-                            if (message.active) {
-                                AlexsCaves.PROXY.setRenderViewEntity(playerSided, beholderEye);
-                            } else {
-                                AlexsCaves.PROXY.resetRenderViewEntity(playerSided);
-                            }
-                        }
-                    }
-                }
+                AlexsCaves.PROXY.handleBeholderSync(
+                    message.beholderId, message.active,
+                    message.x, message.y, message.z,
+                    message.yRot, message.xRot, message.usingPlayerUUID
+                );
             });
         }
     }

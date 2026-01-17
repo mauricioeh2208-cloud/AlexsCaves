@@ -156,4 +156,16 @@ public class CommonProxy {
 
     public void renderVanillaMapDecoration(MapDecoration mapDecoration, int index) {
     }
+
+    // Bubbled effect visual methods - client-only implementation in ClientProxy
+    public boolean hasBubbledEffectVisual(int entityId) {
+        return false;
+    }
+
+    public void setBubbledEffectTicks(int entityId, int ticks) {
+    }
+
+    // Beholder sync handling - client-only implementation in ClientProxy
+    public void handleBeholderSync(int beholderId, boolean active, double x, double y, double z, float yRot, float xRot, UUID usingPlayerUUID) {
+    }
 }

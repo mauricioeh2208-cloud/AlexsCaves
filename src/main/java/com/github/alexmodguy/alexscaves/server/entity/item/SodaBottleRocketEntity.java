@@ -107,6 +107,16 @@ public class SodaBottleRocketEntity extends FireworkRocketEntity {
         return this.entityData.get(DATA_SHOT_AT_ANGLE);
     }
 
+    @Override
+    public boolean shouldRenderAtSqrDistance(double distance) {
+        return distance < 4096.0 && !this.isAttachedToEntity();
+    }
+
+    @Override
+    public boolean shouldRender(double x, double y, double z) {
+        return super.shouldRender(x, y, z) && !this.isAttachedToEntity();
+    }
+
     public void tick() {
         if (this.isAttachedToEntity()) {
             if (this.attachedToEntity == null) {

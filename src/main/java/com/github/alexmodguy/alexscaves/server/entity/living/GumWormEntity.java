@@ -233,7 +233,7 @@ public class GumWormEntity extends Monster implements ICustomCollisions, KaijuMo
         boolean flag = false;
         BlockState centralState = level().getBlockState(this.blockPosition());
         BlockState centralStateBelow = level().getBlockState(this.blockPosition().below());
-        if ((!isSafeDig(level(), this.blockPosition())) && !this.isLeaping() && !this.recentlyLeapt()) {
+        if ((!isSafeDig(level(), this.blockPosition())) && !this.isLeaping()) {
             if (!canDigBlock(centralStateBelow)) {
                 this.setDeltaMovement(random.nextFloat() - 0.5F, 0.8F, random.nextFloat() - 0.5F);
                 flag = true;

@@ -78,7 +78,9 @@ public class UpdateEffectVisualityEntityMessage implements CustomPacketPayload {
                     case 1:
                         mobEffect = ACEffectRegistry.BUBBLED;
                         entity.playSound(ACSoundRegistry.SEA_STAFF_BUBBLE.get());
-                        break;
+                        // Don't add effect on client side - server sync handles this
+                        // Adding effect here caused it to never expire on remote entities
+                        return;
                     case 2:
                         mobEffect = ACEffectRegistry.MAGNETIZING;
                         break;

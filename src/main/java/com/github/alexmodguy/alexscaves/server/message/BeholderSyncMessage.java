@@ -10,7 +10,6 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.UUID;
@@ -23,15 +22,11 @@ public class BeholderSyncMessage implements CustomPacketPayload {
     public static final StreamCodec<FriendlyByteBuf, BeholderSyncMessage> CODEC =
         StreamCodec.ofMember(BeholderSyncMessage::write, BeholderSyncMessage::read);
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() { return TYPE; }
-
-    public int beholderId;
-    public boolean active;
-    // Entity spawn data for remote creation
-    public double x, y, z;
-    public float yRot, xRot;
-    public UUID usingPlayerUUID;
+    private final int beholderId;
+    private final boolean active;
+    private final double x, y, z;
+    private final float yRot, xRot;
+    private final UUID usingPlayerUUID;
 
     public BeholderSyncMessage(int beholderId, boolean active, double x, double y, double z, float yRot, float xRot, UUID usingPlayerUUID) {
         this.beholderId = beholderId;
@@ -48,8 +43,8 @@ public class BeholderSyncMessage implements CustomPacketPayload {
         this(beholderId, active, 0, 0, 0, 0, 0, null);
     }
 
-    public BeholderSyncMessage() {
-    }
+    @Override
+    public Type<? extends CustomPacketPayload> type() { return TYPE; }
 
     public static BeholderSyncMessage read(FriendlyByteBuf buf) {
         int beholderId = buf.readInt();

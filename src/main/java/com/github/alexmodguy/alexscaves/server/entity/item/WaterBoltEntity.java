@@ -1,10 +1,8 @@
 package com.github.alexmodguy.alexscaves.server.entity.item;
 
-import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.client.particle.ACParticleRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.ACEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.living.DeepOneBaseEntity;
-import com.github.alexmodguy.alexscaves.server.message.UpdateEffectVisualityEntityMessage;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import com.github.alexmodguy.alexscaves.server.potion.ACEffectRegistry;
 import net.minecraft.core.BlockPos;
@@ -207,11 +205,9 @@ public class WaterBoltEntity extends Projectile {
         for (LivingEntity entity : this.level().getEntitiesOfClass(LivingEntity.class, bashBox)) {
             if (!isAlliedTo(entity) && !(entity instanceof DeepOneBaseEntity) && (owner == null || !entity.is(owner) && !entity.isAlliedTo(owner))) {
                 lastHitMob = entity;
-                if (entity.hurt(source, 3.0F) && this.isBubbling()) {
+                entity.hurt(source, 3.0F);
+                if (this.isBubbling() && !entity.hasEffect(ACEffectRegistry.BUBBLED)) {
                     entity.addEffect(new MobEffectInstance(ACEffectRegistry.BUBBLED, 200));
-                    if (!entity.level().isClientSide) {
-                        AlexsCaves.sendMSGToAll(new UpdateEffectVisualityEntityMessage(entity.getId(), this.getId(), 1, 200));
-                    }
                 }
             }
         }

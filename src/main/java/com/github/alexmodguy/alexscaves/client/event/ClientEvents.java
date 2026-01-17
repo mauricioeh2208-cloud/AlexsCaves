@@ -1089,6 +1089,8 @@ public class ClientEvents {
     public void onClientTick(ClientTickEvent.Post event) {
         Entity cameraEntity = Minecraft.getInstance().cameraEntity;
         float partialTicks = AlexsCaves.PROXY.getPartialTicks();
+        // Tick down bubbled effect visual timers
+        ClientProxy.tickBubbledEffects();
         if (ClientProxy.shaderLoadAttemptCooldown > 0) {
             ClientProxy.shaderLoadAttemptCooldown--;
         }

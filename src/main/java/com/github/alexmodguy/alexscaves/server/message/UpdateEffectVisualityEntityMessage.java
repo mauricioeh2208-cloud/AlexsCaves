@@ -1,6 +1,7 @@
 package com.github.alexmodguy.alexscaves.server.message;
 
 import com.github.alexmodguy.alexscaves.AlexsCaves;
+import com.github.alexmodguy.alexscaves.client.ClientProxy;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import com.github.alexmodguy.alexscaves.server.potion.ACEffectRegistry;
 import com.github.alexmodguy.alexscaves.server.potion.IrradiatedEffect;
@@ -16,6 +17,11 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
+/**
+ * Message to sync effect visuals from server to client.
+ * For BUBBLED effect, uses a client-side tracking system instead of MobEffect
+ * to properly handle effect expiration timing.
+ */
 public class UpdateEffectVisualityEntityMessage implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<UpdateEffectVisualityEntityMessage> TYPE =
@@ -76,11 +82,18 @@ public class UpdateEffectVisualityEntityMessage implements CustomPacketPayload {
                         mobEffect = ACEffectRegistry.IRRADIATED;
                         break;
                     case 1:
-                        mobEffect = ACEffectRegistry.BUBBLED;
-                        entity.playSound(ACSoundRegistry.SEA_STAFF_BUBBLE.get());
-                        // Don't add effect on client side - server sync handles this
-                        // Adding effect here caused it to never expire on remote entities
-                        return;
+                        // For BUBBLED effect, use the client-side visual tracking system
+                        // This avoids the issue where client-side MobEffect doesn't sync with server expiration
+                        boolean isNewEffect = !ClientProxy.hasBubbledEffectVisual(message.entityID);
+                        if (message.remove) {
+                            ClientProxy.setBubbledEffectTicks(message.entityID, 0);
+                        } else {
+                            ClientProxy.setBubbledEffectTicks(message.entityID, message.duration);
+                            if (isNewEffect) {
+                                entity.playSound(ACSoundRegistry.SEA_STAFF_BUBBLE.get());
+                            }
+                        }
+                        return; // Don't use the normal MobEffect system for BUBBLED
                     case 2:
                         mobEffect = ACEffectRegistry.MAGNETIZING;
                         break;

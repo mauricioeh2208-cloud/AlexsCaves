@@ -104,7 +104,8 @@ public class ACPotionEffectLayer extends RenderLayer {
                         LivingEntityRenderer.getOverlayCoords((LivingEntity) entity, 0), ColorUtil.packColor(1.0F, 1.0F, 1.0F, alpha));
                 poseStack.popPose();
             }
-            if (living.hasEffect(ACEffectRegistry.BUBBLED) && living.isAlive()) {
+            // Check both the MobEffect (for local player) and client-side visual tracker (for remote entities)
+            if ((living.hasEffect(ACEffectRegistry.BUBBLED) || ClientProxy.hasBubbledEffectVisual(living.getId())) && living.isAlive()) {
                 float bodyYaw = Mth.rotLerp(partialTicks, living.yBodyRotO, living.yBodyRot);
                 poseStack.pushPose();
                 float size = (float) Math.ceil(Math.max(living.getBbHeight(), living.getBbWidth()));

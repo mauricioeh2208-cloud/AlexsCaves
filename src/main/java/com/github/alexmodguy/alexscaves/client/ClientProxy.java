@@ -125,6 +125,8 @@ public class ClientProxy extends CommonProxy {
     public static float possessionStrengthAmount = 0;
     public static int renderNukeSkyDarkFor = 0;
     public static float masterVolumeNukeModifier = 0.0F;
+    // Client-side tracking for bubbled effect visuals (entity ID -> remaining ticks)
+    private static final it.unimi.dsi.fastutil.ints.Int2IntMap BUBBLED_EFFECT_TICKS = new it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap();
     public static final Int2ObjectMap<AbstractTickableSoundInstance> ENTITY_SOUND_INSTANCE_MAP = new Int2ObjectOpenHashMap<>();
     public static final Map<BlockEntity, AbstractTickableSoundInstance> BLOCK_ENTITY_SOUND_INSTANCE_MAP = new HashMap<>();
     private final ACItemRenderProperties isterProperties = new ACItemRenderProperties();
@@ -142,6 +144,45 @@ public class ClientProxy extends CommonProxy {
     public static float acSkyOverrideAmount;
     public static Vec3 acSkyOverrideColor = Vec3.ZERO;
     public static boolean disabledBiomeAmbientLightByOtherMod = false;
+
+    /**
+     * Sets the remaining ticks for bubbled effect visual on an entity.
+     * @param entityId The entity ID
+     * @param ticks The remaining duration in ticks, or 0 to remove
+     */
+    public static void setBubbledEffectTicks(int entityId, int ticks) {
+        if (ticks <= 0) {
+            BUBBLED_EFFECT_TICKS.remove(entityId);
+        } else {
+            BUBBLED_EFFECT_TICKS.put(entityId, ticks);
+        }
+    }
+
+    /**
+     * Checks if an entity should display the bubbled effect visual.
+     * @param entityId The entity ID
+     * @return true if the entity has bubbled effect visual active
+     */
+    public static boolean hasBubbledEffectVisual(int entityId) {
+        return BUBBLED_EFFECT_TICKS.getOrDefault(entityId, 0) > 0;
+    }
+
+    /**
+     * Ticks down all bubbled effect timers. Called from ClientEvents.
+     */
+    public static void tickBubbledEffects() {
+        if (BUBBLED_EFFECT_TICKS.isEmpty()) return;
+        var iterator = BUBBLED_EFFECT_TICKS.int2IntEntrySet().iterator();
+        while (iterator.hasNext()) {
+            var entry = iterator.next();
+            int newValue = entry.getIntValue() - 1;
+            if (newValue <= 0) {
+                iterator.remove();
+            } else {
+                entry.setValue(newValue);
+            }
+        }
+    }
 
     @SuppressWarnings("removal")
     @Override

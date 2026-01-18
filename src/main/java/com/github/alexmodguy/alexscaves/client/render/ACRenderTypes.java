@@ -233,6 +233,7 @@ public class ACRenderTypes extends RenderType {
                 .setCullState(NO_CULL)
                 .setTextureState(new RenderStateShard.TextureStateShard(locationIn, false, false))
                 .setTransparencyState(EYES_ALPHA_TRANSPARENCY)
+                .setLightmapState(LIGHTMAP)
                 .setWriteMaskState(COLOR_DEPTH_WRITE)
                 .setDepthTestState(LEQUAL_DEPTH_TEST)
                 .setOverlayState(OVERLAY)

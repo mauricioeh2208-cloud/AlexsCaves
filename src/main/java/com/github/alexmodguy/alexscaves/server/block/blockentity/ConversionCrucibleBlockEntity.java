@@ -135,6 +135,8 @@ public class ConversionCrucibleBlockEntity extends BlockEntity {
                 entity.markUpdated();
                 entity.conversionTime = 0;
                 entity.setFilledLevel(0);
+                entity.convertingToBiome = null;
+                entity.biomeColor = -1;
             }
             entity.conversionProgress = (entity.conversionTime / (float) MAX_CONVERSION_TIME) * 20.0F;
         } else if (entity.conversionProgress > 0.0F) {

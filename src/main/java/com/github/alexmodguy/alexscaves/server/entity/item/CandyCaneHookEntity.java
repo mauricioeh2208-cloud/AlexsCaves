@@ -312,8 +312,9 @@ public class CandyCaneHookEntity extends ThrowableProjectile {
         super.remove(removalReason);
     }
 
-    public float getCustomGravity() {
-        return isReeling() || this.entityData.get(RESISTS_GRAVITY) && this.getDeltaMovement().horizontalDistance() > 0.05F ? 0 : 0.08F;
+    @Override
+    protected double getDefaultGravity() {
+        return isReeling() || this.entityData.get(RESISTS_GRAVITY) && this.getDeltaMovement().horizontalDistance() > 0.05F ? 0 : 0.08;
     }
 
     public InteractionHand getHandLaunchedFrom() {

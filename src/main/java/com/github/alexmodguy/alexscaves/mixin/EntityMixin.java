@@ -8,7 +8,6 @@ import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
 import com.github.alexmodguy.alexscaves.server.item.RainbounceBootsItem;
 import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
 import com.github.alexmodguy.alexscaves.server.potion.ACEffectRegistry;
-import com.github.alexthe666.citadel.server.entity.collision.ICustomCollisions;
 import com.google.common.collect.ImmutableList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -179,12 +178,9 @@ public abstract class EntityMixin implements MagneticEntityAccessor {
     )
     //must override entire method for compatibility with Radium mod
     public void ac_collide(Vec3 deltaIn, CallbackInfoReturnable<Vec3> cir) {
-
         Entity thisEntity = (Entity) (Object) this;
-        
-        // Support ICustomCollisions (e.g., GumWorm digging)
-        if (thisEntity instanceof ICustomCollisions) {
-            cir.setReturnValue(ICustomCollisions.getAllowedMovementForEntity(thisEntity, deltaIn));
+        // Skip this mixin for ICustomCollisions entities - they have their own collide() override
+        if (thisEntity instanceof com.github.alexthe666.citadel.server.entity.collision.ICustomCollisions) {
             return;
         }
 

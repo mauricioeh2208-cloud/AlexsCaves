@@ -46,7 +46,7 @@ public class GumWormRidingGoal extends Goal {
             } else {
                 entity.setLeaping(false);
                 Vec3 forwardsVec = new Vec3(entity.isValidRider() ? ridingPlayer.xxa * 2.5F : 0.0F, 0, 10F).yRot((float) -Math.toRadians(entity.yBodyRot)).add(entity.position());
-                this.entity.getMoveControl().setWantedPosition(forwardsVec.x, forwardsVec.y, forwardsVec.z, 3.0F);
+                this.entity.getMoveControl().setWantedPosition(forwardsVec.x, forwardsVec.y, forwardsVec.z, 4.5F);
                 this.entity.setTargetDigPitch(this.entity.horizontalCollision ? -45.0F : 0.0F);
                 leapRot = entity.getYRot();
             }

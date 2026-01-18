@@ -102,7 +102,8 @@ public class SodaBottleRocketEntity extends FireworkRocketEntity {
     private boolean isAttachedToEntity() {
         return this.entityData.get(DATA_ATTACHED_TARGET).isPresent();
     }
-    
+
+    @Override
     public boolean isShotAtAngle() {
         return this.entityData.get(DATA_SHOT_AT_ANGLE);
     }
@@ -183,6 +184,7 @@ public class SodaBottleRocketEntity extends FireworkRocketEntity {
         this.discard();
     }
 
+    @Override
     protected void onHitEntity(EntityHitResult result) {
         super.onHitEntity(result);
         if (!this.level().isClientSide) {
@@ -190,6 +192,7 @@ public class SodaBottleRocketEntity extends FireworkRocketEntity {
         }
     }
 
+    @Override
     protected void onHitBlock(BlockHitResult result) {
         BlockPos blockpos = new BlockPos(result.getBlockPos());
         this.level().getBlockState(blockpos).entityInside(this.level(), blockpos, this);

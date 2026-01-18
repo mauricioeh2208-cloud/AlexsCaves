@@ -337,8 +337,8 @@ public class GumWormEntity extends Monster implements ICustomCollisions, KaijuMo
             }
             
             flag = true;
-        } else if (!level().isClientSide && !isRidingMode() && postRidingDigDownTicks <= 0) {
-            // Note: removed !isLeaping() condition - we need to detect stuck state even when leaping
+        } else if (!level().isClientSide && !isRidingMode() && postRidingDigDownTicks <= 0 && !isLeaping()) {
+            // Only detect stuck state when NOT leaping - leaping worms are under Goal control and will naturally fall
             // IMPORTANT: Don't detect stuck state during postRidingDigDownTicks - worm is intentionally staying underground
             BlockPos gobthumperPos = getGobthumperPos();
             
@@ -686,6 +686,14 @@ public class GumWormEntity extends Monster implements ICustomCollisions, KaijuMo
 
     public void setLeaping(boolean leaping) {
         this.entityData.set(LEAPING, leaping);
+    }
+
+    /**
+     * Set a forced dig-down period to prevent bounce-up behavior.
+     * Used after gobthumper destruction or dismounting.
+     */
+    public void setForceDigDownTicks(int ticks) {
+        this.postRidingDigDownTicks = ticks;
     }
 
     public boolean isBiting() {

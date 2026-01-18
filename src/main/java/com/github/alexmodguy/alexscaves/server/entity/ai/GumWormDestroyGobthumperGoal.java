@@ -42,6 +42,8 @@ public class GumWormDestroyGobthumperGoal extends Goal {
     public void stop() {
         entity.setBiting(false);
         entity.setLeaping(false);
+        // Set a dig-down period to prevent bounce-up behavior after leaping
+        entity.setForceDigDownTicks(60);
     }
 
     public void tick() {

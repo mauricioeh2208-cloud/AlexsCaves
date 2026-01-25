@@ -49,11 +49,13 @@ public class AlexsCavesChestBoatEntity extends ChestBoat implements AlexsCavesBo
 
     @Override
     protected void addAdditionalSaveData(CompoundTag nbt) {
+        super.addAdditionalSaveData(nbt);
         nbt.putString("ACBoatType", getACBoatType().getName());
     }
 
     @Override
     protected void readAdditionalSaveData(CompoundTag nbt) {
+        super.readAdditionalSaveData(nbt);
         if (nbt.contains("ACBoatType")) {
             this.entityData.set(DATA_ID_AC_BOAT_TYPE, AlexsCavesBoat.Type.byName(nbt.getString("ACBoatType")).ordinal());
         }

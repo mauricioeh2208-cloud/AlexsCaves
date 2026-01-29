@@ -364,9 +364,12 @@ public class GumWormEntity extends Monster implements ICustomCollisions, KaijuMo
             
             if (gobthumperPos != null) {
                 double heightAboveGobthumper = this.getY() - gobthumperPos.getY();
-                // Only detect stuck state if ABOVE the world surface AND above gobthumper
-                // If underground (even if above gobthumper Y), the worm is in a valid position
-                if (heightAboveGobthumper > 8.0 && isAboveSurface) {
+                // Detect stuck state if above gobthumper AND either:
+                // 1. Above the world surface (in open air above ground)
+                // 2. Inside a solid block (stuck in ceiling in a cave)
+                // This ensures worms stuck on cave ceilings above the gobthumper are also detected
+                boolean isInsideSolidBlock = centralState.isSolid();
+                if (heightAboveGobthumper > 8.0 && (isAboveSurface || isInsideSolidBlock)) {
                     detectedStuckState = true;
                 }
                 
@@ -824,6 +827,10 @@ public class GumWormEntity extends Monster implements ICustomCollisions, KaijuMo
             mutableBlockPos.move(0, -1, 0);
         }
         return 1D + mutableBlockPos.getY();
+    }
+
+    public double getSurfaceY() {
+        return surfaceY;
     }
 
 

@@ -50,7 +50,10 @@ public class GumWormRidingGoal extends Goal {
                 this.entity.setTargetDigPitch(this.entity.horizontalCollision ? -45.0F : 0.0F);
                 leapRot = entity.getYRot();
                 if (!entity.onGround() && !entity.isInWall() && !entity.isInFluidType() && !entity.horizontalCollision) {
-                    this.entity.setDeltaMovement(this.entity.getDeltaMovement().add(0, -1.8F, 0));
+                    // Only apply downward force if above the ground surface to prevent going underground
+                    if (entity.getY() > entity.getSurfaceY()) {
+                        this.entity.setDeltaMovement(this.entity.getDeltaMovement().add(0, -3.8F, 0));
+                    }
                 }
             }
             if (entity.isMouthOpen()) {

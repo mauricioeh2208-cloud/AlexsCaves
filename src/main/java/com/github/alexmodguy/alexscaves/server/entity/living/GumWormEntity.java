@@ -500,7 +500,9 @@ public class GumWormEntity extends Monster implements ICustomCollisions, KaijuMo
             }
         }
         // When forcing return to gobthumper or flag is set, always enable gravity to allow falling
-        this.setNoGravity(!forcingReturnToGobthumper && !this.getNavigation().isDone() && !this.isLeaping() && !flag && !this.isInWall());
+        // Also enable gravity if above the ground surface (in the air) to prevent floating after leap ends
+        boolean isAboveGroundLevel = this.getY() > surfaceY;
+        this.setNoGravity(!forcingReturnToGobthumper && !isAboveGroundLevel && !this.getNavigation().isDone() && !this.isLeaping() && !flag && !this.isInWall());
         if (timeBetweenAttacks > 0) {
             timeBetweenAttacks--;
         }

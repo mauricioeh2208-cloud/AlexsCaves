@@ -50,7 +50,7 @@ public class GumWormRidingGoal extends Goal {
                 this.entity.setTargetDigPitch(this.entity.horizontalCollision ? -45.0F : 0.0F);
                 leapRot = entity.getYRot();
                 if (!entity.onGround() && !entity.isInWall() && !entity.isInFluidType() && !entity.horizontalCollision) {
-                    this.entity.setDeltaMovement(this.entity.getDeltaMovement().add(0, -3.8F, 0));
+                    this.entity.setDeltaMovement(this.entity.getDeltaMovement().add(0, -1.8F, 0));
                 }
             }
             if (entity.isMouthOpen()) {
@@ -60,7 +60,6 @@ public class GumWormRidingGoal extends Goal {
                 entity.setBiting(true);
             }else{
                 entity.setBiting(false);
-
             }
         }
     }

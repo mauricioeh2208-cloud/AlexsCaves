@@ -49,6 +49,9 @@ public class GumWormRidingGoal extends Goal {
                 this.entity.getMoveControl().setWantedPosition(forwardsVec.x, forwardsVec.y, forwardsVec.z, 4.5F);
                 this.entity.setTargetDigPitch(this.entity.horizontalCollision ? -45.0F : 0.0F);
                 leapRot = entity.getYRot();
+                if (!entity.onGround() && !entity.isInWall() && !entity.isInFluidType() && !entity.horizontalCollision) {
+                    this.entity.setDeltaMovement(this.entity.getDeltaMovement().add(0, -3.8F, 0));
+                }
             }
             if (entity.isMouthOpen()) {
                 entity.attackAllAroundMouth((float) entity.getAttribute(Attributes.ATTACK_DAMAGE).getValue(), 2.0F);

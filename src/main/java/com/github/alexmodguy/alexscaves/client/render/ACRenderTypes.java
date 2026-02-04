@@ -28,6 +28,8 @@ public class ACRenderTypes extends RenderType {
         if (target != null) {
             target.copyDepthFrom(Minecraft.getInstance().getMainRenderTarget());
             target.bindWrite(false);
+        } else {
+            com.github.alexmodguy.alexscaves.AlexsCaves.LOGGER.warn("IRRADIATED_OUTPUT target is null!");
         }
     }, () -> {
         Minecraft.getInstance().getMainRenderTarget().bindWrite(false);
@@ -105,6 +107,7 @@ public class ACRenderTypes extends RenderType {
                 .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
                 .setCullState(CULL)
                 .setDepthTestState(LEQUAL_DEPTH_TEST)
+                .setWriteMaskState(COLOR_WRITE)
                 .setLightmapState(NO_LIGHTMAP)
                 .setOutputState(HOLOGRAM_OUTPUT)
                 .createCompositeState(false));
@@ -142,25 +145,31 @@ public class ACRenderTypes extends RenderType {
     }
 
     public static RenderType getRadiationGlow(ResourceLocation locationIn) {
-        return create("radiation_glow", DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
+        // Use NEW_ENTITY format since model.renderToBuffer() outputs NEW_ENTITY vertices
+        return create("radiation_glow", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, true, true, RenderType.CompositeState.builder()
                 .setShaderState(RENDERTYPE_IRRADIATED_SHADER)
                 .setCullState(NO_CULL)
                 .setTextureState(new RenderStateShard.TextureStateShard(locationIn, false, false))
                 .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+                .setLightmapState(LIGHTMAP)
+                .setOverlayState(OVERLAY)
                 .setDepthTestState(LEQUAL_DEPTH_TEST)
                 .setOutputState(IRRADIATED_OUTPUT)
-                .createCompositeState(false));
+                .createCompositeState(true));
     }
 
     public static RenderType getBlueRadiationGlow(ResourceLocation locationIn) {
-        return create("blue_radiation_glow", DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
+        // Use NEW_ENTITY format since model.renderToBuffer() outputs NEW_ENTITY vertices
+        return create("blue_radiation_glow", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, true, true, RenderType.CompositeState.builder()
                 .setShaderState(RENDERTYPE_BLUE_IRRADIATED_SHADER)
                 .setCullState(NO_CULL)
                 .setTextureState(new RenderStateShard.TextureStateShard(locationIn, false, false))
                 .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+                .setLightmapState(LIGHTMAP)
+                .setOverlayState(OVERLAY)
                 .setDepthTestState(LEQUAL_DEPTH_TEST)
                 .setOutputState(IRRADIATED_OUTPUT)
-                .createCompositeState(false));
+                .createCompositeState(true));
     }
     public static RenderType getGelTriangles(ResourceLocation locationIn) {
         return create("ferrouslime_gel_triangles", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.TRIANGLES, 256, true, true, RenderType.CompositeState.builder()
@@ -196,6 +205,11 @@ public class ACRenderTypes extends RenderType {
         return create("tesla_bulb", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder().setShaderState(RenderStateShard.RENDERTYPE_ENERGY_SWIRL_SHADER).setTextureState(new RenderStateShard.TextureStateShard(resourceLocation, false, true)).setLightmapState(LIGHTMAP).setCullState(RenderStateShard.NO_CULL).setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY).setDepthTestState(LEQUAL_DEPTH_TEST).createCompositeState(true));
     }
 
+    public static RenderType getRainbow(ResourceLocation resourceLocation) {
+        // Use TRANSLUCENT_TRANSPARENCY like 1.20 for more solid rainbow appearance
+        return create("rainbow", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder().setShaderState(RenderStateShard.RENDERTYPE_ENERGY_SWIRL_SHADER).setTextureState(new RenderStateShard.TextureStateShard(resourceLocation, false, true)).setLightmapState(LIGHTMAP).setCullState(RenderStateShard.NO_CULL).setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY).setDepthTestState(LEQUAL_DEPTH_TEST).createCompositeState(true));
+    }
+
     public static RenderType getHologram(ResourceLocation locationIn) {
         // In 1.21, use NEW_ENTITY format since model.renderToBuffer() outputs NEW_ENTITY vertices
         // Use RENDERTYPE_ENTITY_TRANSLUCENT_SHADER which is compatible with NEW_ENTITY format
@@ -219,6 +233,7 @@ public class ACRenderTypes extends RenderType {
                 .setCullState(NO_CULL)
                 .setTextureState(new RenderStateShard.TextureStateShard(locationIn, false, false))
                 .setTransparencyState(EYES_ALPHA_TRANSPARENCY)
+                .setLightmapState(LIGHTMAP)
                 .setWriteMaskState(COLOR_DEPTH_WRITE)
                 .setDepthTestState(LEQUAL_DEPTH_TEST)
                 .setOverlayState(OVERLAY)
@@ -243,6 +258,7 @@ public class ACRenderTypes extends RenderType {
                     .setCullState(NO_CULL)
                     .setTextureState(new RenderStateShard.TextureStateShard(locationIn, false, false))
                     .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+                    .setLightmapState(LIGHTMAP)
                     .setOverlayState(OVERLAY)
                     .createCompositeState(true));
         }else{
@@ -252,12 +268,12 @@ public class ACRenderTypes extends RenderType {
     }
 
     public static RenderType getBubbledCull(ResourceLocation locationIn) {
-        RenderType.CompositeState rendertype$compositestate = RenderType.CompositeState.builder().setShaderState(RENDERTYPE_BUBBLED_SHADER).setTextureState(new RenderStateShard.TextureStateShard(locationIn, false, false)).setTransparencyState(TRANSLUCENT_TRANSPARENCY).setLightmapState(LIGHTMAP).setOutputState(RenderStateShard.ITEM_ENTITY_TARGET).setOverlayState(OVERLAY).setWriteMaskState(RenderStateShard.COLOR_DEPTH_WRITE).createCompositeState(true);
+        RenderType.CompositeState rendertype$compositestate = RenderType.CompositeState.builder().setShaderState(RENDERTYPE_BUBBLED_SHADER).setTextureState(new RenderStateShard.TextureStateShard(locationIn, false, false)).setTransparencyState(TRANSLUCENT_TRANSPARENCY).setLightmapState(LIGHTMAP).setOutputState(RenderStateShard.ITEM_ENTITY_TARGET).setOverlayState(OVERLAY).setWriteMaskState(RenderStateShard.COLOR_WRITE).createCompositeState(true);
         return create("bubbled_cull", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, true, true, rendertype$compositestate);
     }
 
     public static RenderType getBubbledNoCull(ResourceLocation locationIn) {
-        RenderType.CompositeState rendertype$compositestate = RenderType.CompositeState.builder().setShaderState(RENDERTYPE_BUBBLED_SHADER).setTextureState(new RenderStateShard.TextureStateShard(locationIn, false, false)).setTransparencyState(TRANSLUCENT_TRANSPARENCY).setCullState(NO_CULL).setLightmapState(LIGHTMAP).setOutputState(RenderStateShard.ITEM_ENTITY_TARGET).setOverlayState(OVERLAY).setWriteMaskState(RenderStateShard.COLOR_DEPTH_WRITE).createCompositeState(true);
+        RenderType.CompositeState rendertype$compositestate = RenderType.CompositeState.builder().setShaderState(RENDERTYPE_BUBBLED_SHADER).setTextureState(new RenderStateShard.TextureStateShard(locationIn, false, false)).setTransparencyState(TRANSLUCENT_TRANSPARENCY).setCullState(NO_CULL).setLightmapState(LIGHTMAP).setOutputState(RenderStateShard.ITEM_ENTITY_TARGET).setOverlayState(OVERLAY).setWriteMaskState(RenderStateShard.COLOR_WRITE).createCompositeState(true);
         return create("bubbled_no_cull", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, false, false, rendertype$compositestate);
     }
 
@@ -292,6 +308,18 @@ public class ACRenderTypes extends RenderType {
                 .setDepthTestState(LEQUAL_DEPTH_TEST)
                 .setOutputState(PURPLE_WITCH_OUTPUT)
                 .createCompositeState(false));
+    }
+
+    public static RenderType getWatcherAppearance(ResourceLocation locationIn) {
+        RenderType.CompositeState rendertype$compositestate = RenderType.CompositeState.builder()
+                .setShaderState(RENDERTYPE_ENTITY_TRANSLUCENT_CULL_SHADER)
+                .setTextureState(new RenderStateShard.TextureStateShard(locationIn, false, false))
+                .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                .setCullState(NO_CULL)
+                .setLightmapState(NO_LIGHTMAP)
+                .setOverlayState(OVERLAY)
+                .createCompositeState(true);
+        return create("watcher_appearance", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, false, true, rendertype$compositestate);
     }
 
 }

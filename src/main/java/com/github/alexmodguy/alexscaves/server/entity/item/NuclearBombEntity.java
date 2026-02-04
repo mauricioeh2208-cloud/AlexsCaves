@@ -94,13 +94,14 @@ public class NuclearBombEntity extends Entity {
     }
 
     @Override
-    public void resetFallDistance() {
-        if (this.fallDistance > 20.0F) {
+    protected void checkFallDamage(double y, boolean onGround, net.minecraft.world.level.block.state.BlockState state, BlockPos pos) {
+        if (onGround && this.fallDistance > 20.0F) {
             this.discard();
             if (!this.level().isClientSide) {
                 this.explode();
             }
         }
+        super.checkFallDamage(y, onGround, state, pos);
     }
 
     private Stream<BlockPos> getNearbySirens(ServerLevel world, int range) {
@@ -176,7 +177,8 @@ public class NuclearBombEntity extends Entity {
             float expandScale = 1F + (float) Math.sin(progress * progress * Math.PI) * 0.5F;
             float f1 = -(this.getXRot() / 40F);
             float j = expandScale - progress * 0.3F;
-            double d0 = this.getY() + j + 0.5F - 0.2F;
+            Vec3 attachPoint = passenger.getVehicleAttachmentPoint(this);
+            double d0 = this.getY() + j - attachPoint.y;
             moveFunction.accept(passenger, this.getX(), d0, this.getZ());
             passenger.fallDistance = 0.0F;
         } else {

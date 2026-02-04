@@ -112,7 +112,7 @@ public class SubterranodonEntity extends DinosaurEntity implements PackAnimal, F
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(1, new SitWhenOrderedToGoal(this));
-        this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 1.4D, false));
+        this.goalSelector.addGoal(2, new SubterranodonAttackGoal(this, 1.4D));
         this.goalSelector.addGoal(3, new SubterranodonFollowOwnerGoal(this, 1.2D, 5.0F, 2.0F, true));
         this.goalSelector.addGoal(4, new AnimalJoinPackGoal(this, 30, 5));
         this.goalSelector.addGoal(5, new AnimalBreedEggsGoal(this, 1));
@@ -591,6 +591,7 @@ public class SubterranodonEntity extends DinosaurEntity implements PackAnimal, F
         this.walkAnimation.update(f2, 0.4F);
     }
 
+    @Override
     public Vec3 collide(Vec3 movement) {
         if (this.flightCollisionBox != null && !touchingUnloadedChunk() && this.isVehicle()) {
             AABB aabb = this.flightCollisionBox;

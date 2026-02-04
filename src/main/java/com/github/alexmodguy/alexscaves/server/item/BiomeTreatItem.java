@@ -27,7 +27,7 @@ import java.util.List;
 public class BiomeTreatItem extends CaveInfoItem {
 
     public BiomeTreatItem() {
-        super(new Item.Properties().stacksTo(1), false);
+        super(new Item.Properties().stacksTo(1).food(ACFoods.BIOME_TREAT), false);
     }
 
     @Override
@@ -67,7 +67,9 @@ public class BiomeTreatItem extends CaveInfoItem {
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity livingEntity) {
         if(getCaveBiome(stack) == null && (livingEntity instanceof Player player && (player.getFoodData().getFoodLevel() == 0 || player.isCreative()))){
-            return create(this, level.getBiome(livingEntity.blockPosition()).unwrapKey().get());
+            ItemStack map = create(this, level.getBiome(livingEntity.blockPosition()).unwrapKey().get());
+            map.set(DataComponents.FOOD, ACFoods.BIOME_TREAT_DONE);
+            return map;
         }
         return super.finishUsingItem(stack, level, livingEntity);
     }

@@ -6,7 +6,7 @@
   },
   "vertex": "alexscaves:rendertype_blue_irradiated",
   "fragment": "alexscaves:rendertype_blue_irradiated",
-  "attributes": ["Position", "UV0", "Color"],
+  "attributes": ["Position", "Color", "UV0", "UV1", "UV2", "Normal"],
   "samplers": [{ "name": "Sampler0" }],
   "uniforms": [
     {

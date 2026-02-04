@@ -33,6 +33,7 @@ import com.github.alexmodguy.alexscaves.server.message.*;
 import com.github.alexmodguy.alexscaves.server.misc.*;
 import com.github.alexmodguy.alexscaves.server.potion.ACEffectRegistry;
 import com.github.alexmodguy.alexscaves.server.recipe.ACRecipeRegistry;
+import com.github.alexmodguy.alexscaves.server.message.UpdateMagneticDataMessage;
 import com.mojang.logging.LogUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -167,6 +168,8 @@ public class AlexsCaves {
         registrar.playToClient(SundropRainbowMessage.TYPE, SundropRainbowMessage.CODEC, SundropRainbowMessage::handle);
         registrar.playToClient(SpelunkeryTableCompleteTutorialMessage.TYPE,
                 SpelunkeryTableCompleteTutorialMessage.CODEC, SpelunkeryTableCompleteTutorialMessage::handle);
+        registrar.playToClient(UpdateMagneticDataMessage.TYPE, UpdateMagneticDataMessage.CODEC,
+                UpdateMagneticDataMessage::handle);
         // Client-to-server messages
         registrar.playToServer(MultipartEntityMessage.TYPE, MultipartEntityMessage.CODEC,
                 MultipartEntityMessage::handle);

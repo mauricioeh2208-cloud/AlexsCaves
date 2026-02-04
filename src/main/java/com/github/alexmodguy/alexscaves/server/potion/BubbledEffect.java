@@ -1,9 +1,12 @@
 package com.github.alexmodguy.alexscaves.server.potion;
 
+import com.github.alexmodguy.alexscaves.AlexsCaves;
+import com.github.alexmodguy.alexscaves.server.message.UpdateEffectVisualityEntityMessage;
 import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffectUtil;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -19,7 +22,14 @@ public class BubbledEffect extends MobEffect {
     }
 
     @Override
-    public boolean applyEffectTick(LivingEntity entity, int tick) {
+    public boolean applyEffectTick(LivingEntity entity, int amplifier) {
+        // Periodically sync effect to clients to ensure visual stays in sync
+        if (!entity.level().isClientSide && entity.tickCount % 40 == 0) {
+            MobEffectInstance instance = entity.getEffect(ACEffectRegistry.BUBBLED);
+            if (instance != null) {
+                AlexsCaves.sendMSGToAll(new UpdateEffectVisualityEntityMessage(entity.getId(), entity.getId(), 1, instance.getDuration()));
+            }
+        }
         // In 1.21, MobType was removed, so we check canBreatheUnderwater instead
         if (entity.canBreatheUnderwater()) {
             if (!entity.getType().is(ACTagRegistry.RESISTS_BUBBLED)) {
@@ -47,8 +57,20 @@ public class BubbledEffect extends MobEffect {
         return true;
     }
 
-    public boolean isDurationEffectTick(int i, int j) {
+    @Override
+    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
         return true;
+    }
+
+    @Override
+    public void onEffectStarted(LivingEntity entity, int amplifier) {
+        // Send initial sync to clients when effect starts
+        if (!entity.level().isClientSide) {
+            MobEffectInstance instance = entity.getEffect(ACEffectRegistry.BUBBLED);
+            if (instance != null) {
+                AlexsCaves.sendMSGToAll(new UpdateEffectVisualityEntityMessage(entity.getId(), entity.getId(), 1, instance.getDuration()));
+            }
+        }
     }
 
     public List<ItemStack> getCurativeItems() {

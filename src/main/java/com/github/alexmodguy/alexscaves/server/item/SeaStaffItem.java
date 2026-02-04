@@ -51,7 +51,7 @@ public class SeaStaffItem extends Item {
                 bolt.setPos(player.getX() - (double) (player.getBbWidth()) * 1.1F * (double) Mth.sin(rot * ((float) Math.PI / 180F)), player.getEyeY() - (double) 0.4F, player.getZ() + (double) (player.getBbWidth()) * 1.1F * (double) Mth.cos(rot * ((float) Math.PI / 180F)));
                 bolt.shootFromRotation(player, player.getXRot(), player.getYRot() + shootRot, -20.0F, i > 0 ? 1F : 2F, 12F);
                 if (ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.ENVELOPING_BUBBLE, itemstack) > 0) {
-                    bolt.setBubbling(player.getRandom().nextBoolean());
+                    bolt.setBubbling(true);
                 }
                 if (ACEnchantmentHelper.getEnchantmentLevel(level, ACEnchantmentRegistry.BOUNCING_BOLT, itemstack) > 0) {
                     bolt.ricochet = true;

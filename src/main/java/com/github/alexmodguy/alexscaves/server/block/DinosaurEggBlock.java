@@ -64,11 +64,13 @@ public class DinosaurEggBlock extends Block {
         return isProperHabitat(reader, pos);
     }
 
+    @Override
     public void stepOn(Level worldIn, BlockPos pos, BlockState state, Entity entityIn) {
         this.tryTrample(worldIn, pos, entityIn, 100);
         super.stepOn(worldIn, pos, state, entityIn);
     }
 
+    @Override
     public void fallOn(Level worldIn, BlockState state, BlockPos pos, Entity entityIn, float fallDistance) {
         if (!(entityIn instanceof Zombie)) {
             this.tryTrample(worldIn, pos, entityIn, 3);
@@ -95,9 +97,7 @@ public class DinosaurEggBlock extends Block {
                 }
                 BlockState blockstate = worldIn.getBlockState(pos);
                 this.removeOneEgg(worldIn, pos, blockstate);
-
             }
-
         }
     }
 

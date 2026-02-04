@@ -91,6 +91,11 @@ public class PrimalMagmaBlock extends Block {
         return Shapes.empty();
     }
 
+    @Override
+    protected void randomTick(BlockState blockState, ServerLevel serverLevel, BlockPos blockPos, RandomSource randomSource) {
+        this.tick(blockState, serverLevel, blockPos, randomSource);
+    }
+
     public void tick(BlockState blockState, ServerLevel serverLevel, BlockPos blockPos, RandomSource randomSource) {
         if(blockState.getValue(ACTIVE)){
             if(!blockState.getValue(PERMANENT) && !isBossActive(serverLevel)){
@@ -105,6 +110,13 @@ public class PrimalMagmaBlock extends Block {
         BlockState newState = super.updateShape(state, direction, state1, levelAccessor, blockPos, blockPos1);
         levelAccessor.scheduleTick(blockPos, this, 2);
         return newState;
+    }
+
+    @Override
+    public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
+        super.onPlace(state, level, pos, oldState, movedByPiston);
+        // Schedule a tick to check for boss active state when the block is placed
+        level.scheduleTick(pos, this, 20 + level.random.nextInt(20));
     }
 
     public static boolean isBossActive(Level level) {

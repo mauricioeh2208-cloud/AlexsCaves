@@ -65,7 +65,7 @@ public class CaramelCubeEntity extends Monster implements PossessedByLicowitch {
     }
 
     public static boolean checkCaramelCubeSpawnRules(EntityType<? extends Monster> entityType, ServerLevelAccessor levelAccessor, MobSpawnType mobSpawnType, BlockPos blockPos, RandomSource randomSource) {
-        return checkMonsterSpawnRules(entityType, levelAccessor, mobSpawnType, blockPos, randomSource);
+        return checkAnyLightMonsterSpawnRules(entityType, levelAccessor, mobSpawnType, blockPos, randomSource);
     }
 
     protected void registerGoals() {

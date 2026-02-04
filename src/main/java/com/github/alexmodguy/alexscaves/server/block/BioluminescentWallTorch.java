@@ -43,7 +43,7 @@ public class BioluminescentWallTorch extends WallTorchBlock implements SimpleWat
         LevelAccessor levelaccessor = context.getLevel();
         BlockPos blockpos = context.getClickedPos();
         BlockState prev = super.getStateForPlacement(context);
-        return prev == null ? null : prev.setValue(WATERLOGGED, Boolean.valueOf(levelaccessor.getFluidState(blockpos).getType() == Fluids.WATER));
+        return prev == null ? null : prev.setValue(WATERLOGGED, Boolean.valueOf(levelaccessor.getFluidState(blockpos).isSourceOfType(Fluids.WATER)));
     }
 
 

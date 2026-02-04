@@ -12,7 +12,7 @@ out vec4 fragColor;
 
 void main() {
     vec4 color = texture(Sampler0, texCoord0);
-    if (color.a == 0.0) {
+    if (color.a < 0.1) {
         discard;
     }
     float animation = GameTime * 5000.0;
@@ -20,3 +20,4 @@ void main() {
     vec3 purpleWitchColor = vec3(animation1 * 0.15 + 0.85, 0, animation1 * 0.15 + 0.85);
     fragColor = vec4(purpleWitchColor * ColorModulator.rgb * vertexColor.rgb, ColorModulator.a);
 }
+

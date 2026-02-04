@@ -8,8 +8,10 @@ import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
 import com.github.alexmodguy.alexscaves.server.item.BiomeTreatItem;
 import com.github.alexmodguy.alexscaves.server.level.biome.ACBiomeRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACAdvancementTriggerRegistry;
+import com.github.alexmodguy.alexscaves.server.misc.ACDummyBiomeSource;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
+import com.github.alexthe666.citadel.server.generation.SurfaceRulesManager;
 import net.minecraft.Util;
 import net.minecraft.core.*;
 import net.minecraft.core.HolderLookup;
@@ -36,6 +38,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
+import net.minecraft.world.level.levelgen.*;
+import net.minecraft.world.level.levelgen.blending.Blender;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.AABB;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -44,6 +48,7 @@ import javax.annotation.Nullable;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ConversionCrucibleBlockEntity extends BlockEntity {
@@ -130,6 +135,8 @@ public class ConversionCrucibleBlockEntity extends BlockEntity {
                 entity.markUpdated();
                 entity.conversionTime = 0;
                 entity.setFilledLevel(0);
+                entity.convertingToBiome = null;
+                entity.biomeColor = -1;
             }
             entity.conversionProgress = (entity.conversionTime / (float) MAX_CONVERSION_TIME) * 20.0F;
         } else if (entity.conversionProgress > 0.0F) {
@@ -233,21 +240,53 @@ public class ConversionCrucibleBlockEntity extends BlockEntity {
             try {
                 Registry<Biome> registry = serverLevel.registryAccess().registryOrThrow(Registries.BIOME);
                 Optional<Holder.Reference<Biome>> biomeHolder = registry.getHolder(convertingToBiome);
+                ChunkAccess chunkaccess = serverLevel.getChunk(this.getBlockPos());
+                ResourceKey<NoiseGeneratorSettings> dimensionType = NoiseGeneratorSettings.OVERWORLD;
                 if (biomeHolder.isPresent()) {
                     if (biomeHolder.get().is(BiomeTags.IS_NETHER)) {
-                        // Nether biome
+                        dimensionType = NoiseGeneratorSettings.NETHER;
                     } else if (biomeHolder.get().is(BiomeTags.IS_END)) {
-                        // End biome
+                        dimensionType = NoiseGeneratorSettings.END;
                     }
                     topBlockForBiome = getFallbackTopBlock(biomeHolder.get());
                     middleBlockForBiome = getFallbackMiddleBlock(biomeHolder.get());
                     bottomBlockForBiome = getFallbackBottomBlock(biomeHolder.get());
                 }
-                // Note: Complex surface rule generation was removed due to NeoForge 1.21 API changes:
-                // - WorldGenRegion constructor signature changed
-                // - NoiseBasedChunkGenerator.createNoiseChunk is now private
-                // - SurfaceRules.Context.updateXZ/updateY are protected
-                // Using fallback blocks based on biome type instead.
+                Holder<NoiseGeneratorSettings> settings = serverLevel.registryAccess().registryOrThrow(Registries.NOISE_SETTINGS).getHolderOrThrow(dimensionType);
+                //for compat with other world types, like flat worlds, we cannot assume the chunk generator of the world is noise-based so we must create a new one
+                NoiseBasedChunkGenerator noiseBasedChunkGenerator = new NoiseBasedChunkGenerator(new ACDummyBiomeSource(), settings);
+                //get or create a dummy noise chunk
+                NoiseChunk noisechunk = chunkaccess.getOrCreateNoiseChunk((chunkAccess) -> {
+                    return noiseBasedChunkGenerator.createNoiseChunk(chunkAccess, serverLevel.structureManager(), Blender.empty(), serverLevel.getChunkSource().randomState());
+                });
+                //should ideally be merged when we get it, for some reason isn't. Idk why
+                SurfaceRules.RuleSource ruleSource = SurfaceRulesManager.mergeOverworldRules(noiseBasedChunkGenerator.generatorSettings().value().surfaceRule());
+                WorldGenerationContext worldGenerationContext = new WorldGenerationContext(noiseBasedChunkGenerator, serverLevel);
+                Function<BlockPos, Holder<Biome>> biomeRef = (blockPos -> biomeHolder.get());
+                SurfaceRules.Context surfacerulesContext = new SurfaceRules.Context(serverLevel.getChunkSource().randomState().surfaceSystem(), serverLevel.getChunkSource().randomState(), chunkaccess, noisechunk, biomeRef, registry, worldGenerationContext);
+                SurfaceRules.SurfaceRule rule = ruleSource.apply(surfacerulesContext);
+                int x = this.getBlockPos().getX();
+                int z = this.getBlockPos().getZ();
+                //one over the top (grass condition)
+                int topHeight = serverLevel.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, x, z) + 1;
+                surfacerulesContext.updateXZ(x, z);
+                surfacerulesContext.updateY(1, 1, topHeight, x, topHeight, z);
+                BlockState grass = rule.tryApply(x, topHeight, z);
+                if (grass != null && !grass.is(Blocks.BEDROCK)) {
+                    topBlockForBiome = grass;
+                }
+                //tell it that there is a block about the top position
+                surfacerulesContext.updateY(1, 1, topHeight + 1, x, topHeight, z);
+                BlockState dirt = rule.tryApply(x, topHeight, z);
+                if (dirt != null && !dirt.is(Blocks.BEDROCK)) {
+                    middleBlockForBiome = dirt;
+                }
+                //tell it that there is many blocks about the top position
+                surfacerulesContext.updateY(1, 1, topHeight + 20, x, topHeight, z);
+                BlockState stone = rule.tryApply(x, topHeight, z);
+                if (stone != null && !stone.is(Blocks.BEDROCK)) {
+                    bottomBlockForBiome = stone;
+                }
             } catch (Exception e) {
                 AlexsCaves.LOGGER.warn("Encountered error finding the surface blocks of a biome");
             }

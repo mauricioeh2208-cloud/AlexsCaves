@@ -108,16 +108,12 @@ public class JellyBeanItem extends PotionItem {
     }
 
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity living) {
-        Player player = living instanceof Player ? (Player)living : null;
-        if (player instanceof ServerPlayer) {
-            CriteriaTriggers.CONSUME_ITEM.trigger((ServerPlayer)player, stack);
-        }
-
         if (!level.isClientSide) {
             PotionContents potionContents = stack.get(DataComponents.POTION_CONTENTS);
             if (potionContents != null) {
                 for (MobEffectInstance mobeffectinstance : potionContents.getAllEffects()) {
                     MobEffect mobeffect = mobeffectinstance.getEffect().value();
+                    Player player = living instanceof Player ? (Player)living : null;
                     if (mobeffect.isInstantenous()) {
                         mobeffect.applyInstantenousEffect(player, player, living, mobeffectinstance.getAmplifier(), 1.0D);
                     } else {
@@ -126,14 +122,6 @@ public class JellyBeanItem extends PotionItem {
                 }
             }
         }
-
-        if (player != null) {
-            player.awardStat(Stats.ITEM_USED.get(this));
-            if (!player.getAbilities().instabuild) {
-                stack.shrink(1);
-            }
-        }
-        living.gameEvent(GameEvent.EAT);
-        return stack;
+        return living.eat(level, stack);
     }
 }

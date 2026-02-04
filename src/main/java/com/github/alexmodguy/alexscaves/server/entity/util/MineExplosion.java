@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class MineExplosion {
+    private Explosion dummyExplosion;
     private static final ExplosionDamageCalculator EXPLOSION_DAMAGE_CALCULATOR = new ExplosionDamageCalculator();
     private final Explosion.BlockInteraction blockInteraction;
     private final RandomSource random = RandomSource.create();
@@ -238,9 +239,10 @@ public class MineExplosion {
                             addBlockDrops(objectarraylist, p_46074_, blockpos1);
                         });
                     }
-                    if (blockstate.getFluidState().isEmpty()) {
-                        level.setBlock(blockpos, Blocks.AIR.defaultBlockState(), 3);
+                    if (dummyExplosion == null) {
+                        dummyExplosion = new Explosion(level, null, this.x, this.y, this.z, this.radius, false, Explosion.BlockInteraction.KEEP);
                     }
+                    blockstate.onBlockExploded(level, blockpos, dummyExplosion);
                     this.level.getProfiler().pop();
                 }
             }

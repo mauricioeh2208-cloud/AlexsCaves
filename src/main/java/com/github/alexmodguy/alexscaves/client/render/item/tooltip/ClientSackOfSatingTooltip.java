@@ -9,7 +9,9 @@ import net.minecraft.util.Mth;
 
 public class ClientSackOfSatingTooltip implements ClientTooltipComponent {
 
-    private static final ResourceLocation GUI_ICONS_LOCATION = ResourceLocation.withDefaultNamespace("textures/gui/icons.png");
+    private static final ResourceLocation FOOD_EMPTY_SPRITE = ResourceLocation.withDefaultNamespace("hud/food_empty");
+    private static final ResourceLocation FOOD_HALF_SPRITE = ResourceLocation.withDefaultNamespace("hud/food_half");
+    private static final ResourceLocation FOOD_FULL_SPRITE = ResourceLocation.withDefaultNamespace("hud/food_full");
     private final SackOfSatingTooltip tooltipComponent;
 
     public ClientSackOfSatingTooltip(SackOfSatingTooltip tooltipComponent) {
@@ -30,15 +32,15 @@ public class ClientSackOfSatingTooltip implements ClientTooltipComponent {
         int hungerValue = tooltipComponent.getHungerValue();
         int shanks = (int) Math.ceil(hungerValue / 2.0D);
         if (isTruncated()) {
-            guiGraphics.blit(GUI_ICONS_LOCATION, x, y, 16, 27, 9, 9);
-            guiGraphics.blit(GUI_ICONS_LOCATION, x, y, 52, 27, 9, 9);
+            guiGraphics.blitSprite(FOOD_EMPTY_SPRITE, x, y, 9, 9);
+            guiGraphics.blitSprite(FOOD_FULL_SPRITE, x, y, 9, 9);
             font.drawInBatch(getHungerValueMultiplierText(), (float)x + 10, (float)y + 1, 0XA8A8A8, true, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
         } else {
             for (int i = 0; i < shanks; i++) {
                 boolean halfShank = i == 0 && hungerValue % 2 == 1;
                 //background outline
-                guiGraphics.blit(GUI_ICONS_LOCATION, x + i * 9, y, 16, 27, 9, 9);
-                guiGraphics.blit(GUI_ICONS_LOCATION, x + i * 9, y, halfShank ? 61 : 52, 27, 9, 9);
+                guiGraphics.blitSprite(FOOD_EMPTY_SPRITE, x + i * 9, y, 9, 9);
+                guiGraphics.blitSprite(halfShank ? FOOD_HALF_SPRITE : FOOD_FULL_SPRITE, x + i * 9, y, 9, 9);
             }
         }
     }

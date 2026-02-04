@@ -97,11 +97,22 @@ public abstract class EntityMixin implements MagneticEntityAccessor {
     }
     
     /**
-     * Sync the magnetic data attachment to clients
+     * Sync the magnetic data attachment to clients via network packet.
+     * This replaces 1.20's automatic SynchedEntityData sync.
      */
     private void syncMagneticData() {
-        // Attachment sync is handled automatically by the AttachmentType's sync configuration
-        // No manual sync needed when using .sync() on the AttachmentType builder
+        if (!supportsMagneticData()) {
+            return;
+        }
+        Entity thisEntity = (Entity) (Object) this;
+        // Only sync from server side
+        if (!thisEntity.level().isClientSide) {
+            MagneticEntityData data = thisEntity.getData(ACAttachmentRegistry.MAGNETIC_DATA);
+            // Send sync packet to all tracking players
+            com.github.alexmodguy.alexscaves.server.message.UpdateMagneticDataMessage msg = 
+                new com.github.alexmodguy.alexscaves.server.message.UpdateMagneticDataMessage(thisEntity, data);
+            net.neoforged.neoforge.network.PacketDistributor.sendToPlayersTrackingEntityAndSelf(thisEntity, msg);
+        }
     }
 
     @Inject(
@@ -167,9 +178,13 @@ public abstract class EntityMixin implements MagneticEntityAccessor {
     )
     //must override entire method for compatibility with Radium mod
     public void ac_collide(Vec3 deltaIn, CallbackInfoReturnable<Vec3> cir) {
+        Entity thisEntity = (Entity) (Object) this;
+        // Skip this mixin for ICustomCollisions entities - they have their own collide() override
+        if (thisEntity instanceof com.github.alexthe666.citadel.server.entity.collision.ICustomCollisions) {
+            return;
+        }
 
         AABB aabb = this.getBoundingBox();
-        Entity thisEntity = (Entity) (Object) this;
         //AC CODE START
         List<VoxelShape> list;
         //fix infinity voxel collection crash for ItemEntity

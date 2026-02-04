@@ -14,6 +14,9 @@ void main() {
     float animation = GameTime * 2000.0;
     float animation1 = sin(animation) + 1;
     vec4 defaultColor = texture(Sampler0, texCoord0) * vertexColor;
+    if (defaultColor.a < 0.1) {
+        discard;
+    }
     vec4 color = vec4(0.15, animation1 * 0.15 + 0.65, 0, defaultColor.a);
     fragColor = color * ColorModulator;
 }

@@ -12,8 +12,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.neoforged.neoforge.client.NeoForgeRenderTypes;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -27,7 +27,6 @@ import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import net.neoforged.neoforge.common.NeoForge;
 
 public class CaveBookScreen extends Screen {
 
@@ -36,10 +35,10 @@ public class CaveBookScreen extends Screen {
     public static final float MOUSE_LEAN_THRESHOLD = 0.75F;
     public static final int PAGE_SIZE_IN_LINES = 15;
 
-    public static final int TEXT_COLOR = 0X5A4830;
+    public static final int TEXT_COLOR = 0X826A41;
     public static final int TEXT_LINK_COLOR = 0X111111;
     public static final int TEXT_LINK_HOVER_COLOR = 0X0094FF;
-    public static final int TEXT_LINK_LOCKED_COLOR = 0XA09078;
+    public static final int TEXT_LINK_LOCKED_COLOR = 0XD3C9AB;
     private final CaveBookProgress caveBookProgress;
     public boolean unlockTooltip;
     private boolean incrementingPage;
@@ -243,7 +242,7 @@ public class CaveBookScreen extends Screen {
         poseStack.pushPose();
         BOOK_MODEL.setupAnim(null, openBookAmount, pageAngle, pageUp, -20 * (openBookAmount) - 10 * pageFlipBump, 0);
         BOOK_MODEL.mouseOver(mouseLeanX, mouseLeanY, ageInTicks, flip, canGoLeft(), canGoRight());
-        BOOK_MODEL.renderToBuffer(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(BOOK_TEXTURE)), 240, OverlayTexture.NO_OVERLAY, -1);
+        BOOK_MODEL.renderToBuffer(poseStack, bufferSource.getBuffer(NeoForgeRenderTypes.getUnlitTranslucent(BOOK_TEXTURE)), 240, OverlayTexture.NO_OVERLAY, -1);
         renderBookContents(poseStack, mouseX, mouseY, partialTick);
         guiGraphics.flush();
         poseStack.popPose();

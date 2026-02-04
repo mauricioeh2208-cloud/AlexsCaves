@@ -67,9 +67,9 @@ public class CraftingRecipeWidget extends BookWidget {
             float texWidth = 55 / 2F;
             float texHeight = 37 / 2F;
             vertexconsumer.addVertex(matrix4f, -texWidth, -texHeight, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(0, 0).setOverlay(NO_OVERLAY).setLight(240).setNormal(0.0F, 1.0F, 0.0F);
-            vertexconsumer.addVertex(matrix4f, texWidth, -texHeight, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(scaledU1, 0).setOverlay(NO_OVERLAY).setLight(240).setNormal(0.0F, 1.0F, 0.0F).setUv(0, scaledV1);
-            vertexconsumer.addVertex(matrix4f, texWidth, texHeight, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(scaledU1, scaledV1).setOverlay(NO_OVERLAY).setLight(240).setNormal(0.0F, 1.0F, 0.0F).setUv(0, 0);
-            vertexconsumer.addVertex(matrix4f, -texWidth, texHeight, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(0, scaledV1).setOverlay(NO_OVERLAY).setLight(240).setNormal(0.0F, 1.0F, 0.0F).setUv(scaledU1, 0);
+            vertexconsumer.addVertex(matrix4f, texWidth, -texHeight, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(scaledU1, 0).setOverlay(NO_OVERLAY).setLight(240).setNormal(0.0F, 1.0F, 0.0F);
+            vertexconsumer.addVertex(matrix4f, texWidth, texHeight, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(scaledU1, scaledV1).setOverlay(NO_OVERLAY).setLight(240).setNormal(0.0F, 1.0F, 0.0F);
+            vertexconsumer.addVertex(matrix4f, -texWidth, texHeight, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(0, scaledV1).setOverlay(NO_OVERLAY).setLight(240).setNormal(0.0F, 1.0F, 0.0F);
             poseStack.popPose();
 
 

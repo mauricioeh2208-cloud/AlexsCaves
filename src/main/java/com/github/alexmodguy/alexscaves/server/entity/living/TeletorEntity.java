@@ -142,6 +142,10 @@ public class TeletorEntity extends Monster {
         return Monster.createMonsterAttributes().add(Attributes.ATTACK_DAMAGE, 2.0D).add(Attributes.FLYING_SPEED, 1F).add(Attributes.MOVEMENT_SPEED, 0.2D).add(Attributes.FOLLOW_RANGE, 32.0D).add(Attributes.MAX_HEALTH, 18.0D);
     }
 
+    public static boolean checkMagneticCaveSpawnRules(EntityType<? extends Monster> entityType, ServerLevelAccessor levelAccessor, MobSpawnType mobSpawnType, BlockPos blockPos, RandomSource randomSource) {
+        return checkAnyLightMonsterSpawnRules(entityType, levelAccessor, mobSpawnType, blockPos, randomSource);
+    }
+
     protected float getStandingEyeHeight(Pose pose, EntityDimensions dimensions) {
         return 0.55F * dimensions.height();
     }

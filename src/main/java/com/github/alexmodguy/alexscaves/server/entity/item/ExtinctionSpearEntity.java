@@ -40,12 +40,12 @@ public class ExtinctionSpearEntity extends AbstractArrow {
     }
 
     public ExtinctionSpearEntity(Level level, LivingEntity shooter, ItemStack itemStack) {
-        super(ACEntityRegistry.EXTINCTION_SPEAR.get(), shooter, level, itemStack.copy(), ItemStack.EMPTY);
+        super(ACEntityRegistry.EXTINCTION_SPEAR.get(), shooter, level, itemStack.copy(), null);
         this.spearItem = itemStack.copy();
     }
 
     public ExtinctionSpearEntity(Level level, double x, double y, double z) {
-        super(ACEntityRegistry.EXTINCTION_SPEAR.get(), x, y, z, level, new ItemStack(ACItemRegistry.EXTINCTION_SPEAR.get()), ItemStack.EMPTY);
+        super(ACEntityRegistry.EXTINCTION_SPEAR.get(), x, y, z, level, new ItemStack(ACItemRegistry.EXTINCTION_SPEAR.get()), null);
     }
 
     @Override

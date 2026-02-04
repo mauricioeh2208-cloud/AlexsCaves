@@ -290,8 +290,6 @@ public class ClientEvents {
             RenderSystem.runAsFancy(() -> HologramProjectorBlockRenderer.renderEntireBatch(event.getLevelRenderer(),
                     event.getPoseStack(), event.getRenderTick(), event.getCamera(),
                     event.getPartialTick().getGameTimeDeltaPartialTick(false)));
-        }
-        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_CUTOUT_BLOCKS) {
             RenderSystem.runAsFancy(() -> CorrodentRenderer.renderEntireBatch(event.getLevelRenderer(),
                     event.getPoseStack(), event.getRenderTick(), event.getCamera(),
                     event.getPartialTick().getGameTimeDeltaPartialTick(false)));
@@ -311,43 +309,11 @@ public class ClientEvents {
     public void computeCameraAngles(ViewportEvent.ComputeCameraAngles event) {
         Entity player = Minecraft.getInstance().getCameraEntity();
         float partialTick = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(false);
-        float tremorAmount = ClientProxy.renderNukeSkyDarkFor > 0 ? 1.5F : 0F;
         if (player instanceof PossessesCamera watcherEntity) {
             Minecraft.getInstance().options.setCameraType(CameraType.FIRST_PERSON);
-            tremorAmount = watcherEntity.isPossessionBreakable()
-                    ? AlexsCaves.PROXY.getPossessionStrengthAmount(partialTick)
-                    : 0F;
         }
-        if (player != null && AlexsCaves.CLIENT_CONFIG.screenShaking.get()) {
-            double shakeDistanceScale = 64;
-            double distance = Double.MAX_VALUE;
-            if (tremorAmount == 0) {
-                AABB aabb = player.getBoundingBox().inflate(shakeDistanceScale);
-                for (Mob screenShaker : Minecraft.getInstance().level.getEntitiesOfClass(Mob.class, aabb,
-                        (mob -> mob instanceof ShakesScreen))) {
-                    ShakesScreen shakesScreen = (ShakesScreen) screenShaker;
-                    if (shakesScreen.canFeelShake(player) && screenShaker.distanceTo(player) < distance) {
-                        distance = screenShaker.distanceTo(player);
-                        tremorAmount = Math.min((1F - (float) Math.min(1, distance / shakesScreen.getShakeDistance()))
-                                * Math.max(shakesScreen.getScreenShakeAmount(partialTick), 0F), 2.0F);
-                    }
-                }
-            }
-            if (tremorAmount > 0) {
-                if (ClientProxy.lastTremorTick != player.tickCount) {
-                    RandomSource rng = player.level().random;
-                    ClientProxy.randomTremorOffsets[0] = rng.nextFloat();
-                    ClientProxy.randomTremorOffsets[1] = rng.nextFloat();
-                    ClientProxy.randomTremorOffsets[2] = rng.nextFloat();
-                    ClientProxy.lastTremorTick = player.tickCount;
-                }
-                float intensity = (float)(tremorAmount * Minecraft.getInstance().options.screenEffectScale().get());
-                ((CameraAccessor) event.getCamera()).invokeMove(
-                        ClientProxy.randomTremorOffsets[0] * 0.2F * intensity,
-                        ClientProxy.randomTremorOffsets[1] * 0.2F * intensity,
-                        ClientProxy.randomTremorOffsets[2] * 0.5F * intensity);
-            }
-        }
+        // Screen shake logic has been moved to CameraMixin because ComputeCameraAngles
+        // event fires BEFORE setPosition() in Camera.setup(), causing move() effects to be overwritten
         if (player != null && player.isPassenger() && player.getVehicle() instanceof SubmarineEntity
                 && event.getCamera().isDetached()) {
             CameraAccessor cameraAccessor = (CameraAccessor) event.getCamera();
@@ -701,7 +667,7 @@ public class ClientEvents {
     public void onPostRenderGuiOverlay(RenderGuiLayerEvent.Post event) {
         Player player = AlexsCaves.PROXY.getClientSidePlayer();
         int hudY = 0;
-        if (event.getName().equals(VanillaGuiLayers.CROSSHAIR) && player.getVehicle() instanceof RidingMeterMount mount
+        if (event.getName().equals(VanillaGuiLayers.HOTBAR) && player.getVehicle() instanceof RidingMeterMount mount
                 && mount.hasRidingMeter()) {
             int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
             int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
@@ -755,7 +721,7 @@ public class ClientEvents {
                     (int) Math.floor(dinoHeight * invProgress), 128, 512);
             event.getGuiGraphics().pose().popPose();
         }
-        if (event.getName().equals(VanillaGuiLayers.CROSSHAIR) && DarknessArmorItem.hasMeter(player)) {
+        if (event.getName().equals(VanillaGuiLayers.HOTBAR) && DarknessArmorItem.hasMeter(player)) {
             ItemStack stack = player.getItemBySlot(EquipmentSlot.CHEST);
             int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
             int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
@@ -1123,6 +1089,8 @@ public class ClientEvents {
     public void onClientTick(ClientTickEvent.Post event) {
         Entity cameraEntity = Minecraft.getInstance().cameraEntity;
         float partialTicks = AlexsCaves.PROXY.getPartialTicks();
+        // Tick down bubbled effect visual timers
+        ClientProxy.tickBubbledEffects();
         if (ClientProxy.shaderLoadAttemptCooldown > 0) {
             ClientProxy.shaderLoadAttemptCooldown--;
         }

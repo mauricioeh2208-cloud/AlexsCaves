@@ -100,32 +100,30 @@ public class AmbersolBlockRenderer<T extends AmbersolBlockEntity> implements Blo
                 matrixStackIn.mulPose(Axis.ZN.rotationDegrees(time1 - (i / (float) lights * 360)));
                 PoseStack.Pose posestack$pose = matrixStackIn.last();
                 Matrix4f matrix4f = posestack$pose.pose();
-                Matrix3f matrix3f = posestack$pose.normal();
-                shineOriginVertex(lightConsumer, matrix4f, matrix3f, j, u, v);
-                shineLeftCornerVertex(lightConsumer, matrix4f, matrix3f, length, width, u, v);
-                shineRightCornerVertex(lightConsumer, matrix4f, matrix3f, length, width, u, v);
-                shineLeftCornerVertex(lightConsumer, matrix4f, matrix3f, length, width, u, v);
+                shineOriginVertex(lightConsumer, matrix4f, j, u, v);
+                shineLeftCornerVertex(lightConsumer, matrix4f, length, width, u, v);
+                shineRightCornerVertex(lightConsumer, matrix4f, length, width, u, v);
+                shineLeftCornerVertex(lightConsumer, matrix4f, length, width, u, v);
                 matrixStackIn.popPose();
             }
             //minecrafts janky render system wont do transparent blocks unless you render a selection box behind it.
             PoseStack.Pose posestack$pose = matrixStackIn.last();
             Matrix4f matrix4f = posestack$pose.pose();
-            Matrix3f matrix3f = posestack$pose.normal();
             VertexConsumer lines = bufferIn.getBuffer(RenderType.lines());
             matrixStackIn.popPose();
         }
     }
 
-    private static void shineOriginVertex(VertexConsumer p_114220_, Matrix4f p_114221_, Matrix3f p_114092_, int p_114222_, float xOffset, float yOffset) {
-        p_114220_.addVertex(p_114221_, 0.0F, 0.0F, 0.0F).setColor(SHINE_CENTER_R, SHINE_CENTER_G, SHINE_CENTER_B, 230).setUv(xOffset + 0.5F, yOffset).setOverlay(NO_OVERLAY).setLight(240).setNormal(0.0F, 1.0F, 0.0F);
+    private static void shineOriginVertex(VertexConsumer p_114220_, Matrix4f p_114221_, int p_114222_, float xOffset, float yOffset) {
+        p_114220_.addVertex(p_114221_, 0.0F, 0.0F, 0.0F).setColor(SHINE_CENTER_R, SHINE_CENTER_G, SHINE_CENTER_B, 230);
     }
 
-    private static void shineLeftCornerVertex(VertexConsumer p_114215_, Matrix4f p_114216_, Matrix3f p_114092_, float p_114217_, float p_114218_, float xOffset, float yOffset) {
-        p_114215_.addVertex(p_114216_, -HALF_SQRT_3 * p_114218_, p_114217_, 0).setColor(SHINE_R, SHINE_G, SHINE_B, 0).setUv(xOffset, yOffset + 1).setOverlay(NO_OVERLAY).setLight(240).setNormal(0.0F, -1.0F, 0.0F);
+    private static void shineLeftCornerVertex(VertexConsumer p_114215_, Matrix4f p_114216_, float p_114217_, float p_114218_, float xOffset, float yOffset) {
+        p_114215_.addVertex(p_114216_, -HALF_SQRT_3 * p_114218_, p_114217_, 0).setColor(SHINE_R, SHINE_G, SHINE_B, 0);
     }
 
-    private static void shineRightCornerVertex(VertexConsumer p_114224_, Matrix4f p_114225_, Matrix3f p_114092_, float p_114226_, float p_114227_, float xOffset, float yOffset) {
-        p_114224_.addVertex(p_114225_, HALF_SQRT_3 * p_114227_, p_114226_, 0).setColor(SHINE_R, SHINE_G, SHINE_B, 0).setUv(xOffset + 1, yOffset + 1).setOverlay(NO_OVERLAY).setLight(240).setNormal(0.0F, -1.0F, 0.0F);
+    private static void shineRightCornerVertex(VertexConsumer p_114224_, Matrix4f p_114225_, float p_114226_, float p_114227_, float xOffset, float yOffset) {
+        p_114224_.addVertex(p_114225_, HALF_SQRT_3 * p_114227_, p_114226_, 0).setColor(SHINE_R, SHINE_G, SHINE_B, 0);
     }
 
     public int getViewDistance() {

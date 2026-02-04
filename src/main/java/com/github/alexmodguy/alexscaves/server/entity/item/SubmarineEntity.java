@@ -31,6 +31,8 @@ import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.fluids.FluidType;
 
+import javax.annotation.Nullable;
+
 public class SubmarineEntity extends Entity implements KeybindUsingMount {
     private static final EntityDataAccessor<Float> RIGHT_PROPELLER_ROT = SynchedEntityData.defineId(SubmarineEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> LEFT_PROPELLER_ROT = SynchedEntityData.defineId(SubmarineEntity.class, EntityDataSerializers.FLOAT);
@@ -128,7 +130,9 @@ public class SubmarineEntity extends Entity implements KeybindUsingMount {
             damageSustained--;
         }
         this.xRotO = this.getXRot();
-        this.yRotO = Mth.wrapDegrees(this.getYRot());
+        // Wrap yRot to [-180, 180] range to prevent continuous spinning during interpolation
+        this.setYRot(Mth.wrapDegrees(this.getYRot()));
+        this.yRotO = this.getYRot();
         this.prevSonarFlashAmount = sonarFlashAmount;
         if(this.getDangerAlertTicks() > 0 && sonarFlashAmount < 1.0F){
             sonarFlashAmount += 0.25F;
@@ -146,18 +150,10 @@ public class SubmarineEntity extends Entity implements KeybindUsingMount {
             }
         }
         float acceleration = this.getAcceleration();
+        // Handle lerp interpolation for non-local controlled entities
+        this.tickLerp();
+        
         if (this.level().isClientSide) {
-            if (this.lSteps > 0) {
-                double d5 = this.getX() + (this.lx - this.getX()) / (double) this.lSteps;
-                double d6 = this.getY() + (this.ly - this.getY()) / (double) this.lSteps;
-                double d7 = this.getZ() + (this.lz - this.getZ()) / (double) this.lSteps;
-                this.setYRot(Mth.wrapDegrees((float) this.lyr));
-                this.setXRot(this.getXRot() + (float) (this.lxr - (double) this.getXRot()) / (float) this.lSteps);
-                --this.lSteps;
-                this.setPos(d5, d6, d7);
-            } else {
-                this.reapplyPosition();
-            }
             Player player = AlexsCaves.PROXY.getClientSidePlayer();
             if (player != null && player.isPassengerOfSameVehicle(this)) {
                 if (AlexsCaves.PROXY.isKeyDown(0) && controlUpTicks < 2) {
@@ -176,7 +172,16 @@ public class SubmarineEntity extends Entity implements KeybindUsingMount {
             if (this.isVehicle() && this.isInWaterOrBubble() && this.isAlive()) {
                 AlexsCaves.PROXY.playWorldSound(this, (byte) 15);
             }
-        } else {
+        }
+        
+        // Movement logic runs on both sides when controlled by local instance, or server-side only otherwise
+        if (this.isControlledByLocalInstance()) {
+            // Handle player control input (steering and acceleration)
+            if (this.getControllingPassenger() instanceof Player player) {
+                this.tickController(player);
+            }
+            // Re-fetch acceleration after tickController may have modified it
+            acceleration = this.getAcceleration();
             if (acceleration < 0.0F) {
                 this.setAcceleration(Math.min(0F, acceleration + 0.01F));
             }
@@ -195,6 +200,12 @@ public class SubmarineEntity extends Entity implements KeybindUsingMount {
                 this.move(MoverType.SELF, this.getDeltaMovement().scale(0.9F));
                 this.setDeltaMovement(this.getDeltaMovement().multiply(0.1F, 0.3F, 0.1F));
             }
+        } else {
+            this.setDeltaMovement(Vec3.ZERO);
+        }
+        
+        // Server-side only: oxidization and danger alert
+        if (!this.level().isClientSide) {
             if (!isWaxed() && this.getOxidizationLevel() < 3) {
                 if (oxidizeTime > 0) {
                     oxidizeTime--;
@@ -273,8 +284,20 @@ public class SubmarineEntity extends Entity implements KeybindUsingMount {
         this.lz = z;
         this.lyr = yr;
         this.lxr = xr;
-        this.lSteps = steps;
+        this.lSteps = 10;
         this.setDeltaMovement(this.lxd, this.lyd, this.lzd);
+    }
+
+    private void tickLerp() {
+        if (this.isControlledByLocalInstance()) {
+            this.lSteps = 0;
+            this.syncPacketPositionCodec(this.getX(), this.getY(), this.getZ());
+        }
+        
+        if (this.lSteps > 0) {
+            this.lerpPositionAndRotationStep(this.lSteps, this.lx, this.ly, this.lz, this.lyr, this.lxr);
+            --this.lSteps;
+        }
     }
 
     @Override
@@ -330,6 +353,13 @@ public class SubmarineEntity extends Entity implements KeybindUsingMount {
         return type.supportsBoating(null);
     }
 
+    @Nullable
+    @Override
+    public LivingEntity getControllingPassenger() {
+        Entity entity = this.getFirstPassenger();
+        return entity instanceof LivingEntity livingEntity ? livingEntity : null;
+    }
+
     @Override
     protected Entity.MovementEmission getMovementEmission() {
         return MovementEmission.EVENTS;
@@ -344,12 +374,10 @@ public class SubmarineEntity extends Entity implements KeybindUsingMount {
     public void positionRider(Entity passenger, MoveFunction moveFunction) {
         if (this.isPassengerOfSameVehicle(passenger) && passenger instanceof LivingEntity living && !this.touchingUnloadedChunk()) {
             clampRotation(living);
-            if (passenger instanceof Player) {
-                tickController((Player) passenger);
-            }
             float f1 = -(this.getXRot() / 40F);
             Vec3 seatOffset = new Vec3(0F, -0.2F, 0.8F + f1).xRot((float) Math.toRadians(this.getXRot())).yRot((float) Math.toRadians(-this.getYRot()));
-            double d0 = this.getY() + this.getBbHeight() * 0.5F + seatOffset.y;
+            Vec3 attachPoint = passenger.getVehicleAttachmentPoint(this);
+            double d0 = this.getY() + this.getBbHeight() * 0.5F + seatOffset.y - attachPoint.y;
             moveFunction.accept(passenger, this.getX() + seatOffset.x, d0, this.getZ() + seatOffset.z);
             living.setAirSupply(Math.min(living.getAirSupply() + 2, living.getMaxAirSupply()));
         } else {

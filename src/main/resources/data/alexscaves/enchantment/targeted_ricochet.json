@@ -2,6 +2,7 @@
   "description": {
     "translate": "enchantment.alexscaves.targeted_ricochet"
   },
+  "exclusive_set": "#alexscaves:exclusive_shot_gum",
   "supported_items": "#alexscaves:shot_gum_enchantable",
   "weight": 2,
   "max_level": 1,

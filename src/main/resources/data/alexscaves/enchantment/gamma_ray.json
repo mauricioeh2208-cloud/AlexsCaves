@@ -2,6 +2,7 @@
   "description": {
     "translate": "enchantment.alexscaves.gamma_ray"
   },
+  "exclusive_set": "#alexscaves:exclusive_raygun",
   "supported_items": "#alexscaves:raygun_enchantable",
   "weight": 2,
   "max_level": 1,

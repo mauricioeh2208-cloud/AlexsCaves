@@ -326,10 +326,9 @@ public class CorrodentEntity extends Monster implements ICustomCollisions, IAnim
         return d0 + d1 * partialTick;
     }
 
-    public Vec3 collide(Vec3 vec3) {
-        // super.collide() removed in 1.21, use ICustomCollisions for both cases
-        return ICustomCollisions.getAllowedMovementForEntity(this, vec3);
-    }
+    // Collision is handled by CorrodentCollisionMixin which injects into Entity.collide()
+    // When digging: uses ICustomCollisions.getAllowedMovementForEntity() to pass through blocks
+    // When not digging: uses vanilla collision logic
 
     public void remove(Entity.RemovalReason removalReason) {
         AlexsCaves.PROXY.clearSoundCacheFor(this);

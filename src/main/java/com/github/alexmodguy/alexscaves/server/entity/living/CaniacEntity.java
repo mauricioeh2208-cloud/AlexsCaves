@@ -73,7 +73,7 @@ public class CaniacEntity extends Monster implements IAnimatedEntity, PossessedB
     }
 
     public static boolean checkCaniacSpawnRules(EntityType<? extends Monster> entityType, ServerLevelAccessor levelAccessor, MobSpawnType mobSpawnType, BlockPos blockPos, RandomSource randomSource) {
-        return checkMonsterSpawnRules(entityType, levelAccessor, mobSpawnType, blockPos, randomSource) && randomSource.nextInt(10) == 0;
+        return checkAnyLightMonsterSpawnRules(entityType, levelAccessor, mobSpawnType, blockPos, randomSource) && randomSource.nextInt(10) == 0;
     }
 
     protected void registerGoals() {

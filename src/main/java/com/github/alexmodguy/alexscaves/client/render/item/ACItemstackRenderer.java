@@ -136,13 +136,13 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
             if (left || transformType == ItemDisplayContext.GUI) {
                 GALENA_GAUNTLET_LEFT_MODEL.setupAnim(null, openAmount, 0, ageInTicks, 0, 0);
                 GALENA_GAUNTLET_LEFT_MODEL.renderToBuffer(poseStack, getVertexConsumerFoil(bufferIn, RenderType.entityCutoutNoCull(GALENA_GAUNTLET_TEXTURE), GALENA_GAUNTLET_TEXTURE, itemStackIn.hasFoil()), combinedLightIn, combinedOverlayIn, -1);
-                GALENA_GAUNTLET_LEFT_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(GALENA_GAUNTLET_BLUE_TEXTURE), GALENA_GAUNTLET_BLUE_TEXTURE), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(openAmount, 1.0F, 1.0F, 1.0F));
-                GALENA_GAUNTLET_LEFT_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(GALENA_GAUNTLET_RED_TEXTURE), GALENA_GAUNTLET_RED_TEXTURE), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(closeAmount, 1.0F, 1.0F, 1.0F));
+                GALENA_GAUNTLET_LEFT_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(GALENA_GAUNTLET_BLUE_TEXTURE), GALENA_GAUNTLET_BLUE_TEXTURE), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(1.0F, 1.0F, 1.0F, openAmount));
+                GALENA_GAUNTLET_LEFT_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(GALENA_GAUNTLET_RED_TEXTURE), GALENA_GAUNTLET_RED_TEXTURE), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(1.0F, 1.0F, 1.0F, closeAmount));
             } else {
                 GALENA_GAUNTLET_RIGHT_MODEL.setupAnim(null, openAmount, 0, ageInTicks, 0, 0);
                 GALENA_GAUNTLET_RIGHT_MODEL.renderToBuffer(poseStack, getVertexConsumerFoil(bufferIn, RenderType.entityCutoutNoCull(GALENA_GAUNTLET_TEXTURE), GALENA_GAUNTLET_TEXTURE, itemStackIn.hasFoil()), combinedLightIn, combinedOverlayIn, -1);
-                GALENA_GAUNTLET_RIGHT_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(GALENA_GAUNTLET_BLUE_TEXTURE), GALENA_GAUNTLET_BLUE_TEXTURE), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(openAmount, 1.0F, 1.0F, 1.0F));
-                GALENA_GAUNTLET_RIGHT_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(GALENA_GAUNTLET_RED_TEXTURE), GALENA_GAUNTLET_RED_TEXTURE), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(closeAmount, 1.0F, 1.0F, 1.0F));
+                GALENA_GAUNTLET_RIGHT_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(GALENA_GAUNTLET_BLUE_TEXTURE), GALENA_GAUNTLET_BLUE_TEXTURE), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(1.0F, 1.0F, 1.0F, openAmount));
+                GALENA_GAUNTLET_RIGHT_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(GALENA_GAUNTLET_RED_TEXTURE), GALENA_GAUNTLET_RED_TEXTURE), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(1.0F, 1.0F, 1.0F, closeAmount));
             }
             poseStack.popPose();
         }
@@ -167,8 +167,8 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
             poseStack.mulPose(Axis.XP.rotationDegrees(-180));
             RESISTOR_SHIELD_MODEL.setupAnim(null, useProgress, switchProgress, 0, 0, 0);
             RESISTOR_SHIELD_MODEL.renderToBuffer(poseStack, getVertexConsumerFoil(bufferIn, RenderType.entityCutoutNoCull(RESISTOR_SHIELD_TEXTURE), RESISTOR_SHIELD_TEXTURE, itemStackIn.hasFoil()), combinedLightIn, combinedOverlayIn, -1);
-            RESISTOR_SHIELD_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(RESISTOR_SHIELD_RED_TEXTURE), RESISTOR_SHIELD_RED_TEXTURE), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(switchProgress, 1.0F, 1.0F, 1.0F));
-            RESISTOR_SHIELD_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(RESISTOR_SHIELD_BLUE_TEXTURE), RESISTOR_SHIELD_BLUE_TEXTURE), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(1.0F - switchProgress, 1.0F, 1.0F, 1.0F));
+            RESISTOR_SHIELD_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(RESISTOR_SHIELD_RED_TEXTURE), RESISTOR_SHIELD_RED_TEXTURE), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(1.0F, 1.0F, 1.0F, switchProgress));
+            RESISTOR_SHIELD_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(RESISTOR_SHIELD_BLUE_TEXTURE), RESISTOR_SHIELD_BLUE_TEXTURE), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(1.0F, 1.0F, 1.0F, 1.0F - switchProgress));
             poseStack.popPose();
         }
 
@@ -269,7 +269,7 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
             ResourceLocation texture = gamma ? RAYGUN_BLUE_TEXTURE : RAYGUN_TEXTURE;
             ResourceLocation textureActive = gamma ? RAYGUN_BLUE_ACTIVE_TEXTURE : RAYGUN_ACTIVE_TEXTURE;
             RAYGUN_MODEL.renderToBuffer(poseStack, getVertexConsumerFoil(bufferIn, RenderType.entityCutoutNoCull(texture), texture, itemStackIn.hasFoil()), combinedLightIn, combinedOverlayIn, -1);
-            RAYGUN_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(textureActive), textureActive), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(pulseAlpha, 1.0F, 1.0F, 1.0F));
+            RAYGUN_MODEL.renderToBuffer(poseStack, getVertexConsumer(bufferIn, ACRenderTypes.getEyesAlphaEnabled(textureActive), textureActive), combinedLightIn, combinedOverlayIn, ColorUtil.packColor(1.0F, 1.0F, 1.0F, pulseAlpha));
             poseStack.popPose();
             poseStack.popPose();
         }
@@ -335,6 +335,11 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
         if (itemStackIn.is(ACItemRegistry.DREADBOW.get())) {
             float ageInTicks = Minecraft.getInstance().player == null ? 0F : Minecraft.getInstance().player.tickCount + partialTick;
             float pullAmount = DreadbowItem.getPullingAmount(Minecraft.getInstance().level, itemStackIn, partialTick);
+            // Only show pulled state when player is actively using a dreadbow
+            boolean isPlayerUsingDreadbow = Minecraft.getInstance().player != null && Minecraft.getInstance().player.isUsingItem() && Minecraft.getInstance().player.getUseItem().is(ACItemRegistry.DREADBOW.get());
+            if (!isPlayerUsingDreadbow) {
+                pullAmount = 0;
+            }
             poseStack.translate(0.5F, 0.5F, 0.5F);
             ItemStack spriteItem = new ItemStack(pullAmount >= 0.8F ? ACItemRegistry.DREADBOW_PULLING_2_SPRITE.get() : pullAmount >= 0.5F ? ACItemRegistry.DREADBOW_PULLING_1_SPRITE.get() : pullAmount > 0.0F ? ACItemRegistry.DREADBOW_PULLING_0_SPRITE.get() : ACItemRegistry.DREADBOW_SPRITE.get());
             spriteItem.applyComponents(itemStackIn.getComponents());

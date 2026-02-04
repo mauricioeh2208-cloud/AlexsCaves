@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class FrostmintExplosion {
+    private Explosion dummyExplosion;
     private static final ExplosionDamageCalculator EXPLOSION_DAMAGE_CALCULATOR = new ExplosionDamageCalculator();
     private final Explosion.BlockInteraction blockInteraction;
     private final RandomSource random = RandomSource.create();
@@ -200,9 +201,18 @@ public class FrostmintExplosion {
                                 this.hitPlayers.put(player, vec31);
                             }
                         }
-                        if(entity instanceof LivingEntity living){
-                            living.setTicksFrozen(living.getTicksRequiredToFreeze() + 200);
-                            ((FrostmintFreezableAccessor)living).setFrostmintFreezing(true);
+                        if (entity instanceof LivingEntity living) {
+                            boolean flag = false;
+                            for (ItemStack itemstack : living.getArmorSlots()) {
+                                if (itemstack.is(net.minecraft.tags.ItemTags.FREEZE_IMMUNE_WEARABLES)) {
+                                    flag = true;
+                                    break;
+                                }
+                            }
+                            if (!flag) {
+                                living.setTicksFrozen(living.getTicksRequiredToFreeze() + 200);
+                                ((FrostmintFreezableAccessor) living).setFrostmintFreezing(true);
+                            }
                         }
                     }
                 }
@@ -245,9 +255,10 @@ public class FrostmintExplosion {
                             addBlockDrops(objectarraylist, p_46074_, blockpos1);
                         });
                     }
-                    if (blockstate.getFluidState().isEmpty()) {
-                        level.setBlock(blockpos, Blocks.AIR.defaultBlockState(), 3);
+                    if (dummyExplosion == null) {
+                        dummyExplosion = new Explosion(level, null, this.x, this.y, this.z, this.radius, false, Explosion.BlockInteraction.KEEP);
                     }
+                    blockstate.onBlockExploded(level, blockpos, dummyExplosion);
                     this.level.getProfiler().pop();
                 }
             }

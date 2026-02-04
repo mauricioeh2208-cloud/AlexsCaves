@@ -2,11 +2,13 @@ package com.github.alexmodguy.alexscaves.server.enchantment;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
 
 /**
@@ -62,5 +64,27 @@ public class ACEnchantmentHelper {
      */
     public static boolean hasEnchantment(Level level, ResourceKey<Enchantment> enchantmentKey, ItemStack stack) {
         return getEnchantmentLevel(level, enchantmentKey, stack) > 0;
+    }
+
+    /**
+     * Gets the enchantment level directly from the ItemStack without needing a Level.
+     * This method iterates through the enchantments on the stack and matches by ResourceKey.
+     * Useful for methods like getDefaultAttributeModifiers where Level is not available.
+     * 
+     * @param enchantmentKey The ResourceKey of the enchantment to check
+     * @param stack The item stack to check
+     * @return The enchantment level, or 0 if not present
+     */
+    public static int getEnchantmentLevelFromStack(ResourceKey<Enchantment> enchantmentKey, ItemStack stack) {
+        if (enchantmentKey == null || stack.isEmpty()) {
+            return 0;
+        }
+        ItemEnchantments enchantments = stack.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
+        for (Holder<Enchantment> holder : enchantments.keySet()) {
+            if (holder.is(enchantmentKey)) {
+                return enchantments.getLevel(holder);
+            }
+        }
+        return 0;
     }
 }

@@ -2,6 +2,7 @@
   "description": {
     "translate": "enchantment.alexscaves.double_stab"
   },
+  "exclusive_set": "#alexscaves:exclusive_desolate_dagger",
   "supported_items": "#alexscaves:desolate_dagger_enchantable",
   "weight": 2,
   "max_level": 1,

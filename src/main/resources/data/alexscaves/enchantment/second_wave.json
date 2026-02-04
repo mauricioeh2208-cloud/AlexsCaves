@@ -2,6 +2,7 @@
   "description": {
     "translate": "enchantment.alexscaves.second_wave"
   },
+  "exclusive_set": "#alexscaves:exclusive_ortholance",
   "supported_items": "#alexscaves:ortholance_enchantable",
   "weight": 2,
   "max_level": 1,

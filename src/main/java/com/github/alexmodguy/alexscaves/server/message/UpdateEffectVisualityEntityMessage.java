@@ -16,6 +16,11 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
+/**
+ * Message to sync effect visuals from server to client.
+ * For BUBBLED effect, uses a client-side tracking system instead of MobEffect
+ * to properly handle effect expiration timing.
+ */
 public class UpdateEffectVisualityEntityMessage implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<UpdateEffectVisualityEntityMessage> TYPE =
@@ -76,9 +81,18 @@ public class UpdateEffectVisualityEntityMessage implements CustomPacketPayload {
                         mobEffect = ACEffectRegistry.IRRADIATED;
                         break;
                     case 1:
-                        mobEffect = ACEffectRegistry.BUBBLED;
-                        entity.playSound(ACSoundRegistry.SEA_STAFF_BUBBLE.get());
-                        break;
+                        // For BUBBLED effect, use the client-side visual tracking system
+                        // This avoids the issue where client-side MobEffect doesn't sync with server expiration
+                        boolean isNewEffect = !AlexsCaves.PROXY.hasBubbledEffectVisual(message.entityID);
+                        if (message.remove) {
+                            AlexsCaves.PROXY.setBubbledEffectTicks(message.entityID, 0);
+                        } else {
+                            AlexsCaves.PROXY.setBubbledEffectTicks(message.entityID, message.duration);
+                            if (isNewEffect) {
+                                entity.playSound(ACSoundRegistry.SEA_STAFF_BUBBLE.get());
+                            }
+                        }
+                        return; // Don't use the normal MobEffect system for BUBBLED
                     case 2:
                         mobEffect = ACEffectRegistry.MAGNETIZING;
                         break;

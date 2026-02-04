@@ -81,6 +81,11 @@ public class RecipeCaveMap extends CustomRecipe implements SpecialRecipeInGuideB
     }
 
     @Override
+    public ItemStack getResultItem(HolderLookup.Provider registries) {
+        return new ItemStack(ACItemRegistry.CAVE_MAP.get());
+    }
+
+    @Override
     public NonNullList<Ingredient> getDisplayIngredients() {
         return DISPLAY_INGREDIENTS;
     }

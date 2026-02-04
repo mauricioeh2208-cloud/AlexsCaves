@@ -309,10 +309,14 @@ public class GumWormSegmentEntity extends Entity implements ICustomCollisions, K
                 Vec3 vec31 = distVec.length() > 1F ? distVec.normalize().scale(1F + extraLength) : distVec;
                 Vec3 vec32 = this.position().add(vec31);
                 riddenFlag = head instanceof GumWormEntity gumWorm && gumWorm.isRidingMode();
-                if ((!front.isInWall() || riddenFlag) && !(head instanceof GumWormEntity gumWorm && gumWorm.isLeaping())) {
+                boolean isHeadReturning = head instanceof GumWormEntity gumWorm2 && gumWorm2.isReturningToGround();
+                // Skip surface Y clamping if head is leaping OR returning to ground
+                if ((!front.isInWall() || riddenFlag) && !(head instanceof GumWormEntity gumWorm && gumWorm.isLeaping()) && !isHeadReturning) {
                     float f = Mth.approach((float) this.getY(), riddenFlag ? (float) Math.max(surfaceY, ideal.y) :  (float) Math.min(surfaceY, vec31.y), 1F);
                     vec32 = new Vec3(vec32.x, f, vec32.z);
                 }
+                // Also set noPhysics on segment when head is returning
+                this.noPhysics = isHeadReturning;
                 this.setPos(vec32);
                 Vec3 frontsBack = front.position().add(new Vec3(0F, 0F, 3F).xRot(-(float) Math.toRadians(front.getXRot())).yRot(-(float) Math.toRadians(front.getYRot())));
                 double d0 = frontsBack.x - this.getX();
@@ -430,6 +434,7 @@ public class GumWormSegmentEntity extends Entity implements ICustomCollisions, K
         return GumWormEntity.canDigBlock(blockstate) && super.isColliding(pos, blockstate);
     }
 
+    @Override
     public Vec3 collide(Vec3 vec3) {
         return ICustomCollisions.getAllowedMovementForEntity(this, vec3);
     }
@@ -476,7 +481,8 @@ public class GumWormSegmentEntity extends Entity implements ICustomCollisions, K
         return f > 0.1F;
     }
 
-    public void lerpTo(double x, double y, double z, float yr, float xr, int steps, boolean b) {
+    @Override
+    public void lerpTo(double x, double y, double z, float yr, float xr, int steps) {
         this.lx = x;
         this.ly = y;
         this.lz = z;
@@ -511,7 +517,7 @@ public class GumWormSegmentEntity extends Entity implements ICustomCollisions, K
         return false;
     }
     public Vec3 getRiderPosition(Entity playerOwner) {
-        float f = (float) (this.getBbHeight() + 0.25F);
+        float f = (float) (this.getBbHeight() + 0.25F + playerOwner.getVehicleAttachmentPoint(this).y);
         Vec3 offset = new Vec3(0.0F, f, 0.15F).xRot((float) -Math.toRadians(this.getXRot())).yRot((float) -Math.toRadians(this.getYRot()));
         Vec3 position = this.position().add(offset);
         double setY = surfaceY;
@@ -572,6 +578,12 @@ public class GumWormSegmentEntity extends Entity implements ICustomCollisions, K
     @Override
     public boolean canBeCollidedWith() {
         return false;
+    }
+
+    @Override
+    public Vec3 getDismountLocationForPassenger(LivingEntity passenger) {
+        // Return the surface position so the player dismounts on the ground instead of at the entity's bounding box top
+        return new Vec3(this.getX(), surfaceY, this.getZ());
     }
 
     public boolean shouldBeSaved() {

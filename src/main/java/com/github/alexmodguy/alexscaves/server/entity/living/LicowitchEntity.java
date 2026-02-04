@@ -1,5 +1,6 @@
 package com.github.alexmodguy.alexscaves.server.entity.living;
 
+import com.github.alexmodguy.alexscaves.AlexsCaves;
 import com.github.alexmodguy.alexscaves.client.particle.ACParticleRegistry;
 import com.github.alexmodguy.alexscaves.server.block.ACBlockRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.ACEntityDataRegistry;
@@ -8,7 +9,6 @@ import com.github.alexmodguy.alexscaves.server.entity.ai.LicowitchAttackGoal;
 import com.github.alexmodguy.alexscaves.server.entity.ai.LicowitchUseCrucibleGoal;
 import com.github.alexmodguy.alexscaves.server.entity.util.PossessedByLicowitch;
 import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
-import com.github.alexmodguy.alexscaves.server.level.structure.ACStructureRegistry;
 import com.github.alexmodguy.alexscaves.server.misc.ACSoundRegistry;
 import com.github.alexmodguy.alexscaves.server.potion.ACEffectRegistry;
 import com.github.alexthe666.citadel.animation.Animation;
@@ -23,6 +23,8 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
@@ -113,11 +115,14 @@ public class LicowitchEntity extends Monster implements IAnimatedEntity {
     }
 
     public static boolean isWithinTowerSpawnBounds(ServerLevelAccessor level, BlockPos pos) {
-        Structure structure = level.registryAccess().registryOrThrow(Registries.STRUCTURE).get(ACStructureRegistry.LICOWITCH_TOWER.getId());
-        StructureStart structureStart = level.getLevel().structureManager().getStructureAt(pos, structure);
-        if (structure != null && structureStart.isValid()) {
-            //stop spawning on the roof and floor
-            return pos.getY() < structureStart.getBoundingBox().maxY() - 9 && pos.getY() > structureStart.getBoundingBox().minY() + 2;
+        ResourceKey<Structure> structureKey = ResourceKey.create(Registries.STRUCTURE, ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, "licowitch_tower"));
+        Structure structure = level.registryAccess().registryOrThrow(Registries.STRUCTURE).get(structureKey);
+        if (structure != null) {
+            StructureStart structureStart = level.getLevel().structureManager().getStructureAt(pos, structure);
+            if (structureStart.isValid()) {
+                //stop spawning on the roof and floor
+                return pos.getY() < structureStart.getBoundingBox().maxY() - 9 && pos.getY() > structureStart.getBoundingBox().minY() + 2;
+            }
         }
         return false;
     }

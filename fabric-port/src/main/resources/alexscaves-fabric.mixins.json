@@ -1,0 +1,26 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.github.alexmodguy.alexscaves.fabric.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "BiomeSourceMixin",
+    "ChunkStatusTasksMixin",
+    "LevelTickRateMixin",
+    "LivingEntityBubbledMixin",
+    "LivingEntityDarknessIncarnateMixin",
+    "LivingEntityEffectHooksMixin",
+    "MinecraftServerBiomeInitMixin",
+    "MobAccessor",
+    "MultiNoiseBiomeSourceMixin",
+    "PlayerSugarRushMixin",
+    "PotionBrewingMixin",
+    "PotionContentsColorMixin",
+    "SpawnPlacementsAccessor",
+    "ServerPlayerSugarRushMixin"
+  ],
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

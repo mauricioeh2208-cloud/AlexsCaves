@@ -1,0 +1,272 @@
+import org.gradle.api.GradleException
+
+plugins {
+    id 'fabric-loom' version '1.7-SNAPSHOT'
+    id 'maven-publish'
+}
+
+version = mod_version
+group = maven_group
+
+base {
+    archivesName = archives_base_name
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
+    withSourcesJar()
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://maven.fabricmc.net/' }
+}
+
+def upstreamSoundRegistryFile = file('../src/main/java/com/github/alexmodguy/alexscaves/server/misc/ACSoundRegistry.java')
+def generatedSoundRegistryDir = layout.buildDirectory.dir('generated/sources/soundRegistry/java')
+def upstreamParticleRegistryFile = file('../src/main/java/com/github/alexmodguy/alexscaves/client/particle/ACParticleRegistry.java')
+def generatedParticleRegistryDir = layout.buildDirectory.dir('generated/sources/particleRegistry/java')
+
+def generateSoundRegistry = tasks.register('generateSoundRegistry') {
+    inputs.file(upstreamSoundRegistryFile)
+    outputs.dir(generatedSoundRegistryDir)
+
+    doLast {
+        def matcher = upstreamSoundRegistryFile.text =~ /public static final RegistryObject<SoundEvent> ([A-Z0-9_]+) = createSoundEvent\("([^"]+)"\);/
+        def entries = []
+        matcher.each { match ->
+            entries << [field: match[1], id: match[2]]
+        }
+
+        if (entries.isEmpty()) {
+            throw new GradleException("Could not extract sound registrations from ${upstreamSoundRegistryFile}")
+        }
+
+        def outputFile = generatedSoundRegistryDir.get().file('com/github/alexmodguy/alexscaves/server/misc/ACSoundRegistry.java').asFile
+        outputFile.parentFile.mkdirs()
+        outputFile.text = """package com.github.alexmodguy.alexscaves.server.misc;
+
+import com.github.alexmodguy.alexscaves.AlexsCaves;
+import com.github.alexmodguy.alexscaves.server.misc.registry.RegistryHandle;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
+
+public final class ACSoundRegistry {
+${entries.collect { "    public static final RegistryHandle<SoundEvent> ${it.field} = createSoundEvent(\"${it.id}\");" }.join('\n')}
+
+    private ACSoundRegistry() {
+    }
+
+    public static void init() {
+    }
+
+    private static RegistryHandle<SoundEvent> createSoundEvent(String soundName) {
+        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, soundName);
+        SoundEvent soundEvent = Registry.register(BuiltInRegistries.SOUND_EVENT, id, SoundEvent.createVariableRangeEvent(id));
+        return new RegistryHandle<>(id, soundEvent);
+    }
+}
+"""
+    }
+}
+
+def generateParticleRegistry = tasks.register('generateParticleRegistry') {
+    inputs.file(upstreamParticleRegistryFile)
+    outputs.dir(generatedParticleRegistryDir)
+
+    doLast {
+        def sourceText = upstreamParticleRegistryFile.text
+        def entries = []
+
+        def simpleMatcher = sourceText =~ /public static final RegistryObject<SimpleParticleType> ([A-Z0-9_]+) = DEF_REG.register\("([^"]+)", \(\) -> new SimpleParticleType\(false\)\);/
+        simpleMatcher.each { match ->
+            entries << [field: match[1], id: match[2], kind: 'simple']
+        }
+
+        def blockMatcher = sourceText =~ /public static final RegistryObject<ParticleType<BlockParticleOption>> ([A-Z0-9_]+) = DEF_REG.register\("([^"]+)", ACParticleRegistry::createBlockParticleType\);/
+        blockMatcher.each { match ->
+            entries << [field: match[1], id: match[2], kind: 'block']
+        }
+
+        def itemMatcher = sourceText =~ /public static final RegistryObject<ParticleType<ItemParticleOption>> ([A-Z0-9_]+) = DEF_REG.register\("([^"]+)", ACParticleRegistry::createItemParticleType\);/
+        itemMatcher.each { match ->
+            entries << [field: match[1], id: match[2], kind: 'item']
+        }
+
+        if (entries.isEmpty()) {
+            throw new GradleException("Could not extract particle registrations from ${upstreamParticleRegistryFile}")
+        }
+
+        def outputFile = generatedParticleRegistryDir.get().file('com/github/alexmodguy/alexscaves/client/particle/ACParticleRegistry.java').asFile
+        outputFile.parentFile.mkdirs()
+        outputFile.text = """package com.github.alexmodguy.alexscaves.client.particle;
+
+import com.github.alexmodguy.alexscaves.AlexsCaves;
+import com.github.alexmodguy.alexscaves.server.misc.registry.RegistryHandle;
+import com.mojang.serialization.MapCodec;
+import net.fabricmc.fabric.api.particle.v1.FabricParticleTypes;
+import net.minecraft.core.Registry;
+import net.minecraft.core.particles.BlockParticleOption;
+import net.minecraft.core.particles.ItemParticleOption;
+import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
+
+public final class ACParticleRegistry {
+${entries.collect {
+    switch (it.kind) {
+        case 'simple':
+            return "    public static final RegistryHandle<SimpleParticleType> ${it.field} = createSimpleParticleType(\"${it.id}\");"
+        case 'block':
+            return "    public static final RegistryHandle<ParticleType<BlockParticleOption>> ${it.field} = createBlockParticleType(\"${it.id}\");"
+        case 'item':
+            return "    public static final RegistryHandle<ParticleType<ItemParticleOption>> ${it.field} = createItemParticleType(\"${it.id}\");"
+        default:
+            throw new GradleException("Unknown particle entry kind: ${it.kind}")
+    }
+}.join('\n')}
+
+    private ACParticleRegistry() {
+    }
+
+    public static void init() {
+    }
+
+    private static RegistryHandle<SimpleParticleType> createSimpleParticleType(String particleName) {
+        return register(particleName, FabricParticleTypes.simple(false));
+    }
+
+    private static RegistryHandle<ParticleType<BlockParticleOption>> createBlockParticleType(String particleName) {
+        return register(particleName, new ParticleType<BlockParticleOption>(false) {
+            @Override
+            public MapCodec<BlockParticleOption> codec() {
+                return BlockParticleOption.codec(this);
+            }
+
+            @Override
+            public StreamCodec<? super RegistryFriendlyByteBuf, BlockParticleOption> streamCodec() {
+                return BlockParticleOption.streamCodec(this);
+            }
+        });
+    }
+
+    private static RegistryHandle<ParticleType<ItemParticleOption>> createItemParticleType(String particleName) {
+        return register(particleName, new ParticleType<ItemParticleOption>(false) {
+            @Override
+            public MapCodec<ItemParticleOption> codec() {
+                return ItemParticleOption.codec(this);
+            }
+
+            @Override
+            public StreamCodec<? super RegistryFriendlyByteBuf, ItemParticleOption> streamCodec() {
+                return ItemParticleOption.streamCodec(this);
+            }
+        });
+    }
+
+    private static <T extends ParticleType<?>> RegistryHandle<T> register(String particleName, T particleType) {
+        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, particleName);
+        return new RegistryHandle<>(id, Registry.register(BuiltInRegistries.PARTICLE_TYPE, id, particleType));
+    }
+}
+"""
+    }
+}
+
+sourceSets.main.java.srcDir(generateSoundRegistry)
+sourceSets.main.java.srcDir(generateParticleRegistry)
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+}
+
+processResources {
+    inputs.property 'version', version
+
+    filesMatching('fabric.mod.json') {
+        expand(version: version)
+    }
+
+    from('../src/main/resources/assets') {
+        into 'assets'
+    }
+
+    from('../src/main/resources/assets/alexscaves/textures/armor/hazmat_suit_0.png') {
+        into 'assets/alexscaves/textures/models/armor'
+        rename { 'hazmat_suit_layer_1.png' }
+    }
+
+    from('../src/main/resources/assets/alexscaves/textures/armor/hazmat_suit_1.png') {
+        into 'assets/alexscaves/textures/models/armor'
+        rename { 'hazmat_suit_layer_2.png' }
+    }
+
+    from('../src/main/resources/data/alexscaves/damage_type') {
+        into 'data/alexscaves/damage_type'
+    }
+
+    from('../src/main/resources/data/alexscaves/recipes') {
+        into 'data/alexscaves/recipes'
+        include 'block_of_uranium.json'
+        include 'darkened_apple.json'
+        include 'gunpowder_from_sulfur.json'
+        include 'hazmat_*.json'
+        include 'polymer_plate.json'
+        include 'radon_lamp_*.json'
+        include 'radrock*.json'
+        include 'slam.json'
+        include 'spelunkie.json'
+        include 'sulfur_from_dust.json'
+        include 'unrefined_waste.json'
+        include 'uranium_rod.json'
+    }
+
+    from('../src/main/resources/data/alexscaves/recipes/furnace') {
+        into 'data/alexscaves/recipes/furnace'
+        include 'cooked_lanternfish_*.json'
+        include 'cooked_radgill_*.json'
+        include 'uranium_*.json'
+    }
+
+    from('../src/main/resources/data/alexscaves/loot_tables/blocks') {
+        into 'data/alexscaves/loot_tables/blocks'
+        include 'acidic_radrock.json'
+        include 'block_of_uranium.json'
+        include 'geothermal_vent*.json'
+        include 'hazmat*.json'
+        include 'radon_lamp_*.json'
+        include 'radrock*.json'
+        include 'sulfur*.json'
+        include 'unrefined_waste.json'
+        include 'uranium_rod.json'
+    }
+
+    from('../src/main/resources/data/minecraft/tags/damage_type') {
+        into 'data/minecraft/tags/damage_type'
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 21
+}
+
+tasks.named('compileJava').configure {
+    dependsOn(generateSoundRegistry)
+    dependsOn(generateParticleRegistry)
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}

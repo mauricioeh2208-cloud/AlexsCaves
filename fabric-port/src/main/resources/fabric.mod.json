@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "alexscaves",
+  "version": "${version}",
+  "name": "Alex's Caves",
+  "description": "Initial Fabric 1.21.1 port scaffold for Alex's Caves.",
+  "authors": [
+    "alexthe668"
+  ],
+  "contact": {
+    "sources": "https://github.com/AlexModGuy/AlexsCaves"
+  },
+  "license": "All Rights Reserved",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.github.alexmodguy.alexscaves.fabric.AlexsCavesFabric"
+    ]
+  },
+  "mixins": [
+    "alexscaves-fabric.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "fabric-api": "*",
+    "minecraft": "~1.21.1",
+    "java": ">=21"
+  }
+}

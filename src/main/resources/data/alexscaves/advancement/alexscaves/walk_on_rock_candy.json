@@ -22,7 +22,7 @@
             "predicate": {
               "stepping_on": {
                 "block": {
-                  "tag": "alexscaves:rock_candies"
+                  "blocks": "#alexscaves:rock_candies"
                 }
               }
             }

@@ -23,7 +23,7 @@
             "entity": "this",
             "predicate": {
               "location": {
-                "structure": "alexscaves:underground_cabin"
+                "structures": "alexscaves:underground_cabin"
               }
             }
           }

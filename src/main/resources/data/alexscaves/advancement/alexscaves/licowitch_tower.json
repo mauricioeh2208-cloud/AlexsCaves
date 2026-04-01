@@ -21,7 +21,7 @@
             "entity": "this",
             "predicate": {
               "location": {
-                "structure": "alexscaves:licowitch_tower"
+                "structures": "alexscaves:licowitch_tower"
               }
             }
           }

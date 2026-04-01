@@ -81,10 +81,8 @@ public class RaygunRenderHelper {
             boolean blue = false;
             Level level = Minecraft.getInstance().level;
             if (level != null) {
-                Holder<Enchantment> gammaRay = level.registryAccess()
-                    .lookupOrThrow(Registries.ENCHANTMENT)
-                    .getOrThrow(ACEnchantmentRegistry.GAMMA_RAY);
-                blue = stack.getEnchantmentLevel(gammaRay) > 0;
+                var gammaRayHolder = ACEnchantmentRegistry.getEnchantmentHolder(level, ACEnchantmentRegistry.GAMMA_RAY);
+                blue = gammaRayHolder.isPresent() && stack.getEnchantmentLevel(gammaRayHolder.get()) > 0;
             }
             if (rayPosition != null && RaygunItem.getUseTime(stack) >= 5F) {
                 Vec3 gunPos = getGunOffset(entity, partialTick, firstPerson, entity.getMainArm() == HumanoidArm.LEFT);
@@ -108,10 +106,8 @@ public class RaygunRenderHelper {
             boolean blue = false;
             Level level = Minecraft.getInstance().level;
             if (level != null) {
-                Holder<Enchantment> gammaRay = level.registryAccess()
-                    .lookupOrThrow(Registries.ENCHANTMENT)
-                    .getOrThrow(ACEnchantmentRegistry.GAMMA_RAY);
-                blue = stack.getEnchantmentLevel(gammaRay) > 0;
+                var gammaRayHolder = ACEnchantmentRegistry.getEnchantmentHolder(level, ACEnchantmentRegistry.GAMMA_RAY);
+                blue = gammaRayHolder.isPresent() && stack.getEnchantmentLevel(gammaRayHolder.get()) > 0;
             }
             if (rayPosition != null && RaygunItem.getUseTime(stack) >= 5F) {
                 Vec3 gunPos = getGunOffset(entity, partialTick, firstPerson, entity.getMainArm() == HumanoidArm.RIGHT);

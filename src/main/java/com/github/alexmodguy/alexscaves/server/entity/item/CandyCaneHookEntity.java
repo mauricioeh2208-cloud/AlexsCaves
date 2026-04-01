@@ -85,7 +85,7 @@ public class CandyCaneHookEntity extends ThrowableProjectile {
         this.moveTo(d0 + armOffset.x, d1, d2 + armOffset.z, f1, f);
         Vec3 vec3 = new Vec3(-f3, Mth.clamp(-(f5 / f4), -5.0F, 5.0F), -f2);
         double d3 = vec3.length();
-        double launchDist = 0.5D + itemstack.getEnchantmentLevel(level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(ACEnchantmentRegistry.FAR_FLUNG)) * 0.2D;
+        double launchDist = 0.5D + ACEnchantmentRegistry.getEnchantmentLevel(level, itemstack, ACEnchantmentRegistry.FAR_FLUNG) * 0.2D;
         vec3 = vec3.multiply(launchDist / d3 + 0.5D + this.random.nextGaussian() * 0.0045D, launchDist / d3 + 0.5D + this.random.nextGaussian() * 0.0045D, launchDist / d3 + 0.5D + this.random.nextGaussian() * 0.0045D);
         this.setDeltaMovement(vec3);
         this.setYRot((float) (Mth.atan2(vec3.x, vec3.z) * (double) (180F / (float) Math.PI)));
@@ -93,8 +93,8 @@ public class CandyCaneHookEntity extends ThrowableProjectile {
         this.setOffhand(offhand);
         this.yRotO = this.getYRot();
         this.xRotO = this.getXRot();
-        this.setDamage(itemstack.getEnchantmentLevel(level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(ACEnchantmentRegistry.SHARP_CANE)) * 3.0F);
-        if(itemstack.getEnchantmentLevel(level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(ACEnchantmentRegistry.STRAIGHT_HOOK)) > 0){
+        this.setDamage(ACEnchantmentRegistry.getEnchantmentLevel(level, itemstack, ACEnchantmentRegistry.SHARP_CANE) * 3.0F);
+        if(ACEnchantmentRegistry.getEnchantmentLevel(level, itemstack, ACEnchantmentRegistry.STRAIGHT_HOOK) > 0){
             this.entityData.set(RESISTS_GRAVITY, true);
         }
     }

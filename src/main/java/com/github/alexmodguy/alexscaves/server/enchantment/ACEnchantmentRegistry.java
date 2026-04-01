@@ -105,6 +105,48 @@ public class ACEnchantmentRegistry {
         return ResourceKey.create(Registries.ENCHANTMENT, ResourceLocation.fromNamespaceAndPath(AlexsCaves.MODID, name));
     }
     
+    /**
+     * Safely get the enchantment level for an item, returning 0 if the enchantment doesn't exist.
+     * This avoids crashes when enchantment data files are missing.
+     * 
+     * @param level The level to get registry access from
+     * @param stack The item stack to check
+     * @param enchantmentKey The enchantment resource key
+     * @return The enchantment level, or 0 if not present or enchantment doesn't exist
+     */
+    public static int getEnchantmentLevel(net.minecraft.world.level.Level level, net.minecraft.world.item.ItemStack stack, ResourceKey<Enchantment> enchantmentKey) {
+        if (level == null || stack == null || stack.isEmpty()) {
+            return 0;
+        }
+        var lookup = level.registryAccess().lookup(Registries.ENCHANTMENT);
+        if (lookup.isEmpty()) {
+            return 0;
+        }
+        var holder = lookup.get().get(enchantmentKey);
+        if (holder.isEmpty()) {
+            return 0;
+        }
+        return stack.getEnchantmentLevel(holder.get());
+    }
+    
+    /**
+     * Safely get an enchantment holder, returning Optional.empty() if the enchantment doesn't exist.
+     * 
+     * @param level The level to get registry access from
+     * @param enchantmentKey The enchantment resource key
+     * @return Optional containing the enchantment holder, or empty if not found
+     */
+    public static java.util.Optional<net.minecraft.core.Holder<Enchantment>> getEnchantmentHolder(net.minecraft.world.level.Level level, ResourceKey<Enchantment> enchantmentKey) {
+        if (level == null) {
+            return java.util.Optional.empty();
+        }
+        var lookup = level.registryAccess().lookup(Registries.ENCHANTMENT);
+        if (lookup.isEmpty()) {
+            return java.util.Optional.empty();
+        }
+        return lookup.get().get(enchantmentKey);
+    }
+    
     public static void init() {
         AlexsCaves.LOGGER.info("ACEnchantmentRegistry: Enchantments are now data-driven in 1.21");
     }

@@ -143,9 +143,8 @@ public class MagneticWeaponEntity extends Entity {
                 float maxDist = 30F;
                 if(getController() instanceof LivingEntity living && living.getUseItem().is(ACItemRegistry.GALENA_GAUNTLET.get())){
                     ItemStack useItem = living.getUseItem();
-                    var enchRegistry = level().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-                    haste = EnchantmentHelper.getItemEnchantmentLevel(enchRegistry.getOrThrow(ACEnchantmentRegistry.FERROUS_HASTE), useItem) > 0;
-                    int fieldExtension = EnchantmentHelper.getItemEnchantmentLevel(enchRegistry.getOrThrow(ACEnchantmentRegistry.FIELD_EXTENSION), useItem);
+                    haste = ACEnchantmentRegistry.getEnchantmentLevel(level(), useItem, ACEnchantmentRegistry.FERROUS_HASTE) > 0;
+                    int fieldExtension = ACEnchantmentRegistry.getEnchantmentLevel(level(), useItem, ACEnchantmentRegistry.FIELD_EXTENSION);
                     maxDist += fieldExtension * 5F;
                 }
                 BlockPos miningBlock = null;

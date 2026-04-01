@@ -256,7 +256,16 @@ public class ACItemstackRenderer extends BlockEntityWithoutLevelRenderer {
             poseStack.pushPose();
             poseStack.scale(0.9F, 0.9F, 0.9F);
             RAYGUN_MODEL.setupAnim(null, useAmount, ageInTicks,  0, 0, 0);
-            boolean gamma = level != null && itemStackIn.getEnchantmentLevel(level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(ACEnchantmentRegistry.GAMMA_RAY)) > 0;
+            boolean gamma = false;
+            if (level != null) {
+                var enchantmentLookup = level.registryAccess().lookup(Registries.ENCHANTMENT);
+                if (enchantmentLookup.isPresent()) {
+                    var gammaRayHolder = enchantmentLookup.get().get(ACEnchantmentRegistry.GAMMA_RAY);
+                    if (gammaRayHolder.isPresent()) {
+                        gamma = itemStackIn.getEnchantmentLevel(gammaRayHolder.get()) > 0;
+                    }
+                }
+            }
             ResourceLocation texture = gamma ? RAYGUN_BLUE_TEXTURE : RAYGUN_TEXTURE;
             ResourceLocation textureActive = gamma ? RAYGUN_BLUE_ACTIVE_TEXTURE : RAYGUN_ACTIVE_TEXTURE;
             RAYGUN_MODEL.renderToBuffer(poseStack, getVertexConsumerFoil(bufferIn, RenderType.entityCutoutNoCull(texture), texture, itemStackIn.hasFoil()), combinedLightIn, combinedOverlayIn, -1);

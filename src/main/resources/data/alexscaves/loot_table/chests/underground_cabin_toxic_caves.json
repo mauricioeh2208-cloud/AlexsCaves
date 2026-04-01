@@ -23,7 +23,7 @@
         {
           "type": "minecraft:loot_table",
           "weight": 15,
-          "name": "alexscaves:chests/underground_cabin"
+          "value": "alexscaves:chests/underground_cabin"
         },
         {
           "type": "minecraft:item",
@@ -31,8 +31,8 @@
           "weight": 10,
           "functions": [
             {
-              "function": "set_nbt",
-              "tag": "{CaveBiome:\"alexscaves:toxic_caves\"}"
+              "function": "minecraft:set_custom_data",
+              "tag": "{\"CaveBiome\": \"alexscaves:toxic_caves\"}"
             }
           ]
         }

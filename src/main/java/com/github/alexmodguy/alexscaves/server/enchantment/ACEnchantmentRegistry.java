@@ -144,7 +144,12 @@ public class ACEnchantmentRegistry {
         if (lookup.isEmpty()) {
             return java.util.Optional.empty();
         }
-        return lookup.get().get(enchantmentKey);
+        var reference = lookup.get().get(enchantmentKey);
+        if (reference.isEmpty()) {
+            return java.util.Optional.empty();
+        }
+        // Reference extends Holder, so we can cast it
+        return java.util.Optional.of(reference.get());
     }
     
     public static void init() {

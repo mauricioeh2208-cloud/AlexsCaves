@@ -31,7 +31,8 @@
               "function": "minecraft:furnace_smelt"
             },
             {
-              "function": "looting_enchant",
+              "function": "minecraft:enchanted_count_increase",
+              "enchantment": "minecraft:looting",
               "count": {
                 "min": 0,
                 "max": 2
@@ -40,7 +41,8 @@
           ]
         }
       ]
-    },{
+    },
+    {
       "name": "grottoceratops_hide",
       "rolls": 1,
       "entries": [
@@ -57,7 +59,8 @@
               }
             },
             {
-              "function": "looting_enchant",
+              "function": "minecraft:enchanted_count_increase",
+              "enchantment": "minecraft:looting",
               "count": {
                 "min": 0,
                 "max": 1

@@ -13,8 +13,8 @@
           "weight": 10,
           "functions": [
             {
-              "function": "set_nbt",
-              "tag": "{CaveBiome:\"alexscaves:primordial_caves\"}"
+              "function": "minecraft:set_custom_data",
+              "tag": "{\"CaveBiome\": \"alexscaves:primordial_caves\"}"
             }
           ]
         },

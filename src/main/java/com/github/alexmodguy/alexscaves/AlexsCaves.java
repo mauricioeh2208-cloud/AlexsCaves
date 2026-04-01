@@ -15,6 +15,7 @@ import com.github.alexmodguy.alexscaves.server.enchantment.ACEnchantmentRegistry
 import com.github.alexmodguy.alexscaves.server.entity.ACEntityDataRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.ACEntityRegistry;
 import com.github.alexmodguy.alexscaves.server.entity.ACFrogRegistry;
+import com.github.alexmodguy.alexscaves.server.entity.util.ACAttachmentRegistry;
 import com.github.alexmodguy.alexscaves.server.event.CommonEvents;
 import com.github.alexmodguy.alexscaves.server.inventory.ACMenuRegistry;
 import com.github.alexmodguy.alexscaves.server.item.ACArmorMaterial;
@@ -113,6 +114,7 @@ public class AlexsCaves {
         ACParticleRegistry.DEF_REG.register(modEventBus);
         ACEntityRegistry.DEF_REG.register(modEventBus);
         ACEntityDataRegistry.DEF_REG.register(modEventBus);
+        ACAttachmentRegistry.DEF_REG.register(modEventBus);
         ACPOIRegistry.DEF_REG.register(modEventBus);
         ACFeatureRegistry.DEF_REG.register(modEventBus);
         ACSurfaceRuleConditionRegistry.DEF_REG.register(modEventBus);

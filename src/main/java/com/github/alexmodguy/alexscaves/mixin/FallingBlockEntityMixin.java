@@ -2,9 +2,7 @@ package com.github.alexmodguy.alexscaves.mixin;
 
 import com.github.alexmodguy.alexscaves.server.entity.util.FallingBlockEntityAccessor;
 import com.github.alexmodguy.alexscaves.server.entity.util.MagnetUtil;
-import com.github.alexmodguy.alexscaves.server.entity.util.MagneticDataAccessors;
 import com.github.alexthe666.citadel.CitadelConstants;
-import net.minecraft.core.Direction;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -35,10 +33,7 @@ public abstract class FallingBlockEntityMixin extends Entity implements FallingB
     @Inject(at = @At("TAIL"), remap = CitadelConstants.REMAPREFS, method = "Lnet/minecraft/world/entity/item/FallingBlockEntity;defineSynchedData(Lnet/minecraft/network/syncher/SynchedEntityData$Builder;)V")
     private void citadel_registerData(SynchedEntityData.Builder builder, CallbackInfo ci) {
         builder.define(FALL_BLOCK_TIME, 0);
-        builder.define(MagneticDataAccessors.FALLING_MAGNET_DELTA_X, 0F);
-        builder.define(MagneticDataAccessors.FALLING_MAGNET_DELTA_Y, 0F);
-        builder.define(MagneticDataAccessors.FALLING_MAGNET_DELTA_Z, 0F);
-        builder.define(MagneticDataAccessors.FALLING_MAGNET_ATTACHMENT_DIRECTION, Direction.DOWN);
+        // Magnetic data is now handled via NeoForge Attachment API in EntityMixin
     }
 
     @Inject(

@@ -2,43 +2,36 @@ package com.github.alexmodguy.alexscaves.mixin;
 
 import com.github.alexmodguy.alexscaves.server.item.PrimordialArmorItem;
 import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.data.tags.ItemTagsProvider;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodData;
 import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.common.Tags;
+import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(FoodData.class)
+/**
+ * Mixin to modify food eating behavior for Primordial Armor bonus.
+ * In 1.21, food consumption happens in Player.eat() instead of FoodData.eat().
+ */
+@Mixin(Player.class)
 public abstract class FoodDataMixin {
 
-    @Shadow
-    public abstract void eat(int nutrition, float saturation);
-
     @Inject(
-            method = {"Lnet/minecraft/world/food/FoodData;eat(Lnet/minecraft/world/item/Item;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/LivingEntity;)V"},
-            cancellable = true,
-            remap = false, //FORGE METHOD
-            at = @At(value = "HEAD")
+            method = "eat(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/food/FoodProperties;)Lnet/minecraft/world/item/ItemStack;",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/food/FoodData;eat(Lnet/minecraft/world/food/FoodProperties;)V")
     )
-    public void ac_eat(Item item, ItemStack stack, LivingEntity entity, CallbackInfo ci) {
-        if (entity != null && stack.is(ACTagRegistry.RAW_MEATS)) {
-            int extraShanksFromArmor = PrimordialArmorItem.getExtraSaturationFromArmor(entity);
+    public void ac_eat(Level level, ItemStack food, FoodProperties foodProperties, CallbackInfoReturnable<ItemStack> cir) {
+        Player player = (Player) (Object) this;
+        if (food.is(ACTagRegistry.RAW_MEATS)) {
+            int extraShanksFromArmor = PrimordialArmorItem.getExtraSaturationFromArmor(player);
             if (extraShanksFromArmor != 0) {
-                ci.cancel();
-                if (item.components().has(DataComponents.FOOD)) {
-                    FoodProperties foodproperties = stack.getFoodProperties(entity);
-                    this.eat(foodproperties.nutrition() + extraShanksFromArmor, foodproperties.saturation() + (extraShanksFromArmor * 0.125F));
-                }
+                // Add extra nutrition and saturation from Primordial Armor when eating raw meat
+                player.getFoodData().eat(extraShanksFromArmor, extraShanksFromArmor * 0.125F);
             }
         }
     }
-
 }

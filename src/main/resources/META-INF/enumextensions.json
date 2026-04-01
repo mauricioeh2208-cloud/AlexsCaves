@@ -35,6 +35,24 @@
         "class": "com/github/alexmodguy/alexscaves/server/item/ACRarityEnumParams",
         "method": "getRainbowRarityParameter"
       }
+    },
+    {
+      "enum": "net/minecraft/world/entity/MobCategory",
+      "name": "ALEXSCAVES_CAVE_CREATURE",
+      "constructor": "(Ljava/lang/String;IZZI)V",
+      "parameters": {
+        "class": "com/github/alexmodguy/alexscaves/server/entity/ACMobCategoryEnumParams",
+        "method": "getCaveCreatureParameter"
+      }
+    },
+    {
+      "enum": "net/minecraft/world/entity/MobCategory",
+      "name": "ALEXSCAVES_DEEP_SEA_CREATURE",
+      "constructor": "(Ljava/lang/String;IZZI)V",
+      "parameters": {
+        "class": "com/github/alexmodguy/alexscaves/server/entity/ACMobCategoryEnumParams",
+        "method": "getDeepSeaCreatureParameter"
+      }
     }
   ]
 }

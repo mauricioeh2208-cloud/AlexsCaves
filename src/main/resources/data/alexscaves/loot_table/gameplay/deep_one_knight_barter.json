@@ -61,9 +61,7 @@
           "type": "minecraft:item",
           "functions": [
             {
-              "enchantments": [
-                "minecraft:depth_strider"
-              ],
+              "enchantments": ["minecraft:depth_strider"],
               "function": "minecraft:enchant_randomly"
             }
           ],
@@ -74,9 +72,7 @@
           "type": "minecraft:item",
           "functions": [
             {
-              "enchantments": [
-                "minecraft:depth_strider"
-              ],
+              "enchantments": ["minecraft:depth_strider"],
               "function": "minecraft:enchant_randomly"
             }
           ],
@@ -87,9 +83,7 @@
           "type": "minecraft:item",
           "functions": [
             {
-              "enchantments": [
-                "minecraft:respiration"
-              ],
+              "enchantments": ["minecraft:respiration"],
               "function": "minecraft:enchant_randomly"
             }
           ],
@@ -100,9 +94,7 @@
           "type": "minecraft:item",
           "functions": [
             {
-              "enchantments": [
-                "minecraft:respiration"
-              ],
+              "enchantments": ["minecraft:respiration"],
               "function": "minecraft:enchant_randomly"
             }
           ],

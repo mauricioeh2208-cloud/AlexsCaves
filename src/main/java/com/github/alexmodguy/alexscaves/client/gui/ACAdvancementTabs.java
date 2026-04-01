@@ -189,7 +189,7 @@ public class ACAdvancementTabs {
                 return true;
             }
             // In 1.21, we need to use accessors for private fields
-            AdvancementHolder holder = accessor.getAdvancementHolder();
+            AdvancementHolder holder = accessor.getAdvancementNode().holder();
             Type direct = getDirectType(holder);
             // Simplified logic - just check current widget's progress
             return direct == DEFAULT || (progress != null && progress.isDone());

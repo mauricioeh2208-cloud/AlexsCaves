@@ -2,7 +2,7 @@ package com.github.alexmodguy.alexscaves.mixin.client;
 
 
 import com.github.alexmodguy.alexscaves.client.gui.ACAdvancementTabs;
-import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.advancements.AdvancementTab;
@@ -49,9 +49,10 @@ public class AdvancementTabMixin {
     @Final
     private AdvancementWidget root;
 
+    // In 1.21, the map key type changed from Advancement to AdvancementHolder
     @Shadow
     @Final
-    private Map<Advancement, AdvancementWidget> widgets;
+    private Map<AdvancementHolder, AdvancementWidget> widgets;
 
 
     @Inject(
@@ -61,7 +62,7 @@ public class AdvancementTabMixin {
             at = @At(value = "HEAD")
     )
     private void ac_drawContents(GuiGraphics guiGraphics, int topX, int topY, CallbackInfo ci) {
-        if (ACAdvancementTabs.isAlexsCavesWidget(((AdvancementWidgetAccessor)root).getAdvancementHolder())) {
+        if (ACAdvancementTabs.isAlexsCavesWidget(((AdvancementWidgetAccessor)root).getAdvancementNode().holder())) {
             ci.cancel();
             guiGraphics.enableScissor(topX, topY, topX + 234, topY + 113);
             guiGraphics.pose().pushPose();
@@ -91,7 +92,7 @@ public class AdvancementTabMixin {
             at = @At(value = "HEAD")
     )
     private void ac_drawTooltips(GuiGraphics guiGraphics, int mouseX, int mouseY, int topX, int topY, CallbackInfo ci) {
-        if (ACAdvancementTabs.isAlexsCavesWidget(((AdvancementWidgetAccessor)root).getAdvancementHolder())) {
+        if (ACAdvancementTabs.isAlexsCavesWidget(((AdvancementWidgetAccessor)root).getAdvancementNode().holder())) {
             int i = Mth.floor(this.scrollX);
             int j = Mth.floor(this.scrollY);
             ACAdvancementTabs.Type hoverType = null;
@@ -99,7 +100,7 @@ public class AdvancementTabMixin {
                 for (AdvancementWidget advancementwidget : this.widgets.values()) {
                     if (advancementwidget.isMouseOver(i, j, mouseX, mouseY)) {
                         if (ACAdvancementTabs.Type.isTreeNodeUnlocked(advancementwidget)) {
-                            hoverType = ACAdvancementTabs.Type.forAdvancementHolder(((AdvancementWidgetAccessor)advancementwidget).getAdvancementHolder());
+                            hoverType = ACAdvancementTabs.Type.forAdvancementHolder(((AdvancementWidgetAccessor)advancementwidget).getAdvancementNode().holder());
                         }
                     }
                 }

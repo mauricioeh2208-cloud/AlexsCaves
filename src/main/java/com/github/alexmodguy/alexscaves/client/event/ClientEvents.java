@@ -38,10 +38,12 @@ import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.advancements.AdvancementTab;
+import net.minecraft.client.gui.screens.advancements.AdvancementWidget;
 import net.minecraft.client.gui.screens.advancements.AdvancementsScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.advancements.AdvancementHolder;
 import com.github.alexmodguy.alexscaves.mixin.client.AdvancementTabAccessor;
+import com.github.alexmodguy.alexscaves.mixin.client.AdvancementWidgetAccessor;
 import com.github.alexmodguy.alexscaves.mixin.client.AdvancementsScreenAccessor;
 import net.minecraft.client.renderer.FogRenderer;
 import net.minecraft.client.renderer.GameRenderer;
@@ -1204,9 +1206,12 @@ public class ClientEvents {
         if (Minecraft.getInstance().screen instanceof AdvancementsScreen advancementsScreen) {
             AdvancementTab selectedTab = ((AdvancementsScreenAccessor) advancementsScreen).getSelectedTab();
             if (selectedTab != null) {
-                AdvancementHolder holder = ((AdvancementTabAccessor) selectedTab).getRootAdvancement();
-                if (ACAdvancementTabs.isAlexsCavesWidget(holder)) {
-                    ACAdvancementTabs.tick();
+                AdvancementWidget rootWidget = ((AdvancementTabAccessor) selectedTab).getRootWidget();
+                if (rootWidget != null) {
+                    AdvancementHolder holder = ((AdvancementWidgetAccessor) rootWidget).getAdvancementNode().holder();
+                    if (ACAdvancementTabs.isAlexsCavesWidget(holder)) {
+                        ACAdvancementTabs.tick();
+                    }
                 }
             }
         }

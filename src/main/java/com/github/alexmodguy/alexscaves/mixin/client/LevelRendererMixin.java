@@ -97,9 +97,12 @@ public abstract class LevelRendererMixin {
         }
     }
 
-    @Inject(method = "Lnet/minecraft/client/renderer/LevelRenderer;renderSky(Lcom/mojang/blaze3d/vertex/PoseStack;Lorg/joml/Matrix4f;FLnet/minecraft/client/Camera;ZLjava/lang/Runnable;)V", at = @At(value = "HEAD"), cancellable = true)
+    // In 1.21, renderSky signature changed:
+    // Old: renderSky(PoseStack, Matrix4f, F, Camera, Z, Runnable)
+    // New: renderSky(Matrix4f frustumMatrix, Matrix4f projectionMatrix, F, Camera, Z, Runnable)
+    @Inject(method = "Lnet/minecraft/client/renderer/LevelRenderer;renderSky(Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;FLnet/minecraft/client/Camera;ZLjava/lang/Runnable;)V", at = @At(value = "HEAD"), cancellable = true)
     // have to completely override this method for compatibility reasons
-    private void ac_renderSky(PoseStack poseStack, Matrix4f matrix4f2, float partialTick, Camera camera, boolean foggy,
+    private void ac_renderSky(Matrix4f frustumMatrix, Matrix4f projectionMatrix, float partialTick, Camera camera, boolean foggy,
             Runnable runnable, CallbackInfo ci) {
         // AC CODE START
         float override = ClientProxy.acSkyOverrideAmount;
@@ -109,11 +112,10 @@ public abstract class LevelRendererMixin {
         }
         ci.cancel();
         // AC CODE END
-        // Note: In 1.21, DimensionSpecialEffects.renderSky signature changed.
-        // Sky rendering is now handled differently - see vanilla dimension effects for reference.
-        // The old signature was: renderSky(ClientLevel, int, float, PoseStack, Camera, Matrix4f, boolean, Runnable)
-        // if (level.effects().renderSky(level, ticks, partialTick, poseStack, camera, matrix4f2, foggy, runnable))
-        //     return;
+        
+        // In 1.21, we need to create our own PoseStack since it's no longer passed
+        PoseStack poseStack = new PoseStack();
+        
         runnable.run();
         if (!foggy) {
             FogType fogtype = camera.getFluidInCamera();
@@ -134,7 +136,7 @@ public abstract class LevelRendererMixin {
                     RenderSystem.setShaderColor(f, f1, f2, 1.0F);
                     ShaderInstance shaderinstance = RenderSystem.getShader();
                     this.skyBuffer.bind();
-                    this.skyBuffer.drawWithShader(poseStack.last().pose(), matrix4f2, shaderinstance);
+                    this.skyBuffer.drawWithShader(poseStack.last().pose(), projectionMatrix, shaderinstance);
                     VertexBuffer.unbind();
                     RenderSystem.enableBlend();
                     float[] afloat = this.level.effects().getSunriseColor(this.level.getTimeOfDay(partialTick),
@@ -222,7 +224,7 @@ public abstract class LevelRendererMixin {
                         RenderSystem.setShaderColor(f10, f10, f10, f10);
                         FogRenderer.setupNoFog();
                         this.starBuffer.bind();
-                        this.starBuffer.drawWithShader(poseStack.last().pose(), matrix4f2,
+                        this.starBuffer.drawWithShader(poseStack.last().pose(), projectionMatrix,
                                 GameRenderer.getPositionShader());
                         VertexBuffer.unbind();
                         runnable.run();
@@ -239,7 +241,7 @@ public abstract class LevelRendererMixin {
                         poseStack.pushPose();
                         poseStack.translate(0.0F, 12.0F, 0.0F);
                         this.darkBuffer.bind();
-                        this.darkBuffer.drawWithShader(poseStack.last().pose(), matrix4f2, shaderinstance);
+                        this.darkBuffer.drawWithShader(poseStack.last().pose(), projectionMatrix, shaderinstance);
                         VertexBuffer.unbind();
                         poseStack.popPose();
                     }

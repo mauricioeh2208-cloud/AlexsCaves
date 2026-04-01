@@ -28,7 +28,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class FrogMixin extends Animal {
 
     @Shadow
-    public abstract void setVariant(FrogVariant variant);
+    public abstract void setVariant(Holder<FrogVariant> variant);
 
     protected FrogMixin(EntityType<? extends Animal> animal, Level level) {
         super(animal, level);
@@ -54,7 +54,8 @@ public abstract class FrogMixin extends Animal {
     private void ac_finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficultyIn, MobSpawnType reason, @javax.annotation.Nullable SpawnGroupData spawnDataIn, CallbackInfoReturnable<SpawnGroupData> cir) {
         Holder<Biome> holder = level.getBiome(this.blockPosition());
         if (holder.is(ACBiomeRegistry.PRIMORDIAL_CAVES)) {
-            setVariant(ACFrogRegistry.PRIMORDIAL.get());
+            // In 1.21, setVariant takes Holder<FrogVariant> - DeferredHolder already implements Holder
+            setVariant(ACFrogRegistry.PRIMORDIAL);
         }
     }
 }

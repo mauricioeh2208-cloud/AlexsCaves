@@ -144,7 +144,9 @@ public class CommonEvents {
                         prevLootDropChances.put(slot, dropChanceAccessor.ac_getEquipmentDropChance(slot));
                         dropChanceAccessor.ac_setDropChance(slot, 0.0F);
                     }
-                    dropChanceAccessor.ac_dropCustomDeathLoot(fakeCreeperDamage, 0, false);
+                    if (mob.level() instanceof ServerLevel serverLevel2) {
+                        dropChanceAccessor.ac_dropCustomDeathLoot(serverLevel2, fakeCreeperDamage, false);
+                    }
                     for (EquipmentSlot slot : EquipmentSlot.values()) {
                         dropChanceAccessor.ac_setDropChance(slot, prevLootDropChances.get(slot));
                     }

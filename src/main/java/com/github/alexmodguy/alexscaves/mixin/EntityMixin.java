@@ -1,17 +1,16 @@
 package com.github.alexmodguy.alexscaves.mixin;
 
 import com.github.alexmodguy.alexscaves.server.entity.util.MagnetUtil;
+import com.github.alexmodguy.alexscaves.server.entity.util.MagneticDataAccessors;
 import com.github.alexmodguy.alexscaves.server.entity.util.MagneticEntityAccessor;
 import com.github.alexmodguy.alexscaves.server.item.ACItemRegistry;
 import com.github.alexmodguy.alexscaves.server.item.RainbounceBootsItem;
 import com.github.alexmodguy.alexscaves.server.misc.ACTagRegistry;
 import com.github.alexmodguy.alexscaves.server.potion.ACEffectRegistry;
-import com.github.alexthe666.citadel.CitadelConstants;
 import com.google.common.collect.ImmutableList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.level.Level;
@@ -68,10 +67,6 @@ public abstract class EntityMixin implements MagneticEntityAccessor {
     @Shadow
     public abstract double getY();
 
-    private static final EntityDataAccessor<Float> MAGNET_DELTA_X = SynchedEntityData.defineId(Entity.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Float> MAGNET_DELTA_Y = SynchedEntityData.defineId(Entity.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Float> MAGNET_DELTA_Z = SynchedEntityData.defineId(Entity.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Direction> MAGNET_ATTACHMENT_DIRECTION = SynchedEntityData.defineId(Entity.class, EntityDataSerializers.DIRECTION);
     private float attachChangeProgress = 0F;
     private float prevAttachChangeProgress = 0F;
     private Direction prevAttachDir = Direction.DOWN;
@@ -79,15 +74,6 @@ public abstract class EntityMixin implements MagneticEntityAccessor {
 
     private BlockPos lastStepPos;
     private Vec3 lastBouncePos;
-
-    @Inject(at = @At("TAIL"), remap = CitadelConstants.REMAPREFS, method = "defineSynchedData(Lnet/minecraft/network/syncher/SynchedEntityData$Builder;)V")
-    private void ac_defineSynchedData(SynchedEntityData.Builder builder, CallbackInfo ci) {
-        builder.define(MAGNET_DELTA_X, 0F);
-        builder.define(MAGNET_DELTA_Y, 0F);
-        builder.define(MAGNET_DELTA_Z, 0F);
-        builder.define(MAGNET_ATTACHMENT_DIRECTION, Direction.DOWN);
-    }
-
 
     @Inject(
             method = {"Lnet/minecraft/world/entity/Entity;tick()V"},
@@ -126,7 +112,8 @@ public abstract class EntityMixin implements MagneticEntityAccessor {
             at = @At(value = "TAIL")
     )
     public void ac_onSyncedDataUpdated(EntityDataAccessor<?> entityDataAccessor, CallbackInfo ci) {
-        if (MAGNET_ATTACHMENT_DIRECTION.equals(entityDataAccessor)) {
+        EntityDataAccessor<Direction> accessor = MagneticDataAccessors.getMagnetAttachmentDirection((Entity)(Object)this);
+        if (accessor != null && accessor.equals(entityDataAccessor)) {
             this.prevAttachChangeProgress = 0.0F;
             this.attachChangeProgress = 0.0F;
         }
@@ -258,22 +245,26 @@ public abstract class EntityMixin implements MagneticEntityAccessor {
 
     @Override
     public float getMagneticDeltaX() {
-        return entityData.get(MAGNET_DELTA_X);
+        EntityDataAccessor<Float> accessor = MagneticDataAccessors.getMagnetDeltaX((Entity)(Object)this);
+        return accessor != null ? entityData.get(accessor) : 0F;
     }
 
     @Override
     public float getMagneticDeltaY() {
-        return entityData.get(MAGNET_DELTA_Y);
+        EntityDataAccessor<Float> accessor = MagneticDataAccessors.getMagnetDeltaY((Entity)(Object)this);
+        return accessor != null ? entityData.get(accessor) : 0F;
     }
 
     @Override
     public float getMagneticDeltaZ() {
-        return entityData.get(MAGNET_DELTA_Z);
+        EntityDataAccessor<Float> accessor = MagneticDataAccessors.getMagnetDeltaZ((Entity)(Object)this);
+        return accessor != null ? entityData.get(accessor) : 0F;
     }
 
     @Override
     public Direction getMagneticAttachmentFace() {
-        return entityData.get(MAGNET_ATTACHMENT_DIRECTION);
+        EntityDataAccessor<Direction> accessor = MagneticDataAccessors.getMagnetAttachmentDirection((Entity)(Object)this);
+        return accessor != null ? entityData.get(accessor) : Direction.DOWN;
     }
 
     @Override
@@ -288,22 +279,26 @@ public abstract class EntityMixin implements MagneticEntityAccessor {
 
     @Override
     public void setMagneticDeltaX(float f) {
-        entityData.set(MAGNET_DELTA_X, f);
+        EntityDataAccessor<Float> accessor = MagneticDataAccessors.getMagnetDeltaX((Entity)(Object)this);
+        if (accessor != null) entityData.set(accessor, f);
     }
 
     @Override
     public void setMagneticDeltaY(float f) {
-        entityData.set(MAGNET_DELTA_Y, f);
+        EntityDataAccessor<Float> accessor = MagneticDataAccessors.getMagnetDeltaY((Entity)(Object)this);
+        if (accessor != null) entityData.set(accessor, f);
     }
 
     @Override
     public void setMagneticDeltaZ(float f) {
-        entityData.set(MAGNET_DELTA_Z, f);
+        EntityDataAccessor<Float> accessor = MagneticDataAccessors.getMagnetDeltaZ((Entity)(Object)this);
+        if (accessor != null) entityData.set(accessor, f);
     }
 
     @Override
     public void setMagneticAttachmentFace(Direction dir) {
-        entityData.set(MAGNET_ATTACHMENT_DIRECTION, dir);
+        EntityDataAccessor<Direction> accessor = MagneticDataAccessors.getMagnetAttachmentDirection((Entity)(Object)this);
+        if (accessor != null) entityData.set(accessor, dir);
     }
 
     @Override

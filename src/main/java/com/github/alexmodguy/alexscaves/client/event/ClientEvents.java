@@ -339,7 +339,7 @@ public class ClientEvents {
                     ClientProxy.randomTremorOffsets[2] = rng.nextFloat();
                     ClientProxy.lastTremorTick = player.tickCount;
                 }
-                double intensity = tremorAmount * Minecraft.getInstance().options.screenEffectScale().get();
+                float intensity = (float)(tremorAmount * Minecraft.getInstance().options.screenEffectScale().get());
                 ((CameraAccessor) event.getCamera()).invokeMove(
                         ClientProxy.randomTremorOffsets[0] * 0.2F * intensity,
                         ClientProxy.randomTremorOffsets[1] * 0.2F * intensity,
@@ -349,27 +349,27 @@ public class ClientEvents {
         if (player != null && player.isPassenger() && player.getVehicle() instanceof SubmarineEntity
                 && event.getCamera().isDetached()) {
             CameraAccessor cameraAccessor = (CameraAccessor) event.getCamera();
-            cameraAccessor.invokeMove(-cameraAccessor.invokeGetMaxZoom(4.0D), 0, 0);
+            cameraAccessor.invokeMove(-cameraAccessor.invokeGetMaxZoom(4.0F), 0, 0);
         }
         if (player != null && player.isPassenger() && player.getVehicle() instanceof TremorsaurusEntity
                 && event.getCamera().isDetached()) {
             CameraAccessor cameraAccessor = (CameraAccessor) event.getCamera();
-            cameraAccessor.invokeMove(-cameraAccessor.invokeGetMaxZoom(2.0D), 0, 0);
+            cameraAccessor.invokeMove(-cameraAccessor.invokeGetMaxZoom(2.0F), 0, 0);
         }
         if (player != null && player.isPassenger() && player.getVehicle() instanceof AtlatitanEntity
                 && event.getCamera().isDetached()) {
             CameraAccessor cameraAccessor = (CameraAccessor) event.getCamera();
-            cameraAccessor.invokeMove(-cameraAccessor.invokeGetMaxZoom(4.0D), 0, 0);
+            cameraAccessor.invokeMove(-cameraAccessor.invokeGetMaxZoom(4.0F), 0, 0);
         }
         if (player != null && player.isPassenger() && player.getVehicle() instanceof TremorzillaEntity
                 && event.getCamera().isDetached()) {
             CameraAccessor cameraAccessor = (CameraAccessor) event.getCamera();
-            cameraAccessor.invokeMove(-cameraAccessor.invokeGetMaxZoom(10.0D), 0, 0);
+            cameraAccessor.invokeMove(-cameraAccessor.invokeGetMaxZoom(10.0F), 0, 0);
         }
         if (player != null && player.isPassenger() && player.getVehicle() instanceof GumWormSegmentEntity
                 && event.getCamera().isDetached()) {
             CameraAccessor cameraAccessor = (CameraAccessor) event.getCamera();
-            cameraAccessor.invokeMove(-cameraAccessor.invokeGetMaxZoom(12.0D), 0, 0);
+            cameraAccessor.invokeMove(-cameraAccessor.invokeGetMaxZoom(12.0F), 0, 0);
         }
         if (player != null && player instanceof LivingEntity livingEntity
                 && livingEntity.hasEffect(ACEffectRegistry.STUNNED)) {

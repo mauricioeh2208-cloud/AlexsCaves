@@ -9,20 +9,21 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.Collection;
-
 @Mixin(PotionContents.class)
 public class PotionUtilsMixin {
 
     @Inject(
-            method = {"Lnet/minecraft/world/item/alchemy/PotionUtils;getColor(Ljava/util/Collection;)I"},
+            method = {"Lnet/minecraft/world/item/alchemy/PotionContents;getColor(Ljava/lang/Iterable;)I"},
             remap = true,
             cancellable = true,
             at = @At(value = "HEAD")
     )
-    private static void ac_getColor(Collection<MobEffectInstance> collection, CallbackInfoReturnable<Integer> cir) {
-        if(collection.stream().anyMatch(mobEffectInstance -> mobEffectInstance.getEffect() == ACEffectRegistry.IRRADIATED && mobEffectInstance.getAmplifier() >= IrradiatedEffect.BLUE_LEVEL)){
-            cir.setReturnValue(0X00FFFF);
+    private static void ac_getColor(Iterable<MobEffectInstance> effects, CallbackInfoReturnable<Integer> cir) {
+        for (MobEffectInstance mobEffectInstance : effects) {
+            if (mobEffectInstance.getEffect().is(ACEffectRegistry.IRRADIATED) && mobEffectInstance.getAmplifier() >= IrradiatedEffect.BLUE_LEVEL) {
+                cir.setReturnValue(0X00FFFF);
+                return;
+            }
         }
     }
 }

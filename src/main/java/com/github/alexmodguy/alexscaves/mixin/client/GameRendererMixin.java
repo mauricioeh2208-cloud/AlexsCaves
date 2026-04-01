@@ -8,6 +8,7 @@ import com.github.alexmodguy.alexscaves.client.render.entity.layer.ACPotionEffec
 import com.github.alexmodguy.alexscaves.server.entity.item.SubmarineEntity;
 import com.github.alexmodguy.alexscaves.server.potion.ACEffectRegistry;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -43,8 +44,9 @@ public abstract class GameRendererMixin {
         }
     }
 
+    // In 1.21, render method signature changed: render(FJZ)V -> render(DeltaTracker, Z)V
     @Inject(
-            method = {"Lnet/minecraft/client/renderer/GameRenderer;render(FJZ)V"},
+            method = {"Lnet/minecraft/client/renderer/GameRenderer;render(Lnet/minecraft/client/DeltaTracker;Z)V"},
             remap = true,
             at = @At(
                     value = "INVOKE",
@@ -52,24 +54,30 @@ public abstract class GameRendererMixin {
                     shift = At.Shift.AFTER
             )
     )
-    public void ac_render(float partialTick, long nanos, boolean idk, CallbackInfo ci) {
+    public void ac_render(DeltaTracker deltaTracker, boolean renderLevel, CallbackInfo ci) {
+        float partialTick = deltaTracker.getGameTimeDeltaPartialTick(true);
         ((ClientProxy) AlexsCaves.PROXY).preScreenRender(partialTick);
     }
 
 
+    // In 1.21, renderLevel signature changed: renderLevel(FJPoseStack)V -> renderLevel(DeltaTracker)V
+    // Also renderItemInHand changed: renderItemInHand(PoseStack, Camera, F)V -> renderItemInHand(Camera, F, Matrix4f)V
     @Inject(
-            method = {"Lnet/minecraft/client/renderer/GameRenderer;renderLevel(FJLcom/mojang/blaze3d/vertex/PoseStack;)V"},
+            method = {"Lnet/minecraft/client/renderer/GameRenderer;renderLevel(Lnet/minecraft/client/DeltaTracker;)V"},
             remap = true,
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/GameRenderer;renderItemInHand(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/Camera;F)V",
+                    target = "Lnet/minecraft/client/renderer/GameRenderer;renderItemInHand(Lnet/minecraft/client/Camera;FLorg/joml/Matrix4f;)V",
                     shift = At.Shift.BEFORE
             )
     )
-    public void ac_renderLevel(float partialTicks, long time, PoseStack poseStack, CallbackInfo ci) {
+    public void ac_renderLevel(DeltaTracker deltaTracker, CallbackInfo ci) {
+        float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(true);
         Entity player = Minecraft.getInstance().cameraEntity;
         if (player != null && player.isPassenger() && player.getVehicle() instanceof SubmarineEntity submarine && SubmarineRenderer.isFirstPersonFloodlightsMode(submarine)) {
             Vec3 offset = submarine.getPosition(partialTicks).subtract(player.getEyePosition(partialTicks));
+            // In 1.21, we need to create our own PoseStack since it's no longer passed
+            PoseStack poseStack = new PoseStack();
             poseStack.pushPose();
             poseStack.translate(offset.x, offset.y, offset.z);
             SubmarineRenderer.renderSubFirstPerson(submarine, partialTicks, poseStack, renderBuffers.bufferSource());
@@ -78,17 +86,19 @@ public abstract class GameRendererMixin {
     }
 
     @Inject(
-            method = {"Lnet/minecraft/client/renderer/GameRenderer;renderLevel(FJLcom/mojang/blaze3d/vertex/PoseStack;)V"},
+            method = {"Lnet/minecraft/client/renderer/GameRenderer;renderLevel(Lnet/minecraft/client/DeltaTracker;)V"},
             remap = true,
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/GameRenderer;renderItemInHand(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/Camera;F)V",
+                    target = "Lnet/minecraft/client/renderer/GameRenderer;renderItemInHand(Lnet/minecraft/client/Camera;FLorg/joml/Matrix4f;)V",
                     shift = At.Shift.AFTER
             )
     )
-    public void ac_renderLevelAfterHand(float partialTicks, long time, PoseStack poseStack, CallbackInfo ci) {
+    public void ac_renderLevelAfterHand(DeltaTracker deltaTracker, CallbackInfo ci) {
         if (Minecraft.getInstance().getCameraEntity() instanceof LivingEntity living && living.hasEffect(ACEffectRegistry.BUBBLED) && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
             MultiBufferSource.BufferSource multibuffersource$buffersource = Minecraft.getInstance().renderBuffers().bufferSource();
+            // In 1.21, we need to create our own PoseStack
+            PoseStack poseStack = new PoseStack();
             ACPotionEffectLayer.renderBubbledFirstPerson(poseStack);
             multibuffersource$buffersource.endBatch();
         }

@@ -105,7 +105,6 @@ public class AlexsCaves {
         modEventBus.addListener(this::registerLayerDefinitions);
         modEventBus.addListener(this::registerPayloads);
         modEventBus.addListener(this::registerTicketControllers);
-        NeoForge.EVENT_BUS.register(this);
         NeoForge.EVENT_BUS.register(new CommonEvents());
         ACBlockRegistry.DEF_REG.register(modEventBus);
         ACBlockEntityRegistry.DEF_REG.register(modEventBus);

@@ -19,14 +19,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(Camera.class)
 public abstract class CameraMixin {
 
+    // In 1.21, move() parameters changed from double to float
     @Shadow
-    public abstract void move(double forwards, double up, double side);
+    protected abstract void move(float zoom, float dy, float dx);
 
     @Shadow
     protected abstract void setPosition(Vec3 vec3);
 
+    // In 1.21, getMaxZoom() parameter changed from double to float
     @Shadow
-    protected abstract double getMaxZoom(double p_90567_);
+    private float getMaxZoom(float maxZoom) {
+        return 0;
+    }
 
     @Shadow
     protected abstract void setRotation(float p_90573_, float p_90574_);
@@ -53,7 +57,8 @@ public abstract class CameraMixin {
                 if (mirrored) {
                     this.setRotation(this.yRot + 180.0F, -this.xRot);
                 }
-                this.move(-this.getMaxZoom(4.0D), 0.0D, 0.0D);
+                // In 1.21, move() and getMaxZoom() use float instead of double
+                this.move(-this.getMaxZoom(4.0F), 0.0F, 0.0F);
             }
         }
     }

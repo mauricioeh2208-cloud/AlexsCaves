@@ -12,7 +12,7 @@ import net.minecraft.world.level.Level;
 public class DarkenedAppleItem extends Item {
 
     public DarkenedAppleItem() {
-        super(new Properties().food(ACFoods.DARKENED_APPLE).rarity(ACItemRegistry.RARITY_DEMONIC));
+        super(new Properties().food(ACFoods.DARKENED_APPLE).rarity(ACItemRegistry.getRarityDemonic()));
     }
 
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity livingEntity) {

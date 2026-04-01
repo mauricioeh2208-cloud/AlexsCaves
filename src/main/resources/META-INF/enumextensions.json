@@ -6,7 +6,7 @@
       "constructor": "(ILjava/lang/String;Ljava/util/function/UnaryOperator;)V",
       "parameters": {
         "class": "com/github/alexmodguy/alexscaves/server/item/ACRarityEnumParams",
-        "field": "RARITY_DEMONIC_PROXY"
+        "method": "getDemonicRarityParameter"
       }
     },
     {
@@ -15,7 +15,7 @@
       "constructor": "(ILjava/lang/String;Ljava/util/function/UnaryOperator;)V",
       "parameters": {
         "class": "com/github/alexmodguy/alexscaves/server/item/ACRarityEnumParams",
-        "field": "RARITY_NUCLEAR_PROXY"
+        "method": "getNuclearRarityParameter"
       }
     },
     {
@@ -24,7 +24,7 @@
       "constructor": "(ILjava/lang/String;Ljava/util/function/UnaryOperator;)V",
       "parameters": {
         "class": "com/github/alexmodguy/alexscaves/server/item/ACRarityEnumParams",
-        "field": "RARITY_SWEET_PROXY"
+        "method": "getSweetRarityParameter"
       }
     },
     {
@@ -33,7 +33,7 @@
       "constructor": "(ILjava/lang/String;Ljava/util/function/UnaryOperator;)V",
       "parameters": {
         "class": "com/github/alexmodguy/alexscaves/server/item/ACRarityEnumParams",
-        "field": "RARITY_RAINBOW_PROXY"
+        "method": "getRainbowRarityParameter"
       }
     }
   ]

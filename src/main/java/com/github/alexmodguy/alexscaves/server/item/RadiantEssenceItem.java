@@ -16,7 +16,7 @@ import java.util.List;
 public class RadiantEssenceItem extends Item {
 
     public RadiantEssenceItem() {
-        super(new Item.Properties().rarity(ACItemRegistry.RARITY_RAINBOW));
+        super(new Item.Properties().rarity(ACItemRegistry.getRarityRainbow()));
     }
 
     @Override

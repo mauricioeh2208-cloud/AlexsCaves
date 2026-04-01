@@ -2,9 +2,11 @@ package com.github.alexmodguy.alexscaves.mixin;
 
 import com.github.alexmodguy.alexscaves.server.entity.util.*;
 import com.github.alexmodguy.alexscaves.server.potion.ACEffectRegistry;
+import com.github.alexthe666.citadel.CitadelConstants;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
@@ -58,6 +60,14 @@ public abstract class LivingEntityMixin extends Entity implements HeadRotationEn
 
     public LivingEntityMixin(EntityType<?> entityType, Level level) {
         super(entityType, level);
+    }
+
+    @Inject(at = @At("TAIL"), remap = CitadelConstants.REMAPREFS, method = "defineSynchedData")
+    private void ac_registerMagnetData(SynchedEntityData.Builder builder, CallbackInfo ci) {
+        builder.define(MagneticDataAccessors.LIVING_MAGNET_DELTA_X, 0F);
+        builder.define(MagneticDataAccessors.LIVING_MAGNET_DELTA_Y, 0F);
+        builder.define(MagneticDataAccessors.LIVING_MAGNET_DELTA_Z, 0F);
+        builder.define(MagneticDataAccessors.LIVING_MAGNET_ATTACHMENT_DIRECTION, Direction.DOWN);
     }
 
     @Inject(

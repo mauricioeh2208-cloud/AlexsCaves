@@ -34,7 +34,7 @@ public abstract class ItemFrameRendererMixin {
     private static final ModelResourceLocation GLOW_MAP_FRAME_LOCATION = ModelResourceLocation.vanilla("glow_item_frame", "map=true");
 
     @Shadow
-    protected abstract void renderNameTag(ItemFrame entity, Component tag, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight);
+    protected abstract void renderNameTag(ItemFrame entity, Component tag, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, float partialTick);
 
     @Shadow
     protected abstract boolean shouldShowName(ItemFrame entity);
@@ -59,7 +59,7 @@ public abstract class ItemFrameRendererMixin {
             var renderNameTagEvent = new net.neoforged.neoforge.client.event.RenderNameTagEvent(entity, entity.getDisplayName(), (ItemFrameRenderer) (Object) this, poseStack, bufferSource, packedLight, partialTicks);
             net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(renderNameTagEvent);
             if (renderNameTagEvent.canRender().isTrue() || (renderNameTagEvent.canRender().isDefault() && shouldShowName(entity))) {
-                renderNameTag(entity, renderNameTagEvent.getContent(), poseStack, bufferSource, packedLight);
+                renderNameTag(entity, renderNameTagEvent.getContent(), poseStack, bufferSource, packedLight, partialTicks);
             }
             poseStack.pushPose();
             Direction direction = entity.getDirection();

@@ -16,6 +16,7 @@
     "FoodDataMixin",
     "FrogMixin",
     "IllagerMixin",
+    "ItemEntityMixin",
     "JigsawStructureMixin",
     "KelpFeatureMixin",
     "LivingEntityMixin",
@@ -60,8 +61,6 @@
     "client.SoundEngineAccessor",
     "client.SoundEngineMixin",
     "client.SoundManagerAccessor",
-    "client.SpriteResourceLoaderMixin",
-    "client.SpriteResourceLoaderMixin$PalettedPermutationsAccessor",
     "client.UnderwaterAmbientSoundHandlerMixin",
     "client.UnderwaterAmbientSoundInstancesMixin"
   ],

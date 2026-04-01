@@ -1023,8 +1023,9 @@ public class ClientProxy extends CommonProxy {
         SoundManager soundManager = Minecraft.getInstance().getSoundManager();
         SoundEngine soundEngine = ((SoundManagerAccessor) soundManager).getSoundEngine();
         SoundEngineAccessor engineAccessor = (SoundEngineAccessor) soundEngine;
+        // In 1.21, tickingSounds is a List, not a Map
         return engineAccessor.getQueuedTickableSounds().contains(sound)
-                || engineAccessor.getTickingSounds().containsKey(sound);
+                || engineAccessor.getTickingSounds().contains(sound);
     }
 
     public void playWorldEvent(int messageId, Level level, BlockPos pos) {
